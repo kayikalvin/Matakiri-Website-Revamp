@@ -1,0 +1,23 @@
+{
+  "name": "matakiri-tumaini-centre",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "backend",
+    "admin-dashboard"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:client\" \"npm run dev:admin\"",
+    "dev:client": "cd client && set PORT=3000 && npm start",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:admin": "cd admin-dashboard && npm run dev",
+    "build": "npm run build:client && npm run build:admin",
+    "build:client": "cd client && npm run build",
+    "build:admin": "cd admin-dashboard && npm run build",
+    "start": "cd backend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

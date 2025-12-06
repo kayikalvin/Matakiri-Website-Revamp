@@ -1,0 +1,29 @@
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App'
+import './index.css'
+
+// Log environment info for debugging
+console.log('🚀 Admin Dashboard Starting...')
+console.log('Mode:', import.meta.env.MODE)
+console.log('Base URL:', import.meta.env.BASE_URL)
+
+// Import environment variables from .env.local
+const env = {
+  VITE_APP_NAME: import.meta.env.VITE_APP_NAME || 'Matakiri Tumaini Admin',
+  VITE_API_URL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  VITE_PORT: import.meta.env.VITE_PORT || 3002,
+}
+
+console.log('Environment Variables:', env)
+
+// Store env variables globally for easier access (optional)
+window.APP_ENV = env
+
+const root = ReactDOM.createRoot(document.getElementById('root'))
+
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)
