@@ -11,9 +11,26 @@ const isValidTheme = (theme) => {
   return VALID_THEMES.includes(theme);
 };
 
-// Helper function to apply theme to DOM
+// Helper function to apply theme to DOM (SSR-safe)
 const applyThemeToDOM = (theme) => {
-  document.documentElement.classList.toggle('dark', theme === 'dark');
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }
+};
+
+// Helper function to get from localStorage (SSR-safe)
+const getStoredTheme = () => {
+  if (typeof localStorage !== 'undefined') {
+    return localStorage.getItem('theme');
+  }
+  return null;
+};
+
+// Helper function to set in localStorage (SSR-safe)
+const setStoredTheme = (theme) => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('theme', theme);
+  }
 };
 
 // Theme Provider Component
@@ -22,7 +39,7 @@ export const ThemeProvider = ({ children }) => {
 
   // Load theme from localStorage on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = getStoredTheme();
     if (savedTheme && isValidTheme(savedTheme)) {
       setTheme(savedTheme);
       applyThemeToDOM(savedTheme);
@@ -33,7 +50,7 @@ export const ThemeProvider = ({ children }) => {
         const systemTheme = prefersDark ? 'dark' : 'light';
         setTheme(systemTheme);
         applyThemeToDOM(systemTheme);
-        localStorage.setItem('theme', systemTheme);
+        setStoredTheme(systemTheme);
       }
     }
   }, []);
@@ -42,7 +59,7 @@ export const ThemeProvider = ({ children }) => {
   const toggleTheme = useCallback(() => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
+    setStoredTheme(newTheme);
     applyThemeToDOM(newTheme);
   }, [theme]);
 
@@ -53,7 +70,7 @@ export const ThemeProvider = ({ children }) => {
       return;
     }
     setTheme(mode);
-    localStorage.setItem('theme', mode);
+    setStoredTheme(mode);
     applyThemeToDOM(mode);
   }, []);
 
