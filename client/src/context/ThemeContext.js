@@ -28,10 +28,12 @@ export const ThemeProvider = ({ children }) => {
       applyThemeToDOM(savedTheme);
     } else {
       // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) {
-        setTheme('dark');
-        applyThemeToDOM('dark');
+      if (typeof window !== 'undefined' && window.matchMedia) {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const systemTheme = prefersDark ? 'dark' : 'light';
+        setTheme(systemTheme);
+        applyThemeToDOM(systemTheme);
+        localStorage.setItem('theme', systemTheme);
       }
     }
   }, []);
