@@ -39,7 +39,7 @@ async function debugAuth() {
   // Test 2: Check what users exist
   console.log('\n2. Checking existing users...');
   try {
-    const User = require('./models/User');
+    const User = require('../../models/User');
     const users = await User.find();
     console.log(`✅ Found ${users.length} users in database:`);
     users.forEach(user => {

@@ -12,7 +12,7 @@ async function debugNews() {
     console.log('✅ Connected to MongoDB\n');
 
     // Load News model
-    const News = require('./models/News');
+    const News = require('../../models/News');
     
     // Check what's in the database
     const allNews = await News.find({});
@@ -32,7 +32,7 @@ async function debugNews() {
       
       // Check if the seeder worked
       console.log('\n🔍 Checking if seeder created news...');
-      const User = require('./models/User');
+      const User = require('../../models/User');
       const users = await User.find({});
       console.log(`   Users found: ${users.length}`);
     }
