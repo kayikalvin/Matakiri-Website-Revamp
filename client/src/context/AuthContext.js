@@ -55,6 +55,11 @@ const authReducer = (state, action) => {
         ...state,
         error: action.payload,
       };
+    case 'SET_USER':
+      return {
+        ...state,
+        user: action.payload,
+      };
     default:
       return state;
   }
@@ -76,23 +81,29 @@ export const AuthProvider = ({ children }) => {
   // Check for existing authentication on mount
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('token');
-      const user = localStorage.getItem('user');
+      try {
+        const token = authService.getToken();
+        const storedUser = authService.getUser();
 
-      if (token && user) {
-        try {
-          const parsedUser = JSON.parse(user);
-          dispatch({
-            type: 'LOGIN_SUCCESS',
-            payload: { user: parsedUser, token },
-          });
-        } catch (error) {
-          console.error('Error parsing stored user data:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+        if (token && storedUser) {
+          // Verify token is still valid by getting current user
+          const currentUser = await authService.getCurrentUser();
+          if (currentUser) {
+            dispatch({
+              type: 'LOGIN_SUCCESS',
+              payload: { user: currentUser, token },
+            });
+          } else {
+            // Token invalid, clear storage
+            authService.clearAuth();
+            dispatch({ type: 'SET_LOADING', payload: false });
+          }
+        } else {
           dispatch({ type: 'SET_LOADING', payload: false });
         }
-      } else {
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        authService.clearAuth();
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
@@ -101,21 +112,30 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (credentials) => {
+  const login = async (email, password) => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      const response = await authService.login(credentials);
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: { user: response.user, token: response.token },
-      });
-      return response;
+      const result = await authService.login(email, password);
+      
+      if (result.success) {
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: { user: result.user, token: result.token },
+        });
+        return { success: true, message: result.message };
+      } else {
+        dispatch({
+          type: 'LOGIN_FAILURE',
+          payload: result.message || 'Login failed',
+        });
+        return { success: false, message: result.message };
+      }
     } catch (error) {
       dispatch({
         type: 'LOGIN_FAILURE',
         payload: error.message || 'Login failed',
       });
-      throw error;
+      return { success: false, message: error.message };
     }
   };
 
@@ -123,18 +143,27 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      const response = await authService.register(userData);
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: { user: response.user, token: response.token },
-      });
-      return response;
+      const result = await authService.register(userData);
+      
+      if (result.success) {
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: { user: result.user, token: result.token },
+        });
+        return { success: true, message: result.message };
+      } else {
+        dispatch({
+          type: 'LOGIN_FAILURE',
+          payload: result.message || 'Registration failed',
+        });
+        return { success: false, message: result.message };
+      }
     } catch (error) {
       dispatch({
         type: 'LOGIN_FAILURE',
         payload: error.message || 'Registration failed',
       });
-      throw error;
+      return { success: false, message: error.message };
     }
   };
 
@@ -152,18 +181,26 @@ export const AuthProvider = ({ children }) => {
   // Update profile function
   const updateProfile = async (userData) => {
     try {
-      const response = await authService.updateProfile(userData);
-      dispatch({
-        type: 'UPDATE_PROFILE',
-        payload: response.user,
-      });
-      return response;
+      const result = await authService.updateProfile(userData);
+      if (result.success) {
+        dispatch({
+          type: 'UPDATE_PROFILE',
+          payload: result.user,
+        });
+        return { success: true, message: result.message };
+      } else {
+        dispatch({
+          type: 'SET_ERROR',
+          payload: result.message || 'Profile update failed',
+        });
+        return { success: false, message: result.message };
+      }
     } catch (error) {
       dispatch({
         type: 'SET_ERROR',
         payload: error.message || 'Profile update failed',
       });
-      throw error;
+      return { success: false, message: error.message };
     }
   };
 
@@ -172,13 +209,63 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'SET_ERROR', payload: null });
   };
 
+  // Refresh user data
+  const refreshUser = async () => {
+    try {
+      const currentUser = await authService.getCurrentUser(true);
+      if (currentUser) {
+        dispatch({ type: 'SET_USER', payload: currentUser });
+      }
+    } catch (error) {
+      console.error('Refresh user error:', error);
+    }
+  };
+
+  // Check if user has role
+  const hasRole = (role) => {
+    return state.user && state.user.role === role;
+  };
+
+  // Check if user has any of the roles
+  const hasAnyRole = (roles) => {
+    return state.user && roles.includes(state.user.role);
+  };
+
+  // Check if user can access admin
+  const canAccessAdmin = () => {
+    return hasAnyRole(['admin', 'editor']);
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!state.user?.name) return 'U';
+    
+    return state.user.name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    return state.user?.name || 'User';
+  };
+
   const value = {
     ...state,
     login,
     register,
     logout,
     updateProfile,
+    refreshUser,
     clearError,
+    hasRole,
+    hasAnyRole,
+    canAccessAdmin,
+    getUserInitials,
+    getUserDisplayName,
   };
 
   return (
