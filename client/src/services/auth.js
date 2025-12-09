@@ -1,4 +1,4 @@
-import api, { authAPI } from './api';
+import api, { authAPI } from './api.js';
 
 class AuthService {
   // Login user

@@ -12,16 +12,16 @@ import { FaLightbulb } from 'react-icons/fa6';
 
 const HeroSection = () => {
   return (
-    <section className="relative bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950 text-white overflow-hidden min-h-[80vh]">
+    <section className="relative bg-gradient-to-br from-primary-500 via-primary-100 to-accent-100 text-white overflow-hidden min-h-[80vh]">
       {/* Animated Background Elements - Enhanced Blue Theme */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Main gradient background with blue tones */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-950"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-primary-100 to-accent-100"></div>
         
         {/* Animated gradient mesh */}
         <div className="absolute inset-0 opacity-40">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent"></div>
-          <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-cyan-400/10 via-transparent to-transparent"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-200/20 via-transparent to-transparent"></div>
+          <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-accent-200/20 via-transparent to-transparent"></div>
         </div>
 
         {/* Floating gradient orbs - Blue theme */}
@@ -36,7 +36,7 @@ const HeroSection = () => {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute top-1/4 -left-20 w-96 h-96 bg-gradient-to-r from-blue-500/20 to-cyan-400/20 rounded-full blur-3xl"
+          className="absolute top-1/4 -left-20 w-96 h-96 bg-gradient-to-r from-primary-100/30 to-accent-100/30 rounded-full blur-3xl"
         ></motion.div>
         
         <motion.div 
@@ -51,7 +51,7 @@ const HeroSection = () => {
             ease: "easeInOut",
             delay: 2
           }}
-          className="absolute bottom-1/4 -right-20 w-80 h-80 bg-gradient-to-l from-indigo-500/25 to-blue-400/20 rounded-full blur-3xl"
+          className="absolute bottom-1/4 -right-20 w-80 h-80 bg-gradient-to-l from-primary-200/30 to-accent-200/30 rounded-full blur-3xl"
         ></motion.div>
 
         {/* Subtle grid overlay */}
@@ -102,15 +102,15 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-800/30 to-blue-900/30 backdrop-blur-lg rounded-full px-6 py-3 border border-blue-400/30 shadow-lg"
+              className="inline-flex items-center space-x-3 bg-gradient-to-r from-primary-100/40 to-accent-100/40 backdrop-blur-lg rounded-full px-6 py-3 border border-primary-200 shadow-lg"
             >
-              <div className="p-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full shadow-md">
+              <div className="p-2 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full shadow-md">
                 <FaHandsHelping className="text-white text-sm" />
               </div>
               <div>
                 <span className="text-sm font-semibold text-white">Since 2010</span>
-                <span className="mx-2 text-blue-300/60">•</span>
-                <span className="text-sm text-blue-100/90">Transforming Communities</span>
+                <span className="mx-2 text-primary-300">•</span>
+                <span className="text-sm text-primary-100">Transforming Communities</span>
               </div>
             </motion.div>
 
@@ -118,13 +118,13 @@ const HeroSection = () => {
             <div className="space-y-4">
               <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold font-display leading-tight">
                 Empowering Communities
-                <span className="block mt-2 bg-gradient-to-r from-white via-cyan-200 to-blue-300 bg-clip-text text-transparent">
+                <span className="block mt-2 bg-gradient-to-r from-primary-500 via-accent-500 to-primary-200 bg-clip-text text-transparent">
                   Through AI & Innovation
                 </span>
               </h1>
               
-              <p className="text-xl md:text-2xl text-blue-100/95 leading-relaxed max-w-2xl">
-                At <span className="font-semibold text-cyan-300">Matakiri Tumaini Centre</span>, we blend humanitarian compassion with cutting-edge technology to create sustainable solutions that uplift communities across Kenya.
+              <p className="text-xl md:text-2xl text-primary-100 leading-relaxed max-w-2xl">
+                At <span className="font-semibold text-accent-500">Matakiri Tumaini Centre</span>, we blend humanitarian compassion with cutting-edge technology to create sustainable solutions that uplift communities across Kenya.
               </p>
             </div>
 
@@ -137,14 +137,14 @@ const HeroSection = () => {
             >
               <Link
                 to="/programs"
-                className="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-2xl hover:shadow-cyan-600/40 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                className="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-2xl hover:shadow-primary-500/40 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
               >
                 <span className="relative z-10 flex items-center">
                   Explore Our Impact
                   <FaArrowRight className="ml-3 group-hover:translate-x-2 transition-transform" />
                 </span>
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-cyan-700 to-blue-800"
+                  className="absolute inset-0 bg-gradient-to-r from-accent-500 to-primary-500"
                   initial={{ x: "-100%" }}
                   whileHover={{ x: 0 }}
                   transition={{ duration: 0.3 }}
@@ -153,7 +153,7 @@ const HeroSection = () => {
               
               <Link
                 to="/ai-projects"
-                className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-800/40 to-blue-900/40 backdrop-blur-sm text-white font-semibold rounded-xl border-2 border-blue-400/30 hover:border-cyan-400/50 hover:bg-blue-800/50 transition-all duration-300 hover:-translate-y-1 shadow-lg"
+                className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary-100/40 to-accent-100/40 backdrop-blur-sm text-primary-700 font-semibold rounded-xl border-2 border-primary-200 hover:border-accent-500 hover:bg-primary-100/60 transition-all duration-300 hover:-translate-y-1 shadow-lg"
               >
                 <FaRocket className="mr-3 group-hover:rotate-12 transition-transform" />
                 <span>AI Initiatives</span>

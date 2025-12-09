@@ -1,65 +1,41 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { FaRobot, FaBrain, FaChartLine, FaMobileAlt, FaDatabase, FaShieldAlt } from 'react-icons/fa';
+import { projectsAPI } from '../services/api';
+
+
+// Helper to map backend category to icon
+const getProjectIcon = (category) => {
+  switch (category) {
+    case "Agriculture": return <FaBrain className="text-3xl" />;
+    case "Health": return <FaShieldAlt className="text-3xl" />;
+    case "Environment": return <FaChartLine className="text-3xl" />;
+    case "Education": return <FaRobot className="text-3xl" />;
+    case "Market": return <FaDatabase className="text-3xl" />;
+    case "Mobile": return <FaMobileAlt className="text-3xl" />;
+    default: return <FaRobot className="text-3xl" />;
+  }
+};
 
 const AIProjects = () => {
-  const aiProjects = [
-    {
-      id: 1,
-      title: "AI-Powered Agricultural Advisor",
-      description: "Machine learning system that provides personalized farming recommendations based on soil data, weather patterns, and crop types.",
-      icon: <FaBrain className="text-3xl" />,
-      status: "Active",
-      impact: "Increased crop yield by 40% for 200+ farmers",
-      technologies: ["TensorFlow", "Python", "React Native"]
-    },
-    {
-      id: 2,
-      title: "Healthcare Diagnostic Tool",
-      description: "AI system for early detection of common diseases using image recognition and symptom analysis.",
-      icon: <FaShieldAlt className="text-3xl" />,
-      status: "Pilot Phase",
-      impact: "Screened 500+ patients in remote areas",
-      technologies: ["PyTorch", "FastAPI", "Flutter"]
-    },
-    {
-      id: 3,
-      title: "Smart Water Management",
-      description: "IoT and AI system for monitoring water quality and predicting maintenance needs in community water points.",
-      icon: <FaChartLine className="text-3xl" />,
-      status: "Active",
-      impact: "Reduced water wastage by 30%",
-      technologies: ["IoT Sensors", "Node.js", "MongoDB"]
-    },
-    {
-      id: 4,
-      title: "Educational Chatbot",
-      description: "AI chatbot providing educational content and answering questions in local languages for students.",
-      icon: <FaRobot className="text-3xl" />,
-      status: "Development",
-      impact: "Supporting 1000+ students",
-      technologies: ["OpenAI API", "Python", "React"]
-    },
-    {
-      id: 5,
-      title: "Market Price Predictor",
-      description: "Predicts agricultural commodity prices using historical data and market trends to help farmers get better prices.",
-      icon: <FaDatabase className="text-3xl" />,
-      status: "Active",
-      impact: "Improved income for 300+ farmers",
-      technologies: ["Pandas", "Scikit-learn", "Django"]
-    },
-    {
-      id: 6,
-      title: "Mobile Health Records",
-      description: "Secure mobile app for managing patient records with AI-powered insights for healthcare workers.",
-      icon: <FaMobileAlt className="text-3xl" />,
-      status: "Pilot Phase",
-      impact: "Digitized 2000+ health records",
-      technologies: ["React Native", "Node.js", "PostgreSQL"]
-    }
-  ];
+  const [aiProjects, setAIProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    projectsAPI.getAll()
+      .then(data => {
+        const backendProjects = (data && data.data) ? data.data : [];
+        const projects = backendProjects.map(project => ({
+          ...project,
+          icon: getProjectIcon(project.category)
+        }));
+        setAIProjects(projects);
+      })
+      .catch(() => setError('Failed to load projects'))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <>
@@ -94,68 +70,74 @@ const AIProjects = () => {
         {/* Projects Grid */}
         <section className="py-16">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {aiProjects.map((project, index) => (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{ y: -5 }}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
-                >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="p-3 bg-primary-50 rounded-lg text-primary-600">
-                        {project.icon}
+            {loading ? (
+              <div className="text-center py-10 text-lg text-gray-500">Loading projects...</div>
+            ) : error ? (
+              <div className="text-center py-10 text-lg text-red-500">{error}</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {aiProjects.map((project, index) => (
+                  <motion.div
+                    key={project.id || project._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    whileHover={{ y: -5 }}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="p-3 bg-primary-50 rounded-lg text-primary-600">
+                          {project.icon}
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          project.status === 'Active' 
+                            ? 'bg-green-100 text-green-800'
+                            : project.status === 'Pilot Phase'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {project.status}
+                        </span>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        project.status === 'Active' 
-                          ? 'bg-green-100 text-green-800'
-                          : project.status === 'Pilot Phase'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {project.status}
-                      </span>
-                    </div>
-                    
-                    <h3 className="text-xl font-bold text-gray-800 mb-3">
-                      {project.title}
-                    </h3>
-                    
-                    <p className="text-gray-600 mb-4">
-                      {project.description}
-                    </p>
-                    
-                    <div className="mb-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Impact</h4>
-                      <p className="text-primary-600 font-medium">{project.impact}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Technologies</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {project.technologies.map((tech) => (
-                          <span
-                            key={tech}
-                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium"
-                          >
-                            {tech}
-                          </span>
-                        ))}
+                      
+                      <h3 className="text-xl font-bold text-gray-800 mb-3">
+                        {project.title}
+                      </h3>
+                      
+                      <p className="text-gray-600 mb-4">
+                        {project.description}
+                      </p>
+                      
+                      <div className="mb-4">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Impact</h4>
+                        <p className="text-primary-600 font-medium">{project.impact}</p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Technologies</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {(project.technologies || []).map((tech) => (
+                            <span
+                              key={tech}
+                              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="px-6 py-4 bg-gray-50 border-t">
-                    <button className="w-full py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors">
-                      View Project Details
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                    
+                    <div className="px-6 py-4 bg-gray-50 border-t">
+                      <button className="w-full py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors">
+                        View Project Details
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

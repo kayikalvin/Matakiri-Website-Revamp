@@ -183,9 +183,16 @@ exports.getFeaturedProjects = asyncHandler(async (req, res, next) => {
 // @route   GET /api/projects/ai
 // @access  Public
 exports.getAIProjects = asyncHandler(async (req, res, next) => {
-  const projects = await Project.find({ isAIPowered: true })
+  const projectsRaw = await Project.find({ isAIPowered: true })
     .populate('partners', 'name logo')
-    .select('title description images aiComponents status');
+    .select('title description images aiComponents status startDate');
+
+  // Map startDate to launchDate for frontend compatibility
+  const projects = projectsRaw.map(p => {
+    const obj = p.toObject();
+    obj.launchDate = obj.startDate || null;
+    return obj;
+  });
 
   res.status(200).json({
     success: true,

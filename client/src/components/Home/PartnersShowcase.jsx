@@ -1,16 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaHandshake } from 'react-icons/fa';
 
 const PartnersShowcase = () => {
-  const partners = [
-    { name: 'UNICEF', logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' },
-    { name: 'Tech for Good', logo: 'https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' },
-    { name: 'University of Nairobi', logo: 'https://images.unsplash.com/photo-1562774053-701939374585?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' },
-    { name: 'Ministry of Health', logo: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' },
-    { name: 'Safaricom', logo: 'https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' },
-    { name: 'IBM Research', logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' }
-  ];
+  const [partners, setPartners] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchPartners = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data } = await require('../../services/api').partnersAPI.getAll();
+        setPartners(data || []);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch partners.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPartners();
+  }, []);
 
   return (
     <section className="py-16 bg-white">
@@ -32,26 +43,35 @@ const PartnersShowcase = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
-          {partners.map((partner, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center justify-center p-6 bg-gray-50 rounded-xl hover:bg-white hover:shadow-md transition-all"
-            >
-              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-sm">
-                <img
-                  src={partner.logo}
-                  alt={partner.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <div className="mt-4 text-gray-500">Loading partners...</div>
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-8">{error}</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+            {partners.map((partner, index) => (
+              <motion.div
+                key={partner._id || partner.id || index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+                className="flex items-center justify-center p-6 bg-gray-50 rounded-xl hover:bg-white hover:shadow-md transition-all"
+              >
+                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-sm">
+                  <img
+                    src={partner.logo || partner.image}
+                    alt={partner.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0 }}

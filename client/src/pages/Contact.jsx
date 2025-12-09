@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { contactAPI } from '../services/api';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock, FaPaperPlane } from 'react-icons/fa';
@@ -10,6 +11,9 @@ const Contact = () => {
     subject: '',
     message: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -18,12 +22,20 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
-    // Reset form
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setLoading(true);
+    setSuccess('');
+    setError('');
+    try {
+      await contactAPI.submit(formData);
+      setSuccess('Your message has been sent successfully!');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (err) {
+      setError(err?.message || 'Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const contactInfo = [
@@ -96,6 +108,8 @@ const Contact = () => {
               >
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Send us a Message</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {success && <div className="text-green-600 text-center font-medium">{success}</div>}
+                  {error && <div className="text-red-600 text-center font-medium">{error}</div>}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -160,10 +174,11 @@ const Contact = () => {
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2"
+                    className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-60"
+                    disabled={loading}
                   >
                     <FaPaperPlane />
-                    <span>Send Message</span>
+                    <span>{loading ? 'Sending...' : 'Send Message'}</span>
                   </button>
                 </form>
               </motion.div>

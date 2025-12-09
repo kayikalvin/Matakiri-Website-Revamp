@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FaUsers, 
@@ -12,64 +12,85 @@ import {
 } from 'react-icons/fa';
 
 const StatsSection = () => {
-  const stats = [
-    { 
-      number: '500+', 
-      label: 'Beneficiaries', 
-      icon: <FaUsers className="w-6 h-6" />,
-      color: 'from-cyan-500 to-blue-500',
-      description: 'Lives transformed through our initiatives'
-    },
-    { 
-      number: '25+', 
-      label: 'Projects Completed', 
-      icon: <FaProjectDiagram className="w-6 h-6" />,
-      color: 'from-emerald-500 to-green-500',
-      description: 'Successful community projects delivered'
-    },
-    { 
-      number: '10+', 
-      label: 'Communities Served', 
-      icon: <FaMapMarkerAlt className="w-6 h-6" />,
-      color: 'from-amber-500 to-orange-500',
-      description: 'Regions across Kenya empowered'
-    },
-    { 
-      number: '5+', 
-      label: 'Years of Impact', 
-      icon: <FaCalendarAlt className="w-6 h-6" />,
-      color: 'from-purple-500 to-pink-500',
-      description: 'Consistent community development'
-    },
-    { 
-      number: '15+', 
-      label: 'AI Solutions', 
-      icon: <FaChartLine className="w-6 h-6" />,
-      color: 'from-blue-500 to-indigo-500',
-      description: 'Tech innovations implemented'
-    },
-    { 
-      number: '100%', 
-      label: 'Community Driven', 
-      icon: <FaHeartbeat className="w-6 h-6" />,
-      color: 'from-rose-500 to-red-500',
-      description: 'Locally-led initiatives'
-    },
-    { 
-      number: '3', 
-      label: 'Countries', 
-      icon: <FaGlobeAfrica className="w-6 h-6" />,
-      color: 'from-teal-500 to-cyan-500',
-      description: 'Regional impact across East Africa'
-    },
-    { 
-      number: '50+', 
-      label: 'Green Projects', 
-      icon: <FaLeaf className="w-6 h-6" />,
-      color: 'from-lime-500 to-emerald-500',
-      description: 'Sustainable environmental solutions'
-    },
-  ];
+  const [stats, setStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Use projectsAPI.getStats() for backend stats
+        const { data } = await require('../../services/api').projectsAPI.getStats();
+        // Map backend stats to UI cards
+        const mappedStats = [
+          {
+            number: data?.totalBeneficiaries ? `${data.totalBeneficiaries}+` : '0',
+            label: 'Beneficiaries',
+            icon: <FaUsers className="w-6 h-6" />,
+            color: 'from-cyan-500 to-blue-500',
+            description: 'Lives transformed through our initiatives',
+          },
+          {
+            number: data?.totalProjects ? `${data.totalProjects}+` : '0',
+            label: 'Projects Completed',
+            icon: <FaProjectDiagram className="w-6 h-6" />,
+            color: 'from-emerald-500 to-green-500',
+            description: 'Successful community projects delivered',
+          },
+          {
+            number: data?.communitiesServed ? `${data.communitiesServed}+` : '0',
+            label: 'Communities Served',
+            icon: <FaMapMarkerAlt className="w-6 h-6" />,
+            color: 'from-amber-500 to-orange-500',
+            description: 'Regions across Kenya empowered',
+          },
+          {
+            number: data?.yearsOfImpact ? `${data.yearsOfImpact}+` : '0',
+            label: 'Years of Impact',
+            icon: <FaCalendarAlt className="w-6 h-6" />,
+            color: 'from-purple-500 to-pink-500',
+            description: 'Consistent community development',
+          },
+          {
+            number: data?.aiSolutions ? `${data.aiSolutions}+` : '0',
+            label: 'AI Solutions',
+            icon: <FaChartLine className="w-6 h-6" />,
+            color: 'from-blue-500 to-indigo-500',
+            description: 'Tech innovations implemented',
+          },
+          {
+            number: data?.communityDriven ? `${data.communityDriven}%` : '100%',
+            label: 'Community Driven',
+            icon: <FaHeartbeat className="w-6 h-6" />,
+            color: 'from-rose-500 to-red-500',
+            description: 'Locally-led initiatives',
+          },
+          {
+            number: data?.countries ? `${data.countries}` : '1',
+            label: 'Countries',
+            icon: <FaGlobeAfrica className="w-6 h-6" />,
+            color: 'from-teal-500 to-cyan-500',
+            description: 'Regional impact across East Africa',
+          },
+          {
+            number: data?.greenProjects ? `${data.greenProjects}+` : '0',
+            label: 'Green Projects',
+            icon: <FaLeaf className="w-6 h-6" />,
+            color: 'from-lime-500 to-emerald-500',
+            description: 'Sustainable environmental solutions',
+          },
+        ];
+        setStats(mappedStats);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch stats.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
   return (
     <section className="relative pb-20 bg-gradient-to-b from-white to-blue-50 overflow-hidden">
@@ -113,148 +134,139 @@ const StatsSection = () => {
           </p>
         </motion.div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {stats.slice(0, 4).map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ 
-                y: -10,
-                scale: 1.05,
-                transition: { duration: 0.2 }
-              }}
-              className="relative group"
-            >
-              {/* Card */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100 
-                           hover:shadow-2xl hover:border-blue-200 transition-all duration-300 
-                           hover:bg-gradient-to-br from-white to-blue-50/50">
-                
-                {/* Icon with gradient background */}
-                <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${stat.color} mb-4 
-                             group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
-                  <div className="text-white">
-                    {stat.icon}
-                  </div>
-                </div>
-
-                {/* Stat Number with counting animation */}
-                <motion.div 
-                  className="text-4xl md:text-5xl font-bold text-gray-900 mb-2"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
+        {/* Stats Grid (Backend) */}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <div className="mt-4 text-gray-500">Loading stats...</div>
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-8">{error}</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {stats.slice(0, 4).map((stat, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ 
+                    y: -10,
+                    scale: 1.05,
+                    transition: { duration: 0.2 }
+                  }}
+                  className="relative group"
                 >
-                  {stat.number}
-                </motion.div>
-
-                {/* Label */}
-                <div className="text-lg font-semibold text-gray-800 mb-2">
-                  {stat.label}
-                </div>
-
-                {/* Description */}
-                <div className="text-sm text-gray-600">
-                  {stat.description}
-                </div>
-
-                {/* Animated underline */}
-                <div className="absolute bottom-4 left-6 right-6 h-0.5 bg-gradient-to-r from-transparent via-gray-200 to-transparent 
-                             group-hover:via-blue-400 transition-all duration-300"></div>
-
-                {/* Decorative corner */}
-                <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-blue-200 rounded-tr-2xl 
-                             opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </div>
-
-              {/* Floating particles */}
-              <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-                {[...Array(3)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute w-1 h-1 bg-blue-300/30 rounded-full"
-                    style={{
-                      left: `${20 + i * 30}%`,
-                      top: `${20 + i * 20}%`,
-                    }}
-                    animate={{
-                      y: [0, -10, 0],
-                      opacity: [0, 1, 0],
-                    }}
-                    transition={{
-                      duration: 2 + Math.random() * 2,
-                      repeat: Infinity,
-                      delay: Math.random() * 2,
-                    }}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Additional Stats (2x2 Grid) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.slice(4, 8).map((stat, index) => (
-            <motion.div
-              key={index + 4}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
-              className="bg-gradient-to-br from-white/90 to-blue-50/50 backdrop-blur-sm 
-                       rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl 
-                       transition-all duration-300 group"
-            >
-              <div className="flex items-start space-x-4">
-                {/* Icon */}
-                <div className={`p-3 rounded-lg bg-gradient-to-r ${stat.color} 
-                             group-hover:scale-110 transition-transform duration-300`}>
-                  <div className="text-white">
-                    {stat.icon}
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1">
-                  <div className="text-3xl font-bold text-gray-900 mb-1">
-                    {stat.number}
-                  </div>
-                  <div className="text-base font-semibold text-gray-800 mb-1">
-                    {stat.label}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {stat.description}
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress bar for some stats */}
-              {(stat.label === 'AI Solutions' || stat.label === 'Green Projects') && (
-                <div className="mt-4">
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <motion.div
-                      className={`h-full rounded-full bg-gradient-to-r ${stat.color}`}
-                      initial={{ width: 0 }}
-                      whileInView={{ width: stat.label === 'AI Solutions' ? '85%' : '90%' }}
+                  {/* Card */}
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100 
+                               hover:shadow-2xl hover:border-blue-200 transition-all duration-300 
+                               hover:bg-gradient-to-br from-white to-blue-50/50">
+                    {/* Icon with gradient background */}
+                    <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${stat.color} mb-4 
+                                 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+                      <div className="text-white">
+                        {stat.icon}
+                      </div>
+                    </div>
+                    <motion.div 
+                      className="text-4xl md:text-5xl font-bold text-gray-900 mb-2"
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 1.5, delay: 0.5 }}
-                    />
+                      transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                    >
+                      {stat.number}
+                    </motion.div>
+                    <div className="text-lg font-semibold text-gray-800 mb-2">
+                      {stat.label}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {stat.description}
+                    </div>
+                    <div className="absolute bottom-4 left-6 right-6 h-0.5 bg-gradient-to-r from-transparent via-gray-200 to-transparent 
+                                 group-hover:via-blue-400 transition-all duration-300"></div>
+                    <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-blue-200 rounded-tr-2xl 
+                                 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>Growth</span>
-                    <span>{stat.label === 'AI Solutions' ? '+35%' : '+40%'}</span>
+                  <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+                    {[...Array(3)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className="absolute w-1 h-1 bg-blue-300/30 rounded-full"
+                        style={{
+                          left: `${20 + i * 30}%`,
+                          top: `${20 + i * 20}%`,
+                        }}
+                        animate={{
+                          y: [0, -10, 0],
+                          opacity: [0, 1, 0],
+                        }}
+                        transition={{
+                          duration: 2 + Math.random() * 2,
+                          repeat: Infinity,
+                          delay: Math.random() * 2,
+                        }}
+                      />
+                    ))}
                   </div>
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </div>
+                </motion.div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {stats.slice(4, 8).map((stat, index) => (
+                <motion.div
+                  key={index + 4}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                  className="bg-gradient-to-br from-white/90 to-blue-50/50 backdrop-blur-sm 
+                           rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl 
+                           transition-all duration-300 group"
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className={`p-3 rounded-lg bg-gradient-to-r ${stat.color} 
+                                 group-hover:scale-110 transition-transform duration-300`}>
+                      <div className="text-white">
+                        {stat.icon}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-3xl font-bold text-gray-900 mb-1">
+                        {stat.number}
+                      </div>
+                      <div className="text-base font-semibold text-gray-800 mb-1">
+                        {stat.label}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {stat.description}
+                      </div>
+                    </div>
+                  </div>
+                  {(stat.label === 'AI Solutions' || stat.label === 'Green Projects') && (
+                    <div className="mt-4">
+                      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <motion.div
+                          className={`h-full rounded-full bg-gradient-to-r ${stat.color}`}
+                          initial={{ width: 0 }}
+                          whileInView={{ width: stat.label === 'AI Solutions' ? '85%' : '90%' }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 1.5, delay: 0.5 }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>Growth</span>
+                        <span>{stat.label === 'AI Solutions' ? '+35%' : '+40%'}</span>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Call to Action */}
         <motion.div

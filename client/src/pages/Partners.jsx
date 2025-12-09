@@ -1,121 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { FaHandshake, FaGlobe, FaUniversity, FaIndustry, FaLeaf, FaHeart } from 'react-icons/fa';
+import { partnersAPI } from '../services/api';
+import PartnerCard from '../components/shared/PartnerCard';
+import LoadingSpinner from '../components/Common/LoadingSpinner.jsx';
 
 const Partners = () => {
+  const [partners, setPartners] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Optionally, you can fetch partner types from backend if available, else keep static
   const partnerTypes = [
-    {
-      id: 'corporate',
-      name: 'Corporate Partners',
-      icon: <FaIndustry />,
-      description: 'Business organizations supporting our initiatives',
-      count: 8
-    },
-    {
-      id: 'ngo',
-      name: 'NGO Partners',
-      icon: <FaGlobe />,
-      description: 'Non-governmental organizations collaborating on projects',
-      count: 12
-    },
-    {
-      id: 'academic',
-      name: 'Academic Institutions',
-      icon: <FaUniversity />,
-      description: 'Universities and research centers',
-      count: 6
-    },
-    {
-      id: 'government',
-      name: 'Government Agencies',
-      icon: <FaLeaf />,
-      description: 'Local and national government bodies',
-      count: 4
-    },
-    {
-      id: 'community',
-      name: 'Community Organizations',
-      icon: <FaHeart />,
-      description: 'Local community-based organizations',
-      count: 15
-    }
+    { id: 'corporate', name: 'Corporate Partners', icon: <FaIndustry /> },
+    { id: 'ngo', name: 'NGO Partners', icon: <FaGlobe /> },
+    { id: 'academic', name: 'Academic Institutions', icon: <FaUniversity /> },
+    { id: 'government', name: 'Government Agencies', icon: <FaLeaf /> },
+    { id: 'community', name: 'Community Organizations', icon: <FaHeart /> },
   ];
 
-  const partners = [
-    {
-      id: 1,
-      name: 'Tech for Good Foundation',
-      type: 'corporate',
-      logo: 'https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-      description: 'Providing technology infrastructure and AI expertise',
-      partnership: 'Since 2019',
-      focus: 'AI Innovation, Technology'
-    },
-    {
-      id: 2,
-      name: 'University of Nairobi',
-      type: 'academic',
-      logo: 'https://images.unsplash.com/photo-1562774053-701939374585?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-      description: 'Research collaboration and student internship programs',
-      partnership: 'Since 2018',
-      focus: 'Research, Education'
-    },
-    {
-      id: 3,
-      name: 'Kenya Ministry of Health',
-      type: 'government',
-      logo: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-      description: 'Public health initiatives and community healthcare',
-      partnership: 'Since 2017',
-      focus: 'Healthcare, Public Policy'
-    },
-    {
-      id: 4,
-      name: 'Green Earth Alliance',
-      type: 'ngo',
-      logo: 'https://images.unsplash.com/photo-1611273426858-450d8e3c9fce?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-      description: 'Environmental conservation and sustainable agriculture',
-      partnership: 'Since 2020',
-      focus: 'Environment, Agriculture'
-    },
-    {
-      id: 5,
-      name: 'Safaricom Foundation',
-      type: 'corporate',
-      logo: 'https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-      description: 'Digital innovation and community development funding',
-      partnership: 'Since 2016',
-      focus: 'Technology, Funding'
-    },
-    {
-      id: 6,
-      name: 'UNICEF Kenya',
-      type: 'ngo',
-      logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-      description: 'Child welfare and education programs',
-      partnership: 'Since 2015',
-      focus: 'Child Welfare, Education'
-    },
-    {
-      id: 7,
-      name: 'IBM Research Africa',
-      type: 'corporate',
-      logo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-      description: 'AI research and development partnership',
-      partnership: 'Since 2021',
-      focus: 'AI Research, Innovation'
-    },
-    {
-      id: 8,
-      name: 'Matakiri Community Council',
-      type: 'community',
-      logo: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80',
-      description: 'Local community leadership and coordination',
-      partnership: 'Since 2010',
-      focus: 'Community Development'
-    }
-  ];
+  useEffect(() => {
+    const fetchPartners = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await partnersAPI.getAll();
+        setPartners(response.data || []);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch partners.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPartners();
+  }, []);
+
+  // Count partners by type for display
+  const typeCounts = partnerTypes.reduce((acc, type) => {
+    acc[type.id] = partners.filter(p => p.type === type.id).length;
+    return acc;
+  }, {});
 
   return (
     <>
@@ -212,13 +137,10 @@ const Partners = () => {
                   className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow"
                 >
                   <div className="inline-flex items-center justify-center w-14 h-14 bg-primary-100 text-primary-600 rounded-full mb-4">
-                    <div className="text-xl">
-                      {type.icon}
-                    </div>
+                    <div className="text-xl">{type.icon}</div>
                   </div>
                   <h3 className="font-semibold text-gray-800 mb-2">{type.name}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{type.description}</p>
-                  <div className="text-primary-600 font-bold">{type.count} Partners</div>
+                  <div className="text-primary-600 font-bold">{typeCounts[type.id] || 0} Partners</div>
                 </motion.div>
               ))}
             </div>
@@ -242,58 +164,17 @@ const Partners = () => {
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {partners.map((partner, index) => (
-                <motion.div
-                  key={partner.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{ y: -5 }}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow"
-                >
-                  {/* Logo */}
-                  <div className="h-40 bg-gray-50 flex items-center justify-center p-6">
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md">
-                      <img
-                        src={partner.logo}
-                        alt={partner.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Details */}
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">
-                      {partner.name}
-                    </h3>
-                    
-                    <div className="flex items-center mb-3">
-                      <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded mr-2">
-                        {partnerTypes.find(t => t.id === partner.type)?.name}
-                      </span>
-                      <span className="text-xs px-2 py-1 bg-primary-100 text-primary-600 rounded">
-                        {partner.partnership}
-                      </span>
-                    </div>
-
-                    <p className="text-gray-600 text-sm mb-4">
-                      {partner.description}
-                    </p>
-
-                    <div className="pt-4 border-t">
-                      <div className="text-sm text-gray-700 font-medium mb-1">
-                        Focus Areas:
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {partner.focus}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            {loading ? (
+              <LoadingSpinner />
+            ) : error ? (
+              <div className="text-center text-red-500 py-8">{error}</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {partners.map((partner, index) => (
+                  <PartnerCard key={partner._id || partner.id || index} partner={partner} />
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

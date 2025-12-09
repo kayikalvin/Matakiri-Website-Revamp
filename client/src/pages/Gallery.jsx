@@ -1,101 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { FaImage, FaVideo, FaFilter, FaTimes, FaPlay, FaDownload } from 'react-icons/fa';
+import { galleryAPI } from '../services/api';
 
 const Gallery = () => {
+
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedImage, setSelectedImage] = useState(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [categories, setCategories] = useState([{ id: 'all', name: 'All Media', count: 0 }]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const categories = [
-    { id: 'all', name: 'All Media', count: 45 },
-    { id: 'projects', name: 'Projects', count: 18 },
-    { id: 'community', name: 'Community', count: 12 },
-    { id: 'events', name: 'Events', count: 8 },
-    { id: 'ai', name: 'AI Initiatives', count: 5 },
-    { id: 'team', name: 'Team Activities', count: 7 }
-  ];
+  useEffect(() => {
+    setLoading(true);
+    setError('');
+    Promise.all([
+      galleryAPI.getAll(),
+      galleryAPI.getAlbums()
+    ])
+      .then(([galleryRes, albumsRes]) => {
+        const items = galleryRes.data || [];
+        setGalleryItems(items);
+        // Build categories from albums or items
+        let cats = [{ id: 'all', name: 'All Media', count: items.length }];
+        if (Array.isArray(albumsRes.data)) {
+          cats = cats.concat(albumsRes.data.map(album => ({
+            id: album._id || album.id || album.name,
+            name: album.name,
+            count: album.count || (items.filter(i => i.category === (album._id || album.id || album.name)).length)
+          })));
+        }
+        setCategories(cats);
+      })
+      .catch(() => setError('Failed to load gallery.'))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const galleryItems = [
-    {
-      id: 1,
-      type: 'image',
-      category: 'projects',
-      title: 'Agricultural Training Session',
-      description: 'Farmers learning modern farming techniques',
-      url: 'https://images.unsplash.com/photo-1586771107445-d3ca888129fe?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      date: '2023-10-15'
-    },
-    {
-      id: 2,
-      type: 'video',
-      category: 'ai',
-      title: 'AI Farming App Demo',
-      description: 'Demonstration of our AI-powered agricultural advisor',
-      url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      thumbnail: 'https://images.unsplash.com/photo-1555255707-c07966088b7b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      date: '2023-11-20'
-    },
-    {
-      id: 3,
-      type: 'image',
-      category: 'community',
-      title: 'Clean Water Project',
-      description: 'Community members at new water point',
-      url: 'https://images.unsplash.com/photo-1564053489984-317bbd824340?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      date: '2023-09-05'
-    },
-    {
-      id: 4,
-      type: 'image',
-      category: 'events',
-      title: 'Annual Health Camp',
-      description: 'Free medical checkup for community members',
-      url: 'https://images.unsplash.com/photo-1516549655669-df6654e435de?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      date: '2023-08-12'
-    },
-    {
-      id: 5,
-      type: 'image',
-      category: 'team',
-      title: 'Volunteer Training',
-      description: 'Training session for new volunteers',
-      url: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      date: '2023-10-30'
-    },
-    {
-      id: 6,
-      type: 'video',
-      category: 'ai',
-      title: 'Mobile Health App',
-      description: 'Overview of our mobile health records system',
-      url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      thumbnail: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      date: '2023-11-25'
-    },
-    {
-      id: 7,
-      type: 'image',
-      category: 'projects',
-      title: 'School Renovation',
-      description: 'Newly renovated classroom building',
-      url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      date: '2023-07-18'
-    },
-    {
-      id: 8,
-      type: 'image',
-      category: 'community',
-      title: 'Women Empowerment',
-      description: 'Women entrepreneurship training',
-      url: 'https://images.unsplash.com/photo-1573164713714-d95e436ab284?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      date: '2023-09-22'
-    }
-  ];
-
-  const filteredItems = selectedCategory === 'all' 
-    ? galleryItems 
+  const filteredItems = selectedCategory === 'all'
+    ? galleryItems
     : galleryItems.filter(item => item.category === selectedCategory);
 
   const openLightbox = (item) => {
@@ -170,7 +115,11 @@ const Gallery = () => {
         {/* Gallery Grid */}
         <section className="py-12">
           <div className="container mx-auto px-4">
-            {filteredItems.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-10 text-lg text-gray-500">Loading gallery...</div>
+            ) : error ? (
+              <div className="text-center py-10 text-lg text-red-500">{error}</div>
+            ) : filteredItems.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -192,7 +141,7 @@ const Gallery = () => {
                 <AnimatePresence>
                   {filteredItems.map((item) => (
                     <motion.div
-                      key={item.id}
+                      key={item._id || item.id}
                       layout
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}

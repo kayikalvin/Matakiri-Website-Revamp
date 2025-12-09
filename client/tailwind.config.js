@@ -7,20 +7,35 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
+          50: '#eafaf6',
+          100: '#d4f3ea',
+          200: '#bfeee0',
+          300: '#a9e8d6',
+          400: '#94e2cc',
+          500: '#009970', // Main green
+          600: '#008760',
+          700: '#007050',
         },
-        secondary: {
-          500: '#10b981',
-          600: '#059669',
+        accent: {
+          50: '#eaf6fa',
+          100: '#d4ecf3',
+          200: '#bfe2ed',
+          300: '#a9d8e7',
+          400: '#94cee1',
+          500: '#5bb5a2', // Soft teal
+          600: '#489e8c',
+          700: '#357876',
+        },
+        neutral: {
+          100: '#f5f5f5',
+          200: '#eeeeee',
+          300: '#e0e0e0',
+          400: '#bdbdbd',
         }
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Poppins', 'sans-serif'],
+        sans: ['Montserrat', 'Open Sans', 'sans-serif'],
+        display: ['Montserrat', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

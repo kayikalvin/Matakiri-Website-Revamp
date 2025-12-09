@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { FaSeedling, FaGraduationCap, FaHeartbeat, FaTint, FaRobot, FaUsers, FaChartLine, FaCalendarAlt } from 'react-icons/fa';
 
 const Programs = () => {
   const [activeCategory, setActiveCategory] = useState('all');
+  const [programs, setPrograms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Static categories for now, can be made dynamic if backend supports
   const categories = [
     { id: 'all', name: 'All Programs', icon: <FaUsers /> },
     { id: 'agriculture', name: 'Agriculture', icon: <FaSeedling /> },
@@ -16,107 +20,24 @@ const Programs = () => {
     { id: 'community', name: 'Community', icon: <FaUsers /> }
   ];
 
-  const programs = [
-    {
-      id: 1,
-      title: 'Smart Farming Initiative',
-      category: 'agriculture',
-      description: 'AI-powered agricultural advisory system providing real-time farming recommendations based on soil data, weather patterns, and crop types.',
-      icon: <FaSeedling />,
-      status: 'active',
-      beneficiaries: 200,
-      duration: 'Ongoing',
-      impact: '40% increase in crop yield',
-      features: ['AI Advisory', 'Soil Testing', 'Market Linkages']
-    },
-    {
-      id: 2,
-      title: 'Digital Learning Hub',
-      category: 'education',
-      description: 'Equipping schools with digital learning tools and training teachers in technology integration for improved educational outcomes.',
-      icon: <FaGraduationCap />,
-      status: 'active',
-      beneficiaries: 500,
-      duration: '2 Years',
-      impact: 'Improved test scores by 35%',
-      features: ['Computer Labs', 'Teacher Training', 'E-Learning Content']
-    },
-    {
-      id: 3,
-      title: 'Community Health Outreach',
-      category: 'health',
-      description: 'Mobile health clinics and AI-powered diagnostic tools for early disease detection in remote communities.',
-      icon: <FaHeartbeat />,
-      status: 'active',
-      beneficiaries: 1000,
-      duration: 'Ongoing',
-      impact: 'Screened 500+ patients',
-      features: ['Mobile Clinics', 'AI Diagnostics', 'Health Education']
-    },
-    {
-      id: 4,
-      title: 'Clean Water Access',
-      category: 'water',
-      description: 'Installing and maintaining community water points with IoT monitoring systems for water quality and usage tracking.',
-      icon: <FaTint />,
-      status: 'active',
-      beneficiaries: 300,
-      duration: '1.5 Years',
-      impact: 'Reduced waterborne diseases by 60%',
-      features: ['Water Points', 'IoT Monitoring', 'Maintenance Training']
-    },
-    {
-      id: 5,
-      title: 'AI for Social Good',
-      category: 'ai',
-      description: 'Developing and deploying AI solutions to address community challenges in agriculture, health, and education.',
-      icon: <FaRobot />,
-      status: 'active',
-      beneficiaries: 800,
-      duration: '3 Years',
-      impact: '5 AI solutions deployed',
-      features: ['AI Research', 'Solution Development', 'Community Testing']
-    },
-    {
-      id: 6,
-      title: 'Women Empowerment Program',
-      category: 'community',
-      description: 'Skills training, entrepreneurship support, and leadership development for women in rural communities.',
-      icon: <FaUsers />,
-      status: 'active',
-      beneficiaries: 150,
-      duration: '2 Years',
-      impact: '120 women started businesses',
-      features: ['Skills Training', 'Microfinance', 'Mentorship']
-    },
-    {
-      id: 7,
-      title: 'Youth Tech Bootcamp',
-      category: 'education',
-      description: 'Intensive technology training program for youth, focusing on coding, digital skills, and innovation.',
-      icon: <FaRobot />,
-      status: 'upcoming',
-      beneficiaries: 100,
-      duration: '6 Months',
-      impact: '80% job placement rate',
-      features: ['Coding Skills', 'Project Development', 'Industry Partnerships']
-    },
-    {
-      id: 8,
-      title: 'Climate Resilience Project',
-      category: 'agriculture',
-      description: 'Training farmers in climate-smart agriculture techniques and providing drought-resistant crops.',
-      icon: <FaSeedling />,
-      status: 'planning',
-      beneficiaries: 250,
-      duration: '18 Months',
-      impact: 'Expected 50% yield improvement',
-      features: ['Climate Training', 'Resistant Crops', 'Weather Alerts']
-    }
-  ];
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data } = await require('../services/api').projectsAPI.getAll();
+        setPrograms(data || []);
+      } catch (err) {
+        setError(err.message || 'Failed to fetch programs.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPrograms();
+  }, []);
 
-  const filteredPrograms = activeCategory === 'all' 
-    ? programs 
+  const filteredPrograms = activeCategory === 'all'
+    ? programs
     : programs.filter(program => program.category === activeCategory);
 
   const getStatusColor = (status) => {
@@ -225,7 +146,13 @@ const Programs = () => {
         {/* Programs Grid */}
         <section className="py-12">
           <div className="container mx-auto px-4">
-            {filteredPrograms.length === 0 ? (
+            {loading ? (
+              <div className="flex justify-center py-16">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center text-red-500 py-8">{error}</div>
+            ) : filteredPrograms.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -243,7 +170,7 @@ const Programs = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredPrograms.map((program, index) => (
                   <motion.div
-                    key={program.id}
+                    key={program._id || program.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -255,7 +182,8 @@ const Programs = () => {
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center">
                           <div className="p-3 bg-primary-100 rounded-lg text-primary-600 mr-3">
-                            {program.icon}
+                            {/* Optionally render icon if available from backend */}
+                            {program.icon || <FaUsers />}
                           </div>
                           <div>
                             <h3 className="text-xl font-bold text-gray-800">
@@ -263,13 +191,13 @@ const Programs = () => {
                             </h3>
                             <div className="flex items-center mt-1">
                               <span className="text-sm text-gray-600">
-                                {categories.find(c => c.id === program.category)?.name}
+                                {categories.find(c => c.id === program.category)?.name || program.category}
                               </span>
                             </div>
                           </div>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(program.status)}`}>
-                          {program.status.charAt(0).toUpperCase() + program.status.slice(1)}
+                          {program.status ? program.status.charAt(0).toUpperCase() + program.status.slice(1) : ''}
                         </span>
                       </div>
 
@@ -284,7 +212,7 @@ const Programs = () => {
                           Key Features:
                         </h4>
                         <div className="flex flex-wrap gap-2">
-                          {program.features.map((feature, idx) => (
+                          {(program.features || []).map((feature, idx) => (
                             <span
                               key={idx}
                               className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"

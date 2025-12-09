@@ -35,21 +35,21 @@ const Header = () => {
   return (
     <>
       {/* Top Bar - Contact & Social */}
-      <div className="bg-primary-700 text-white">
+      <div className="bg-primary-500 text-white font-sans">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center py-2">
             {/* Contact Info */}
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <FiPhone className="text-primary-200" />
+                <FiPhone className="text-accent-500" />
                 <span>+254 712 345 678</span>
               </div>
               <div className="flex items-center gap-2">
-                <FiMail className="text-primary-200" />
+                <FiMail className="text-accent-500" />
                 <span>info@matakiritrust.org</span>
               </div>
               <div className="flex items-center gap-2">
-                <FiMapPin className="text-primary-200" />
+                <FiMapPin className="text-accent-500" />
                 <span>Matakiri Village, Kisumu County</span>
               </div>
             </div>
@@ -72,7 +72,7 @@ const Header = () => {
                 href="http://localhost:3002"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-4 px-3 py-1 bg-white text-primary-700 text-sm font-medium rounded hover:bg-gray-100 transition-colors"
+                className="ml-4 px-3 py-1 bg-accent-500 text-primary-700 text-sm font-semibold rounded hover:bg-accent-600 transition-colors shadow"
               >
                 Admin Login
               </a>
@@ -82,7 +82,7 @@ const Header = () => {
       </div>
 
       {/* Main Navigation */}
-      <nav className="bg-white shadow-lg sticky top-0 z-50">
+      <nav className="bg-white shadow-lg sticky top-0 z-50 font-sans">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -92,17 +92,17 @@ const Header = () => {
                 className="flex items-center space-x-3 group"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <div className="w-12 h-12 bg-gradient-to-r from-primary-600 to-primary-700 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+                <div className="w-12 h-12 bg-gradient-to-r from-primary-500 to-primary-700 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
                   <span className="text-white font-bold text-xl">MTC</span>
                 </div>
                 <div className="hidden md:block">
-                  <h1 className="font-display font-bold text-2xl text-gray-800 leading-tight">
+                  <h1 className="font-display font-bold text-2xl text-primary-700 leading-tight">
                     Matakiri Tumaini
                   </h1>
                   <p className="text-sm text-gray-500">Transforming Communities Through Innovation</p>
                 </div>
                 <div className="md:hidden">
-                  <h1 className="font-display font-bold text-xl text-gray-800">
+                  <h1 className="font-display font-bold text-xl text-primary-700">
                     Matakiri Tumaini
                   </h1>
                 </div>
@@ -110,16 +110,16 @@ const Header = () => {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
+            <div className="hidden lg:flex items-center space-x-1 font-sans">
               {navItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    `px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                       isActive
-                        ? 'bg-primary-50 text-primary-600 shadow-sm'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-primary-600'
+                        ? 'bg-primary-50 text-primary-700 shadow-sm border-b-2 border-accent-500'
+                        : 'text-gray-700 hover:bg-primary-50 hover:text-primary-700'
                     }`
                   }
                 >
@@ -129,10 +129,10 @@ const Header = () => {
             </div>
 
             {/* Desktop Menu Button */}
-            <div className="hidden md:flex lg:hidden">
+            <div className="hidden md:flex lg:hidden font-sans">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors font-semibold"
               >
                 <span>Menu</span>
                 <FiMenu />
@@ -142,7 +142,7 @@ const Header = () => {
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              className="md:hidden p-2 rounded-md text-primary-700 hover:text-accent-500 hover:bg-primary-50 transition-colors"
             >
               {isMobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </button>

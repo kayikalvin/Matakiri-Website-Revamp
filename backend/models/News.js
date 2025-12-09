@@ -80,7 +80,7 @@ const newsSchema = new mongoose.Schema({
 // Virtual for reading time
 newsSchema.virtual('readingTime').get(function() {
   const wordsPerMinute = 200;
-  const words = this.content.split(' ').length;
+  const words = (this.content || '').split(' ').length;
   return Math.ceil(words / wordsPerMinute);
 });
 
