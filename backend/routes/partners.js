@@ -18,12 +18,12 @@ router.get('/featured', getFeaturedPartners);
 router.get('/stats', getPartnerStats);
 router.get('/:id', getPartner);
 
-// Protected routes (require authentication)
+// Protected routes
 router.use(protect);
 
 // Admin routes
-router.post('/', authorize('admin', 'editor'), validatePartner, createPartner);
-router.put('/:id', authorize('admin', 'editor'), validatePartner, updatePartner);
+router.post('/', authorize('admin'), validatePartner, createPartner);
+router.put('/:id', authorize('admin'), validatePartner, updatePartner);
 router.delete('/:id', authorize('admin'), deletePartner);
 
 module.exports = router;

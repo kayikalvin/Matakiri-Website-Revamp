@@ -9,13 +9,13 @@ const {
   updatePassword,
   forgotPassword,
   resetPassword
-} = require('../controllers/authController.js');
-const { protect, checkActive } = require('../middleware/auth.js');
-const { validateRegister, validateLogin, validateUpdatePassword } = require('../middleware/validation.js');
+} = require('../controllers/authController');
+const { protect, checkActive } = require('../middleware/auth');
+const { validateRegister, validateLogin, validateUpdatePassword } = require('../middleware/validation');
 
 // Public routes
-router.post('/register', register);
-router.post('/login', login);
+router.post('/register', validateRegister, register);
+router.post('/login', validateLogin, login);
 router.post('/forgotpassword', forgotPassword);
 router.put('/resetpassword/:resettoken', resetPassword);
 
@@ -26,6 +26,6 @@ router.use(checkActive);
 router.post('/logout', logout);
 router.get('/me', getMe);
 router.put('/updatedetails', updateDetails);
-router.put('/updatepassword', updatePassword);
+router.put('/updatepassword', validateUpdatePassword, updatePassword);
 
 module.exports = router;

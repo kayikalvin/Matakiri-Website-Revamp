@@ -20,12 +20,12 @@ router.get('/ai', getAIProjects);
 router.get('/stats', getProjectStats);
 router.get('/:id', getProject);
 
-// Protected routes (require authentication)
+// Protected routes
 router.use(protect);
 
-// Admin routes
+// Admin/Editor routes
 router.post('/', authorize('admin', 'editor'), validateProject, createProject);
-router.put('/:id', authorize('admin', 'editor'), updateProject);
+router.put('/:id', authorize('admin', 'editor'), validateProject, updateProject);
 router.delete('/:id', authorize('admin'), deleteProject);
 
 module.exports = router;
