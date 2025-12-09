@@ -1,53 +1,53 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 // Create Theme Context
 const ThemeContext = createContext();
 
+// Helper function to apply theme to DOM
+const applyThemeToDOM = (theme) => {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+};
+
 // Theme Provider Component
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState('light');
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Load theme from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
       setTheme(savedTheme);
-      setIsDarkMode(savedTheme === 'dark');
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+      applyThemeToDOM(savedTheme);
     } else {
       // Check system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (prefersDark) {
         setTheme('dark');
-        setIsDarkMode(true);
-        document.documentElement.classList.add('dark');
+        applyThemeToDOM('dark');
       }
     }
   }, []);
 
   // Toggle theme function
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    setIsDarkMode(newTheme === 'dark');
     localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
+    applyThemeToDOM(newTheme);
+  }, [theme]);
 
   // Set specific theme
-  const setThemeMode = (mode) => {
+  const setThemeMode = useCallback((mode) => {
     setTheme(mode);
-    setIsDarkMode(mode === 'dark');
     localStorage.setItem('theme', mode);
-    document.documentElement.classList.toggle('dark', mode === 'dark');
-  };
+    applyThemeToDOM(mode);
+  }, []);
 
   const value = {
     theme,
-    isDarkMode,
+    isDarkMode: theme === 'dark',
     toggleTheme,
-    setTheme: setThemeMode,
+    setThemeMode,
   };
 
   return (
