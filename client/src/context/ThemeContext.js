@@ -3,6 +3,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 // Create Theme Context
 const ThemeContext = createContext();
 
+// Valid theme values
+const VALID_THEMES = ['light', 'dark'];
+
+// Helper function to validate theme
+const isValidTheme = (theme) => {
+  return VALID_THEMES.includes(theme);
+};
+
 // Helper function to apply theme to DOM
 const applyThemeToDOM = (theme) => {
   document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -15,7 +23,7 @@ export const ThemeProvider = ({ children }) => {
   // Load theme from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
+    if (savedTheme && isValidTheme(savedTheme)) {
       setTheme(savedTheme);
       applyThemeToDOM(savedTheme);
     } else {
@@ -38,6 +46,10 @@ export const ThemeProvider = ({ children }) => {
 
   // Set specific theme
   const setThemeMode = useCallback((mode) => {
+    if (!isValidTheme(mode)) {
+      console.warn(`Invalid theme mode: ${mode}. Must be 'light' or 'dark'.`);
+      return;
+    }
     setTheme(mode);
     localStorage.setItem('theme', mode);
     applyThemeToDOM(mode);
