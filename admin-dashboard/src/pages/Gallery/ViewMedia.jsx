@@ -2,41 +2,51 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, PhotoIcon, EyeIcon, CalendarIcon, TagIcon } from '@heroicons/react/24/outline';
 
+import { galleryAPI } from '../../services/api';
+
 const ViewMedia = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [media, setMedia] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simulate fetching media data
-    setTimeout(() => {
-      // Mock media data
-      const mockMedia = {
-        id: parseInt(id),
-        title: 'Community Event',
-        description: 'Annual community gathering with local partners and beneficiaries',
-        type: 'image',
-        category: 'Events',
-        uploaded: '2024-01-15',
-        views: 245,
-        size: '2.4 MB',
-        dimensions: '1920x1080',
-        tags: ['community', 'event', '2024', 'gathering']
-      };
-      setMedia(mockMedia);
-      setLoading(false);
-    }, 500);
+    const fetchMedia = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await galleryAPI.getAll();
+        // Try to find the media by id (API may not have getById)
+        const items = res.data?.gallery || res.data || [];
+        const found = items.find((item) => String(item._id || item.id) === String(id));
+        if (!found) throw new Error('Media not found');
+        setMedia(found);
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || 'Failed to load media');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMedia();
   }, [id]);
 
   if (loading) {
     return (
       <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
         </div>
       </div>
     );
+  }
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-500">{error}</div>
+    );
+  }
+  if (!media) {
+    return null;
   }
 
   return (
@@ -50,8 +60,8 @@ const ViewMedia = () => {
           Back to Gallery
         </button>
         <div className="flex items-center">
-          <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-            <PhotoIcon className="h-6 w-6 text-blue-600" />
+          <div className="h-10 w-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
+            <PhotoIcon className="h-6 w-6 text-primary-500" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-800">{media.title}</h1>
@@ -82,7 +92,7 @@ const ViewMedia = () => {
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Type:</span>
               <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                media.type === 'image' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                media.type === 'image' ? 'bg-primary-100 text-primary-700' : 'bg-purple-100 text-purple-800'
               }`}>
                 {media.type.charAt(0).toUpperCase() + media.type.slice(1)}
               </span>
@@ -174,7 +184,7 @@ const ViewMedia = () => {
             </button>
             <button
               onClick={() => navigate(`/gallery/upload`)}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600"
             >
               Edit Media
             </button>

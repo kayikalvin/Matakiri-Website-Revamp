@@ -33,40 +33,40 @@ const Login = () => {
       <Toaster />
       
       {/* Left side - Brand/Image Section */}
-      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 flex-col justify-center p-12">
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary-600 to-primary-800 flex-col justify-center p-12">
         <div className="max-w-md mx-auto">
           <div className="flex items-center mb-8">
-            <div className="h-12 w-12 bg-white rounded-lg flex items-center justify-center">
-              <div className="h-8 w-8 bg-blue-600 rounded-md"></div>
+              <div className="h-12 w-12 bg-white rounded-lg flex items-center justify-center">
+              <div className="h-8 w-8 bg-primary-600 rounded-md"></div>
             </div>
             <div className="ml-4">
               <h1 className="text-3xl font-bold text-white">Matakiri Tumaini</h1>
-              <p className="text-blue-100 text-lg">Trust Foundation</p>
+              <p className="text-primary-100 text-lg">Trust Foundation</p>
             </div>
           </div>
           
           <h2 className="text-4xl font-bold text-white mb-6">
             Welcome Back
           </h2>
-          <p className="text-blue-100 text-lg mb-8">
+          <p className="text-primary-100 text-lg mb-8">
             Access the administrative dashboard to manage projects, partners, and content for the Matakiri Tumaini Trust Foundation.
           </p>
           
           <div className="space-y-4">
-            <div className="flex items-center text-blue-100">
-              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">
+            <div className="flex items-center text-primary-100">
+              <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center mr-3">
                 <span className="text-sm font-semibold">✓</span>
               </div>
               <span>Manage Projects & Initiatives</span>
             </div>
-            <div className="flex items-center text-blue-100">
-              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">
+            <div className="flex items-center text-primary-100">
+              <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center mr-3">
                 <span className="text-sm font-semibold">✓</span>
               </div>
               <span>Update News & Gallery</span>
             </div>
-            <div className="flex items-center text-blue-100">
-              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">
+            <div className="flex items-center text-primary-100">
+              <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center mr-3">
                 <span className="text-sm font-semibold">✓</span>
               </div>
               <span>Monitor Trust Activities</span>
@@ -79,9 +79,9 @@ const Login = () => {
       <div className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-8">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
-          <div className="md:hidden flex justify-center mb-10">
+              <div className="md:hidden flex justify-center mb-10">
             <div className="flex items-center">
-              <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <div className="h-10 w-10 bg-primary-600 rounded-lg flex items-center justify-center">
                 <div className="h-6 w-6 bg-white rounded-md"></div>
               </div>
               <div className="ml-3">
@@ -109,7 +109,7 @@ const Login = () => {
                 </label>
                 <div className={`relative transition-all duration-200 ${isFocused.email ? 'transform scale-[1.02]' : ''}`}>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <EnvelopeIcon className={`h-5 w-5 ${isFocused.email ? 'text-blue-500' : 'text-gray-400'}`} />
+                    <EnvelopeIcon className={`h-5 w-5 ${isFocused.email ? 'text-primary-500' : 'text-gray-400'}`} />
                   </div>
                   <input
                     id="email"
@@ -117,7 +117,7 @@ const Login = () => {
                     type="email"
                     autoComplete="email"
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition duration-200"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none transition duration-200"
                     placeholder="you@matakiritrust.org"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -134,7 +134,7 @@ const Login = () => {
                 </label>
                 <div className={`relative transition-all duration-200 ${isFocused.password ? 'transform scale-[1.02]' : ''}`}>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockClosedIcon className={`h-5 w-5 ${isFocused.password ? 'text-blue-500' : 'text-gray-400'}`} />
+                    <LockClosedIcon className={`h-5 w-5 ${isFocused.password ? 'text-primary-500' : 'text-gray-400'}`} />
                   </div>
                   <input
                     id="password"
@@ -142,7 +142,7 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
-                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition duration-200"
+                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none transition duration-200"
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -170,14 +170,14 @@ const Login = () => {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                     Remember me
                   </label>
                 </div>
                 <div className="text-sm">
-                  <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                  <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
                     Forgot password?
                   </a>
                 </div>
@@ -187,7 +187,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
               >
                 {loading ? (
                   <>
@@ -204,21 +204,21 @@ const Login = () => {
             </form>
 
             {/* Demo Credentials Card */}
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-blue-800 mb-2">Demo Credentials</h3>
+              <div className="mt-8 pt-8 border-t border-gray-200">
+              <div className="bg-primary-50 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-primary-800 mb-2">Demo Credentials</h3>
                 <div className="space-y-2">
                   <div className="flex items-center">
-                    <div className="h-5 w-5 rounded bg-blue-100 flex items-center justify-center mr-2">
-                      <EnvelopeIcon className="h-3 w-3 text-blue-600" />
+                    <div className="h-5 w-5 rounded bg-primary-100 flex items-center justify-center mr-2">
+                      <EnvelopeIcon className="h-3 w-3 text-primary-600" />
                     </div>
-                    <span className="text-sm text-blue-700">admin@matakiritrust.org</span>
+                    <span className="text-sm text-primary-700">admin@matakiritrust.org</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="h-5 w-5 rounded bg-blue-100 flex items-center justify-center mr-2">
-                      <LockClosedIcon className="h-3 w-3 text-blue-600" />
+                    <div className="h-5 w-5 rounded bg-primary-100 flex items-center justify-center mr-2">
+                      <LockClosedIcon className="h-3 w-3 text-primary-600" />
                     </div>
-                    <span className="text-sm text-blue-700">password</span>
+                    <span className="text-sm text-primary-700">password</span>
                   </div>
                 </div>
               </div>
@@ -228,9 +228,9 @@ const Login = () => {
             <div className="mt-8 text-center">
               <p className="text-xs text-gray-500">
                 By signing in, you agree to our{' '}
-                <a href="#" className="text-blue-600 hover:text-blue-500">Terms of Service</a>
+                <a href="#" className="text-primary-600 hover:text-primary-500">Terms of Service</a>
                 {' '}and{' '}
-                <a href="#" className="text-blue-600 hover:text-blue-500">Privacy Policy</a>
+                <a href="#" className="text-primary-600 hover:text-primary-500">Privacy Policy</a>
               </p>
               <p className="mt-4 text-xs text-gray-500">
                 © {new Date().getFullYear()} Matakiri Tumaini Trust Foundation. All rights reserved.

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, NewspaperIcon } from '@heroicons/react/24/outline';
 
+import { newsAPI } from '../../services/api';
+
 const CreateNews = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -14,16 +16,24 @@ const CreateNews = () => {
   });
   const [loading, setLoading] = useState(false);
 
+  const [error, setError] = useState(null);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Creating news:', formData);
+    setError(null);
+    try {
+      // Prepare tags as array if needed
+      const payload = {
+        ...formData,
+        tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : formData.tags
+      };
+      await newsAPI.create(payload);
       setLoading(false);
       navigate('/news');
-    }, 1000);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to create news');
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -35,6 +45,9 @@ const CreateNews = () => {
 
   return (
     <div className="p-6">
+      {error && (
+        <div className="mb-4 text-center text-red-500">{error}</div>
+      )}
       <div className="mb-8">
         <button
           onClick={() => navigate('/news')}
@@ -44,8 +57,8 @@ const CreateNews = () => {
           Back to News
         </button>
         <div className="flex items-center">
-          <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-            <NewspaperIcon className="h-6 w-6 text-blue-600" />
+          <div className="h-10 w-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
+            <NewspaperIcon className="h-6 w-6 text-primary-500" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Create News Article</h1>
@@ -59,9 +72,7 @@ const CreateNews = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                Title *
-              </label>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
               <input
                 type="text"
                 id="title"
@@ -69,16 +80,14 @@ const CreateNews = () => {
                 required
                 value={formData.title}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Enter article title"
               />
             </div>
 
             {/* Content */}
             <div>
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-                Content *
-              </label>
+              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">Content *</label>
               <textarea
                 id="content"
                 name="content"
@@ -86,22 +95,20 @@ const CreateNews = () => {
                 required
                 value={formData.content}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Write your article content here..."
               />
             </div>
 
             {/* Category */}
             <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                Category *
-              </label>
+              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
               <select
                 id="category"
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="Education">Education</option>
                 <option value="Health">Health</option>
@@ -115,31 +122,27 @@ const CreateNews = () => {
 
             {/* Tags */}
             <div>
-              <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
-                Tags (comma separated)
-              </label>
+              <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">Tags (comma separated)</label>
               <input
                 type="text"
                 id="tags"
                 name="tags"
                 value={formData.tags}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="education, project, 2024"
               />
             </div>
 
             {/* Status */}
             <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                Status *
-              </label>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
               <select
                 id="status"
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
@@ -158,7 +161,7 @@ const CreateNews = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50"
               >
                 {loading ? 'Saving...' : 'Save Article'}
               </button>

@@ -16,7 +16,7 @@ const CallToAction = () => {
       {/* Background Elements */}
       <div className="absolute inset-0">
         {/* Main gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-cyan-50"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-teal-50"></div>
         
         {/* Animated gradient orbs */}
         <motion.div 
@@ -30,7 +30,7 @@ const CallToAction = () => {
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute top-1/4 left-10 w-96 h-96 bg-gradient-to-r from-blue-200/40 to-cyan-200/30 rounded-full blur-3xl"
+          className="absolute top-1/4 left-10 w-96 h-96 bg-gradient-to-r from-emerald-200/40 to-teal-200/30 rounded-full blur-3xl"
         ></motion.div>
         
         <motion.div 
@@ -45,7 +45,7 @@ const CallToAction = () => {
             ease: "easeInOut",
             delay: 2
           }}
-          className="absolute bottom-1/4 right-10 w-80 h-80 bg-gradient-to-l from-indigo-200/30 to-purple-200/20 rounded-full blur-3xl"
+          className="absolute bottom-1/4 right-10 w-80 h-80 bg-gradient-to-l from-green-200/30 to-emerald-200/20 rounded-full blur-3xl"
         ></motion.div>
 
         {/* Wave patterns */}
@@ -82,10 +82,10 @@ const CallToAction = () => {
         {/* Floating icons */}
         {[...Array(6)].map((_, i) => {
           const icons = [
-            { icon: <FaHandshake className="text-blue-500" />, color: "bg-blue-100/50" },
-            { icon: <FaLightbulb className="text-cyan-500" />, color: "bg-cyan-100/50" },
-            { icon: <FaUsers className="text-indigo-500" />, color: "bg-indigo-100/50" },
-            { icon: <FaRocket className="text-purple-500" />, color: "bg-purple-100/50" },
+            { icon: <FaHandshake className="text-emerald-500" />, color: "bg-emerald-100/50" },
+            { icon: <FaLightbulb className="text-teal-500" />, color: "bg-teal-100/50" },
+            { icon: <FaUsers className="text-green-500" />, color: "bg-green-100/50" },
+            { icon: <FaRocket className="text-lime-500" />, color: "bg-lime-100/50" },
             { icon: <FaHeart className="text-rose-500" />, color: "bg-rose-100/50" },
             { icon: <FaChartLine className="text-emerald-500" />, color: "bg-emerald-100/50" },
           ];
@@ -126,17 +126,17 @@ const CallToAction = () => {
           className="text-center"
         >
           {/* Badge */}
-          <div className="inline-flex items-center space-x-2 mb-6 px-4 py-2 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 
-                       backdrop-blur-sm rounded-full border border-blue-200">
-            <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"></div>
-            <span className="text-sm font-semibold text-blue-600">Join Our Movement</span>
-            <div className="w-2 h-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"></div>
+          <div className="inline-flex items-center space-x-2 mb-6 px-4 py-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 
+                       backdrop-blur-sm rounded-full border border-emerald-200">
+            <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
+            <span className="text-sm font-semibold text-emerald-600">Join Our Movement</span>
+            <div className="w-2 h-2 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-full"></div>
           </div>
 
           {/* Main Heading */}
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             Ready to Make a
-            <span className="block mt-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 bg-clip-text text-transparent">
+            <span className="block mt-2 bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
               Lasting Difference?
             </span>
           </h2>
@@ -164,7 +164,7 @@ const CallToAction = () => {
                 transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
                 className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-gray-100"
               >
-                <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
+                <div className="text-2xl md:text-3xl font-bold text-emerald-600 mb-1">
                   {stat.number}
                 </div>
                 <div className="text-sm text-gray-600">
@@ -184,8 +184,8 @@ const CallToAction = () => {
           >
             <Link
               to="/contact"
-              className="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 
-                         text-white font-semibold rounded-xl shadow-lg hover:shadow-2xl hover:shadow-blue-600/40 
+              className="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 
+                         text-white font-semibold rounded-xl shadow-lg hover:shadow-2xl hover:shadow-emerald-600/40 
                          transition-all duration-300 hover:-translate-y-1 overflow-hidden"
             >
               <span className="relative z-10 flex items-center space-x-2">
@@ -193,7 +193,7 @@ const CallToAction = () => {
                 <span>Get Involved Today</span>
               </span>
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600"
+                className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600"
                 initial={{ x: "-100%" }}
                 whileHover={{ x: 0 }}
                 transition={{ duration: 0.3 }}
@@ -202,9 +202,9 @@ const CallToAction = () => {
             
             <Link
               to="/about"
-              className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-white to-blue-50 
-                         text-blue-600 font-semibold rounded-xl border-2 border-blue-200 hover:border-blue-300 
-                         hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all duration-300 
+              className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-white to-emerald-50 
+                         text-emerald-600 font-semibold rounded-xl border-2 border-emerald-200 hover:border-emerald-300 
+                         hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 transition-all duration-300 
                          hover:-translate-y-1 shadow-lg hover:shadow-xl"
             >
               <span className="flex items-center space-x-2">
@@ -217,10 +217,10 @@ const CallToAction = () => {
           {/* Additional Options */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
             {[
-              { title: 'Volunteer', desc: 'Share your skills', icon: '🙋‍♂️', color: 'bg-blue-100/50' },
+              { title: 'Volunteer', desc: 'Share your skills', icon: '🙋‍♂️', color: 'bg-emerald-100/50' },
               { title: 'Donate', desc: 'Support our projects', icon: '💝', color: 'bg-rose-100/50' },
-              { title: 'Partner', desc: 'Corporate collaboration', icon: '🤝', color: 'bg-emerald-100/50' },
-              { title: 'Mentor', desc: 'Guide the next generation', icon: '👨‍🏫', color: 'bg-purple-100/50' },
+              { title: 'Partner', desc: 'Corporate collaboration', icon: '🤝', color: 'bg-green-100/50' },
+              { title: 'Mentor', desc: 'Guide the next generation', icon: '👨‍🏫', color: 'bg-teal-100/50' },
             ].map((option, index) => (
               <motion.div
                 key={index}
@@ -271,7 +271,7 @@ const CallToAction = () => {
         {[...Array(15)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-blue-300/30 rounded-full"
+            className="absolute w-1 h-1 bg-emerald-300/30 rounded-full"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,

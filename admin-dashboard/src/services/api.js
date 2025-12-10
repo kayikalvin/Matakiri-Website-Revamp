@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -87,6 +87,17 @@ export const usersAPI = {
 export const contactAPI = {
   submit: (data) => api.post('/contact', data),
   getAll: (params) => api.get('/contact', { params }),
+};
+
+// Themes API
+export const themesAPI = {
+  getAll: (params) => api.get('/themes', { params }),
+  getActive: () => api.get('/themes/active'),
+  getById: (id) => api.get(`/themes/${id}`),
+  create: (data) => api.post('/themes', data),
+  update: (id, data) => api.put(`/themes/${id}`, data),
+  delete: (id) => api.delete(`/themes/${id}`),
+  activate: (id) => api.put(`/themes/${id}/activate`),
 };
 
 export default api;

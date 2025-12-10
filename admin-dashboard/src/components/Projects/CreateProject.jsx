@@ -44,9 +44,9 @@ const CreateProject = () => {
           <ArrowLeftIcon className="h-5 w-5 mr-2" />
           Back to Projects
         </button>
-        <div className="flex items-center">
-          <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-            <FolderPlusIcon className="h-6 w-6 text-blue-600" />
+          <div className="flex items-center">
+          <div className="h-10 w-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
+            <FolderPlusIcon className="h-6 w-6 text-primary-600" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Create New Project</h1>
@@ -70,7 +70,7 @@ const CreateProject = () => {
                 required
                 value={formData.title}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Enter project title"
               />
             </div>
@@ -87,7 +87,7 @@ const CreateProject = () => {
                 required
                 value={formData.description}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Describe the project"
               />
             </div>
@@ -102,7 +102,7 @@ const CreateProject = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="Education">Education</option>
                 <option value="Health">Health</option>
@@ -125,7 +125,7 @@ const CreateProject = () => {
                 required
                 value={formData.startDate}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -140,7 +140,7 @@ const CreateProject = () => {
                 name="endDate"
                 value={formData.endDate}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -191,7 +191,7 @@ const CreateProject = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
               >
                 {loading ? 'Creating...' : 'Create Project'}
               </button>

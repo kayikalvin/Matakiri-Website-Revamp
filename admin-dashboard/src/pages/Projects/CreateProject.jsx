@@ -2,6 +2,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 
+import { projectsAPI } from '../../services/api';
+
 const CreateProject = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -25,20 +27,27 @@ const CreateProject = () => {
     }));
   };
 
+  const [error, setError] = useState(null);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-
-    // Mock save process
-    setTimeout(() => {
+    setError(null);
+    try {
+      await projectsAPI.create(formData);
       toast.success('Project created successfully!');
       setSaving(false);
       navigate('/projects');
-    }, 1500);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to create project');
+      setSaving(false);
+    }
   };
 
   return (
     <div className="p-6">
+      {error && (
+        <div className="mb-4 text-center text-red-500">{error}</div>
+      )}
       <Toaster />
       
       <div className="mb-8">
@@ -219,7 +228,7 @@ const CreateProject = () => {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
               >
                 {saving ? 'Creating...' : 'Create Project'}
               </button>

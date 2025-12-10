@@ -94,11 +94,39 @@ app.use(mongoSanitize());
 app.use(xss());
 
 // Rate limiting
+const RATE_LIMIT_WINDOW_MIN = Number(process.env.RATE_LIMIT_WINDOW_MIN) || 15;
+const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX) || 100;
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: RATE_LIMIT_WINDOW_MIN * 60 * 1000, // window in minutes
+  max: RATE_LIMIT_MAX, // limit each IP to RATE_LIMIT_MAX requests per window
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
-app.use('/api/', limiter);
+
+// Apply rate limiting middleware.
+// In development we skip rate limiting to avoid hitting in-memory counters during fast local iteration.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX) || 20, // e.g., 20 attempts per window
+  message: 'Too many authentication attempts from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+if (process.env.NODE_ENV === 'development') {
+  console.log('Dev mode: skipping global rate limiter and auth limiter to avoid 429 during local development');
+} else {
+  // Apply global limiter to all /api routes EXCEPT auth endpoints.
+  // This allows us to use a separate, stricter limiter for login routes.
+  app.use('/api', (req, res, next) => {
+    if (req.path && req.path.startsWith('/auth')) return next();
+    return limiter(req, res, next);
+  });
+
+  // Apply auth limiter specifically to login route
+  app.use('/api/auth/login', authLimiter);
+}
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)
@@ -113,6 +141,7 @@ const newsRoutes = require('./routes/news');
 const galleryRoutes = require('./routes/gallery');
 const contactRoutes = require('./routes/contact');
 const userRoutes = require('./routes/users');
+const themeRoutes = require('./routes/themes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -122,6 +151,7 @@ app.use('/api/news', newsRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/themes', themeRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

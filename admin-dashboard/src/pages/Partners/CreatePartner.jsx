@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 
+import { partnersAPI } from '../../services/api';
+
 const CreatePartner = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -16,16 +18,19 @@ const CreatePartner = () => {
   });
   const [loading, setLoading] = useState(false);
 
+  const [error, setError] = useState(null);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Creating partner:', formData);
+    setError(null);
+    try {
+      await partnersAPI.create(formData);
       setLoading(false);
       navigate('/partners');
-    }, 1000);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to create partner');
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -37,6 +42,9 @@ const CreatePartner = () => {
 
   return (
     <div className="p-6">
+      {error && (
+        <div className="mb-4 text-center text-red-500">{error}</div>
+      )}
       <div className="mb-8">
         <button
           onClick={() => navigate('/partners')}
@@ -46,8 +54,8 @@ const CreatePartner = () => {
           Back to Partners
         </button>
         <div className="flex items-center">
-          <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-            <UserGroupIcon className="h-6 w-6 text-blue-600" />
+            <div className="h-10 w-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
+              <UserGroupIcon className="h-6 w-6 text-primary-600" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Add New Partner</h1>
@@ -71,7 +79,7 @@ const CreatePartner = () => {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Enter organization name"
               />
             </div>
@@ -86,7 +94,7 @@ const CreatePartner = () => {
                 name="type"
                 value={formData.type}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="NGO">NGO</option>
                 <option value="Corporate">Corporate</option>
@@ -108,7 +116,7 @@ const CreatePartner = () => {
                 rows="4"
                 value={formData.description}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Describe the partner organization"
               />
             </div>
@@ -123,7 +131,7 @@ const CreatePartner = () => {
                 name="country"
                 value={formData.country}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="Kenya">Kenya</option>
                 <option value="Tanzania">Tanzania</option>
@@ -147,7 +155,7 @@ const CreatePartner = () => {
                 required
                 value={formData.contact}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="+254 712 345 678"
               />
             </div>
@@ -164,7 +172,7 @@ const CreatePartner = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="contact@organization.org"
               />
             </div>
@@ -180,7 +188,7 @@ const CreatePartner = () => {
                 name="website"
                 value={formData.website}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 placeholder="https://www.organization.org"
               />
             </div>
@@ -195,7 +203,7 @@ const CreatePartner = () => {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -214,7 +222,7 @@ const CreatePartner = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
               >
                 {loading ? 'Creating...' : 'Create Partner'}
               </button>

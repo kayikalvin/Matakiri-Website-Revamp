@@ -14,202 +14,282 @@ import {
 const About = () => {
   const values = [
     {
-      icon: <FaHandsHelping className="w-6 h-6" />,
+      icon: <FaHandsHelping />,
       title: "Community First",
-      description: "Local needs drive our AI solutions",
-      color: "from-blue-500 to-cyan-500"
+      description: "Local needs drive our AI solutions"
     },
     {
-      icon: <FaLightbulb className="w-6 h-6" />,
+      icon: <FaLightbulb />,
       title: "Innovation",
-      description: "Cutting-edge tech for traditional problems",
-      color: "from-amber-500 to-orange-500"
+      description: "Cutting-edge tech for traditional problems"
     },
     {
-      icon: <FaSeedling className="w-6 h-6" />,
+      icon: <FaSeedling />,
       title: "Sustainability",
-      description: "Solutions that grow with communities",
-      color: "from-emerald-500 to-green-500"
+      description: "Solutions that grow with communities"
     },
     {
-      icon: <FaUsers className="w-6 h-6" />,
+      icon: <FaUsers />,
       title: "Collaboration",
-      description: "Partnerships for maximum impact",
-      color: "from-purple-500 to-pink-500"
+      description: "Partnerships for maximum impact"
     }
   ];
 
-  const aiInitiatives = [
+  const initiatives = [
     {
       title: "Smart Agriculture",
       description: "AI crop monitoring for small-scale farmers",
-      icon: <FaSeedling className="w-5 h-5" />,
-      color: "from-emerald-100 to-green-100"
+      icon: <FaSeedling />
     },
     {
       title: "Healthcare Analytics",
       description: "Predictive models for rural clinics",
-      icon: <FaHeart className="w-5 h-5" />,
-      color: "from-rose-100 to-pink-100"
+      icon: <FaHeart />
     },
     {
       title: "Education Tech",
       description: "Personalized learning platforms",
-      icon: <FaUsers className="w-5 h-5" />,
-      color: "from-blue-100 to-cyan-100"
+      icon: <FaUsers />
     },
     {
       title: "Environmental AI",
       description: "Satellite analysis for conservation",
-      icon: <FaGlobeAfrica className="w-5 h-5" />,
-      color: "from-teal-100 to-emerald-100"
+      icon: <FaGlobeAfrica />
     }
   ];
 
   return (
-    <section className="py-16 bg-gradient-to-b from-white to-blue-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Mission & Vision */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
           >
-            <div className="inline-flex items-center space-x-2 mb-2">
-              <div className="w-6 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"></div>
-              <span className="text-sm font-semibold text-blue-600 uppercase tracking-wider">Our Mission</span>
+            <div className="inline-flex items-center mb-6">
+              <div className="w-12 h-0.5 bg-emerald-300 mr-3"></div>
+              <span className="text-sm font-medium text-emerald-600 tracking-wider">ABOUT US</span>
+              <div className="w-12 h-0.5 bg-emerald-300 ml-3"></div>
             </div>
             
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-              Where <span className="text-blue-600">Humanitarian Work</span> Meets <span className="text-cyan-600">AI Innovation</span>
-            </h2>
+            <h1 className="text-4xl md:text-5xl font-light text-gray-900 mb-6">
+              Where <span className="font-medium text-emerald-700">Humanitarian Work</span><br />
+              Meets <span className="font-medium text-emerald-600">AI Innovation</span>
+            </h1>
             
-            <p className="text-gray-600">
-              Matakiri Tumaini Centre empowers marginalized communities in Kenya through ethical AI applications, 
-              creating sustainable solutions while preserving cultural heritage.
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Matakiri Tumaini Centre empowers marginalized communities in Kenya through 
+              ethical AI applications, creating sustainable solutions while preserving cultural heritage.
             </p>
           </motion.div>
 
+          {/* Mission & Vision */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-emerald-50 rounded-lg">
+                  <div className="w-6 h-6 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded"></div>
+                </div>
+                <h2 className="text-2xl font-medium text-gray-900">Our Mission</h2>
+              </div>
+              
+              <p className="text-gray-600 leading-relaxed">
+                We develop and deploy artificial intelligence solutions that directly address the most pressing 
+                challenges faced by marginalized communities in Kenya and across East Africa.
+              </p>
+              
+              <div className="pt-6 border-t border-gray-100">
+                <div className="text-sm text-emerald-600 font-medium">Empowerment through technology</div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-emerald-50 rounded-lg">
+                  <div className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-500 rounded"></div>
+                </div>
+                <h2 className="text-2xl font-medium text-gray-900">Our Vision</h2>
+              </div>
+              
+              <p className="text-gray-600 leading-relaxed">
+                We envision a world where artificial intelligence is not a luxury but a fundamental tool 
+                for sustainable development, accessible to all communities regardless of their location or resources.
+              </p>
+              
+              <div className="pt-6 border-t border-gray-100">
+                <div className="text-sm text-emerald-600 font-medium">AI for everyone, everywhere</div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* AI Initiatives */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="space-y-4"
+            className="mb-20"
           >
-            <div className="inline-flex items-center space-x-2 mb-2">
-              <div className="w-6 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
-              <span className="text-sm font-semibold text-purple-600 uppercase tracking-wider">Our Vision</span>
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center mb-4">
+                <FaBrain className="text-emerald-400 mr-2" />
+                <span className="text-sm font-medium text-emerald-600 tracking-wider">AI FOR SOCIAL GOOD</span>
+                <FaChartLine className="text-emerald-400 ml-2" />
+              </div>
+              
+              <h2 className="text-2xl font-medium text-gray-900 mb-4">
+                Our AI Initiatives
+              </h2>
+              
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Leveraging artificial intelligence to create measurable impact across key sectors.
+              </p>
             </div>
-            
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-              AI-Powered <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Sustainable Development</span>
-            </h2>
-            
-            <p className="text-gray-600">
-              We envision communities with access to AI tools that enhance education, healthcare, agriculture, 
-              and economic opportunities, driving development from the ground up.
-            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {initiatives.map((initiative, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="group"
+                >
+                  <div className="bg-white rounded-xl p-6 border border-gray-100 hover:border-emerald-200 transition-colors duration-300">
+                    <div className="mb-4">
+                      <div className="inline-flex p-3 bg-emerald-50 rounded-lg group-hover:bg-emerald-100 transition-colors duration-300">
+                        <div className="text-emerald-600">
+                          {initiative.icon}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {initiative.title}
+                    </h3>
+                    
+                    <p className="text-sm text-gray-600">
+                      {initiative.description}
+                    </p>
+                    
+                    <div className="mt-4 pt-4 border-t border-gray-100 group-hover:border-emerald-100 transition-colors">
+                      <div className="text-xs text-emerald-500 font-medium">Learn more →</div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Core Values */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-20"
+          >
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center mb-4">
+                <div className="w-8 h-0.5 bg-emerald-300"></div>
+                <span className="mx-3 text-sm font-medium text-emerald-600 tracking-wider">OUR VALUES</span>
+                <div className="w-8 h-0.5 bg-emerald-300"></div>
+              </div>
+              
+              <h2 className="text-2xl font-medium text-gray-900 mb-4">
+                Guiding Principles
+              </h2>
+              
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                The foundation of everything we do.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {values.map((value, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="group"
+                >
+                  <div className="bg-white p-6 rounded-xl border border-gray-100 hover:shadow-sm transition-all duration-300">
+                    <div className="mb-4">
+                      <div className="inline-flex p-3 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg">
+                        <div className="text-emerald-600">
+                          {value.icon}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {value.title}
+                    </h3>
+                    
+                    <p className="text-sm text-gray-600">
+                      {value.description}
+                    </p>
+                    
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <div className="text-xs text-emerald-500">Core value</div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Impact Statement */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 md:p-12"
+          >
+            <div className="max-w-3xl mx-auto text-center">
+              <div className="inline-flex items-center mb-6">
+                <div className="w-6 h-6 bg-emerald-400 rounded-full mr-3"></div>
+                <div className="w-6 h-6 bg-emerald-500 rounded-full mr-3"></div>
+                <div className="w-6 h-6 bg-emerald-600 rounded-full"></div>
+              </div>
+              
+              <h2 className="text-2xl md:text-3xl font-light text-gray-900 mb-6">
+                Building a future where <span className="font-medium text-emerald-700">technology serves humanity</span>
+              </h2>
+              
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                Through ethical AI and community-centered design, we're creating tools that don't just solve problems—they empower people to build their own futures.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button className="px-6 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors">
+                  Explore Our Work
+                </button>
+                <button className="px-6 py-3 bg-white text-emerald-600 border border-emerald-200 rounded-lg font-medium hover:bg-emerald-50 transition-colors">
+                  Partner With Us
+                </button>
+              </div>
+            </div>
           </motion.div>
         </div>
-
-        {/* AI Focus */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-12"
-        >
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center space-x-3 mb-4">
-              <FaBrain className="text-blue-500 text-xl" />
-              <span className="text-sm font-semibold text-blue-600 uppercase tracking-wider">AI for Social Good</span>
-              <FaChartLine className="text-cyan-500 text-xl" />
-            </div>
-            
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">
-              Leveraging Artificial Intelligence for Community Transformation
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {aiInitiatives.map((initiative, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02, y: -5 }}
-                className={`bg-gradient-to-br ${initiative.color} rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-white rounded-lg shadow-xs">
-                    <div className="text-blue-600">
-                      {initiative.icon}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{initiative.title}</h4>
-                    <p className="text-sm text-gray-600">{initiative.description}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Core Values */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center space-x-2 mb-4">
-              <div className="w-8 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"></div>
-              <span className="text-sm font-semibold text-blue-600 uppercase tracking-wider">Our Values</span>
-              <div className="w-8 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"></div>
-            </div>
-            
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">
-              Principles That Guide Our Work
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {values.map((value, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="group"
-              >
-                <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md border border-gray-100 transition-all duration-300">
-                  <div className={`inline-flex p-2 rounded-lg bg-gradient-to-r ${value.color} mb-3 group-hover:scale-105 transition-transform duration-300`}>
-                    <div className="text-white">
-                      {value.icon}
-                    </div>
-                  </div>
-                  
-                  <h4 className="font-semibold text-gray-900 mb-1">
-                    {value.title}
-                  </h4>
-                  
-                  <p className="text-sm text-gray-600">
-                    {value.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 };
 

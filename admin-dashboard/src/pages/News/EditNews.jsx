@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, NewspaperIcon, PencilIcon } from '@heroicons/react/24/outline';
 
+import { newsAPI } from '../../services/api';
+
 const EditNews = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,36 +16,56 @@ const EditNews = () => {
     tags: ''
   });
 
+  const [error, setError] = useState(null);
   useEffect(() => {
-    // Simulate fetching news data
-    setTimeout(() => {
-      // Mock news data
-      const mockNews = {
-        id: parseInt(id),
-        title: 'New School Project Launch',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-        category: 'Education',
-        status: 'published',
-        tags: 'education, project, school',
-        author: 'John Doe',
-        publishedDate: '2024-01-15',
-        views: 1245
-      };
-      setFormData(mockNews);
-      setLoading(false);
-    }, 500);
+    const fetchNews = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await newsAPI.getById(id);
+        const resData = res?.data;
+        // normalize possible shapes: { data: {...} } | { news: {...} } | direct object
+        const news = resData?.data ?? resData?.news ?? resData;
+        setFormData({
+          id: news._id || news.id,
+          title: news.title || '',
+          content: news.content || '',
+          category: news.category || '',
+          status: news.status || '',
+          tags: Array.isArray(news.tags) ? news.tags.join(', ') : (news.tags || ''),
+          // normalize author: backend may return an object or an id/string
+          author: typeof news.author === 'object' ? (news.author.name || news.author.email || news.author._id) : (news.author || ''),
+          publishedDate: news.publishedDate || '',
+          views: news.views || 0,
+          // optional fields
+          thumbnail: news.thumbnail || news.image || ''
+        });
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || 'Failed to load news');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNews();
   }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Updating news:', formData);
+    setError(null);
+    try {
+      // Prepare tags as array if needed
+      const payload = {
+        ...formData,
+        tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : formData.tags
+      };
+      await newsAPI.update(id, payload);
       setLoading(false);
       navigate('/news');
-    }, 1000);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to update news');
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -57,9 +79,14 @@ const EditNews = () => {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
         </div>
       </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-500">{error}</div>
     );
   }
 
@@ -74,8 +101,8 @@ const EditNews = () => {
           Back to News
         </button>
         <div className="flex items-center">
-          <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-            <PencilIcon className="h-6 w-6 text-blue-600" />
+          <div className="h-10 w-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
+            <PencilIcon className="h-6 w-6 text-primary-600" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Edit News Article</h1>
@@ -121,7 +148,7 @@ const EditNews = () => {
                 required
                 value={formData.title}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -137,7 +164,7 @@ const EditNews = () => {
                 required
                 value={formData.content}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -151,7 +178,7 @@ const EditNews = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="Education">Education</option>
                 <option value="Health">Health</option>
@@ -174,7 +201,7 @@ const EditNews = () => {
                 name="tags"
                 value={formData.tags}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -188,7 +215,7 @@ const EditNews = () => {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
@@ -207,7 +234,7 @@ const EditNews = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
               >
                 {loading ? 'Updating...' : 'Update Article'}
               </button>

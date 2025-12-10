@@ -1,50 +1,25 @@
-﻿// Mock auth service for development
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+﻿import axios from 'axios';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export const authService = {
-  // Mock login for development
+  // Real login with backend
   login: async (credentials) => {
-    console.log('Mock login with:', credentials);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const mockUser = {
-      id: 1,
-      name: 'Admin User',
-      email: credentials.email,
-      role: 'admin',
-      avatar: 'A'
-    };
-    
-    return {
-      data: {
-        user: mockUser,
-        token: 'mock-jwt-token-' + Date.now()
-      }
-    };
+    const response = await axios.post(`${API_URL}/auth/login`, credentials, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    return response;
   },
 
-  // Mock get current user
+  // Get current user from backend
   getCurrentUser: async () => {
     const token = localStorage.getItem('token');
-    
     if (!token) {
       throw new Error('No token found');
     }
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const mockUser = {
-      id: 1,
-      name: 'Admin User',
-      email: 'admin@example.com',
-      role: 'admin',
-      avatar: 'A'
-    };
-    
-    return mockUser;
+    const response = await axios.get(`${API_URL}/auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.data;
   },
 
 

@@ -17,70 +17,24 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // DEVELOPMENT ONLY - Auto login for testing
-    if (import.meta.env.DEV) {
-      const devUser = {
-        id: 1,
-        name: 'Development Admin',
-        email: 'dev@example.com',
-        role: 'admin'
-      };
-      
-      // Auto login in dev mode
-      if (!localStorage.getItem('token')) {
-        localStorage.setItem('token', 'dev-token');
-        setUser(devUser);
-        setLoading(false);
-        console.log('Auto-logged in for development');
-        return;
-      }
-    }
-    
     checkAuthStatus();
   }, []);
 
-  useEffect(() => {
-  checkAuthStatus();
-}, []);
-
-const checkAuthStatus = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    
-    // DEVELOPMENT: If no token exists and we're in dev mode, create a mock token
-    if (import.meta.env.DEV && !token && !user) {
-      const devUser = {
-        id: 1,
-        name: 'Development Admin',
-        email: 'admin@matakiritrust.org',
-        role: 'admin'
-      };
-      
-      // Only auto-login if we're explicitly testing (you could add a query param)
-      const shouldAutoLogin = window.location.search.includes('auto-login=true');
-      
-      if (shouldAutoLogin) {
-        localStorage.setItem('token', 'dev-token-' + Date.now());
-        setUser(devUser);
-        setLoading(false);
-        console.log('Auto-logged in for development testing');
-        return;
+  const checkAuthStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const userData = await authService.getCurrentUser();
+        setUser(userData.user || userData); // support both {user: {...}} and {...}
       }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      localStorage.removeItem('token');
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    
-    // Normal flow: Check existing token
-    if (token) {
-      const userData = await authService.getCurrentUser();
-      setUser(userData);
-    }
-  } catch (error) {
-    console.error('Auth check failed:', error);
-    localStorage.removeItem('token');
-    setUser(null); // Ensure user is cleared on error
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   const login = async (credentials) => {
     try {
       setLoading(true);

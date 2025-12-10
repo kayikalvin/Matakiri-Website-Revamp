@@ -12,10 +12,10 @@ const AdminLayout = () => {
       {/* Mobile sidebar overlay */}
       <div className={`fixed inset-0 flex z-40 md:hidden ${sidebarOpen ? '' : 'hidden'}`}>
         <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-75" 
+          className="fixed inset-0 bg-primary-900 bg-opacity-60" 
           onClick={() => setSidebarOpen(false)} 
         />
-        <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gray-800">
+        <div className="relative flex-1 flex flex-col max-w-xs w-full bg-primary-600">
           <div className="absolute top-0 right-0 -mr-12 pt-2">
             <button
               className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
@@ -27,7 +27,7 @@ const AdminLayout = () => {
               </svg>
             </button>
           </div>
-          <Sidebar collapsed={false} onCollapse={() => {}} />
+          <Sidebar collapsed={false} onCollapse={() => {}} onNavigate={() => setSidebarOpen(false)} />
         </div>
       </div>
 

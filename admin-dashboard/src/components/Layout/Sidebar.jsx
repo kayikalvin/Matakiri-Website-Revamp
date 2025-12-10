@@ -12,7 +12,7 @@ import {
   ChevronDoubleRightIcon
 } from '@heroicons/react/24/outline';
 
-const Sidebar = ({ collapsed, onCollapse }) => {
+const Sidebar = ({ collapsed, onCollapse, onNavigate }) => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { name: 'Projects', href: '/projects', icon: FolderIcon },
@@ -29,12 +29,12 @@ const Sidebar = ({ collapsed, onCollapse }) => {
       <div className="flex items-center justify-between h-16 flex-shrink-0 px-4 bg-gray-900">
         {!collapsed ? (
           <div className="flex items-center">
-            <div className="h-8 w-8 bg-blue-600 rounded-md"></div>
+            <div className="h-8 w-8 bg-primary-600 rounded-md"></div>
             <h1 className="ml-3 text-white text-lg font-semibold">Matakiri Admin</h1>
           </div>
         ) : (
           <div className="mx-auto">
-            <div className="h-8 w-8 bg-blue-600 rounded-md"></div>
+            <div className="h-8 w-8 bg-primary-600 rounded-md"></div>
           </div>
         )}
         
@@ -59,6 +59,7 @@ const Sidebar = ({ collapsed, onCollapse }) => {
             <NavLink
               key={item.name}
               to={item.href}
+              onClick={() => onNavigate && onNavigate()}
               className={({ isActive }) =>
                 `group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
                   isActive
@@ -95,7 +96,7 @@ const Sidebar = ({ collapsed, onCollapse }) => {
       {/* Mini user profile when collapsed */}
       {collapsed && (
         <div className="flex-shrink-0 flex bg-gray-700 p-2 justify-center">
-          <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">
+          <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-bold">
             A
           </div>
         </div>

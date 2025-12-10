@@ -2,6 +2,8 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, UserGroupIcon, PencilIcon } from '@heroicons/react/24/outline';
 
+import { partnersAPI } from '../../services/api';
+
 const EditPartner = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,40 +16,54 @@ const EditPartner = () => {
     contact: '',
     email: '',
     website: '',
+    logo: '',
     status: 'active'
   });
 
+  const [error, setError] = useState(null);
   useEffect(() => {
-    // Simulate fetching partner data
-    setTimeout(() => {
-      // Mock partner data
-      const mockPartner = {
-        id: parseInt(id),
-        name: 'ABC Foundation',
-        type: 'NGO',
-        description: 'A non-profit organization focused on education and healthcare',
-        country: 'Kenya',
-        contact: '+254 712 345 678',
-        email: 'info@abcfoundation.org',
-        website: 'https://www.abcfoundation.org',
-        status: 'active',
-        since: '2022'
-      };
-      setFormData(mockPartner);
-      setLoading(false);
-    }, 500);
+    const fetchPartner = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await partnersAPI.getById(id);
+        const resData = res?.data;
+        // normalize possible shapes: { data: {...} } | { partner: {...} } | direct object
+        const partner = resData?.data ?? resData?.partner ?? resData;
+        setFormData({
+          id: partner._id || partner.id,
+          name: partner.name || '',
+          type: partner.type || '',
+          description: partner.description || '',
+          country: partner.country || '',
+          contact: partner.contact || '',
+          email: partner.email || '',
+          website: partner.website || '',
+          logo: partner.logo || '',
+          status: partner.status || '',
+          since: partner.since || ''
+        });
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || 'Failed to load partner');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPartner();
   }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Updating partner:', formData);
+    setError(null);
+    try {
+      await partnersAPI.update(id, formData);
       setLoading(false);
       navigate('/partners');
-    }, 1000);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to update partner');
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -61,9 +77,14 @@ const EditPartner = () => {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
         </div>
       </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-500">{error}</div>
     );
   }
 
@@ -78,8 +99,8 @@ const EditPartner = () => {
           Back to Partners
         </button>
         <div className="flex items-center">
-          <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-            <PencilIcon className="h-6 w-6 text-blue-600" />
+          <div className="h-10 w-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
+            <PencilIcon className="h-6 w-6 text-primary-600" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Edit Partner</h1>
@@ -93,8 +114,8 @@ const EditPartner = () => {
           {/* Partner Info Summary */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center">
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <UserGroupIcon className="h-6 w-6 text-blue-600" />
+              <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center">
+                <UserGroupIcon className="h-6 w-6 text-primary-600" />
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900">{formData.name}</h3>
@@ -117,7 +138,7 @@ const EditPartner = () => {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -131,7 +152,7 @@ const EditPartner = () => {
                 name="type"
                 value={formData.type}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="NGO">NGO</option>
                 <option value="Corporate">Corporate</option>
@@ -153,7 +174,7 @@ const EditPartner = () => {
                 rows="4"
                 value={formData.description}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -167,7 +188,7 @@ const EditPartner = () => {
                 name="country"
                 value={formData.country}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="Kenya">Kenya</option>
                 <option value="Tanzania">Tanzania</option>
@@ -191,7 +212,7 @@ const EditPartner = () => {
                 required
                 value={formData.contact}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -207,7 +228,7 @@ const EditPartner = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -222,7 +243,7 @@ const EditPartner = () => {
                 name="website"
                 value={formData.website}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
 
@@ -236,7 +257,7 @@ const EditPartner = () => {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -255,7 +276,7 @@ const EditPartner = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
               >
                 {loading ? 'Updating...' : 'Update Partner'}
               </button>

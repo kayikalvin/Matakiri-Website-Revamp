@@ -2,6 +2,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 
+import { galleryAPI } from '../../services/api';
+
 const UploadMedia = () => {
   const navigate = useNavigate();
   const [files, setFiles] = useState([]);
@@ -27,20 +29,34 @@ const UploadMedia = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (files.length === 0) {
       toast.error('Please select at least one file');
       return;
     }
-
     setUploading(true);
-    
-    // Mock upload process
-    setTimeout(() => {
+    try {
+      const data = new FormData();
+      files.forEach((file) => {
+        data.append('files', file);
+      });
+      data.append('title', formData.title);
+      data.append('description', formData.description);
+      data.append('category', formData.category);
+
+      await galleryAPI.upload(data);
       toast.success(`Successfully uploaded ${files.length} file(s)`);
       setUploading(false);
+      // dispatch a refresh event so the Gallery list can reload without relying on navigation
+      try {
+        window.dispatchEvent(new Event('gallery:refresh'));
+      } catch (e) {
+        // ignore if event dispatch fails in some environments
+      }
       navigate('/gallery');
-    }, 2000);
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Upload failed');
+      setUploading(false);
+    }
   };
 
   const removeFile = (index) => {
@@ -73,7 +89,7 @@ const UploadMedia = () => {
               />
               <label
                 htmlFor="file-upload"
-                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+                className="inline-block px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 cursor-pointer"
               >
                 Browse Files
               </label>
@@ -175,7 +191,7 @@ const UploadMedia = () => {
             <button
               type="submit"
               disabled={uploading || files.length === 0}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? 'Uploading...' : 'Upload Media'}
             </button>

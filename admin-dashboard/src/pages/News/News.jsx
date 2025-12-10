@@ -109,14 +109,45 @@ import {
   UserIcon 
 } from '@heroicons/react/24/outline';
 
+import { useEffect } from 'react';
+import { newsAPI } from '../../services/api';
+
 const News = () => {
-  const [news] = useState([
-    { id: 1, title: 'New School Project Launch', category: 'Education', author: 'John Doe', date: '2024-01-15', views: 1245, status: 'published' },
-    { id: 2, title: 'Annual Report 2023 Released', category: 'Reports', author: 'Jane Smith', date: '2024-01-20', views: 892, status: 'published' },
-    { id: 3, title: 'Community Health Camp Success', category: 'Health', author: 'Mike Johnson', date: '2024-02-01', views: 1567, status: 'published' },
-    { id: 4, title: 'New Partnership Announcement', category: 'Partners', author: 'Sarah Wilson', date: '2024-02-10', views: 743, status: 'draft' },
-    { id: 5, title: 'Upcoming Fundraising Event', category: 'Events', author: 'David Brown', date: '2024-02-15', views: 0, status: 'draft' },
-  ]);
+  const [news, setNews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await newsAPI.getAll();
+        // Accept API shapes: res.data.data or res.data
+        const payload = res.data && res.data.data ? res.data.data : res.data;
+        setNews(Array.isArray(payload) ? payload : []);
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || 'Failed to load news');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNews();
+  }, []);
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-500">{error}</div>
+    );
+  }
 
   const getStatusColor = (status) => {
     return status === 'published' 
@@ -126,7 +157,7 @@ const News = () => {
 
   const getCategoryColor = (category) => {
     const colors = {
-      'Education': 'bg-blue-100 text-blue-800',
+      'Education': 'bg-primary-100 text-primary-800',
       'Reports': 'bg-purple-100 text-purple-800',
       'Health': 'bg-red-100 text-red-800',
       'Partners': 'bg-indigo-100 text-indigo-800',
@@ -144,7 +175,7 @@ const News = () => {
         </div>
         <Link
           to="/news/create"
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-500 hover:bg-primary-600"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           Add News
@@ -155,8 +186,8 @@ const News = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center">
-            <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-              <NewspaperIcon className="h-5 w-5 text-blue-600" />
+            <div className="h-10 w-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+              <NewspaperIcon className="h-5 w-5 text-primary-500" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Total Articles</p>
@@ -220,49 +251,49 @@ const News = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {news.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
+                <tr key={item._id || item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{item.title}</div>
+                    <div className="text-sm font-medium text-gray-900">{item.title || 'Untitled'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(item.category)}`}>
-                      {item.category}
+                      {item.category || 'General'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <UserIcon className="h-4 w-4 text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-900">{item.author}</span>
+                      <span className="text-sm text-gray-900">{(item.author && (item.author.name || item.author)) || '—'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm text-gray-500">
                       <CalendarIcon className="h-4 w-4 mr-1" />
-                      {item.date}
+                      {item.publishedAt || item.date || ''}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm text-gray-500">
                       <EyeIcon className="h-4 w-4 mr-1" />
-                      {item.views.toLocaleString()}
+                      {(Number(item.views) || 0).toLocaleString()}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                      {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                      {item.status ? (item.status.charAt(0).toUpperCase() + item.status.slice(1)) : '—'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <Link
-                        to={`/news/edit/${item.id}`}
-                        className="text-blue-600 hover:text-blue-900"
+                        to={`/news/edit/${item._id || item.id}`}
+                          className="text-primary-500 hover:text-primary-700"
                       >
                         <PencilIcon className="h-5 w-5" />
                       </Link>
                       <button
                         className="text-red-600 hover:text-red-900"
-                        onClick={() => console.log('Delete news', item.id)}
+                        onClick={() => console.log('Delete news', item._id || item.id)}
                       >
                         <TrashIcon className="h-5 w-5" />
                       </button>

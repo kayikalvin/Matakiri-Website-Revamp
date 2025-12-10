@@ -1,10 +1,13 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
+import { projectsAPI } from '../../services/api';
 
 const EditProject = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -18,27 +21,42 @@ const EditProject = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Mock data for editing (in real app, fetch from API)
-  const mockProject = {
-    id: id || '1',
-    title: 'School Renovation Project',
-    description: 'Renovation of local primary school facilities including classrooms, toilets, and water supply.',
-    category: 'education',
-    startDate: '2024-01-15',
-    endDate: '2024-06-30',
-    budget: '1500000',
-    status: 'ongoing',
-    location: 'Matakiri Village',
-    manager: 'John Kamau'
+  const fetchProject = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await projectsAPI.getById(id);
+      const payload = res?.data?.data ?? res?.data ?? res;
+      const project = payload?.project ?? payload;
+
+      const managerField = project?.manager;
+      const managerName =
+        typeof managerField === 'object' && managerField !== null
+          ? managerField.name || managerField.username || managerField.email || ''
+          : managerField || '';
+
+      setFormData({
+        title: project?.title || '',
+        description: project?.description || '',
+        category: project?.category || 'education',
+        startDate: project?.startDate ? String(project.startDate).slice(0, 10) : '',
+        endDate: project?.endDate ? String(project.endDate).slice(0, 10) : '',
+        budget: project?.budget !== undefined && project?.budget !== null ? String(project.budget) : '',
+        status: project?.status || 'planned',
+        location: project?.location || '',
+        manager: managerName
+      });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load project.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    // Simulate loading project data
-    setTimeout(() => {
-      setFormData(mockProject);
-      setLoading(false);
-    }, 500);
+    if (id) fetchProject();
   }, [id]);
 
   const handleChange = (e) => {
@@ -49,23 +67,53 @@ const EditProject = () => {
     }));
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-
-    // Mock save process
-    setTimeout(() => {
+    setError(null);
+    try {
+      await projectsAPI.update(id, {
+        ...formData,
+        budget: formData.budget ? Number(formData.budget) : undefined,
+      });
       toast.success('Project updated successfully!');
-      setSaving(false);
       navigate('/projects');
-    }, 1500);
+    } catch (err) {
+      setError(
+        err.response?.data?.message || 'Failed to update project.'
+      );
+      toast.error(
+        err.response?.data?.message || 'Failed to update project.'
+      );
+    } finally {
+      setSaving(false);
+    }
   };
+
 
   if (loading) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="max-w-xl mx-auto bg-white rounded shadow p-6">
+          <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
+          <p className="text-gray-700 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -232,10 +280,10 @@ const EditProject = () => {
                     required
                     className="w-full p-2 border border-gray-300 rounded"
                   >
-                    <option value="planned">Planned</option>
-                    <option value="ongoing">Ongoing</option>
+                    <option value="planning">Planning</option>
+                    <option value="active">Active</option>
                     <option value="completed">Completed</option>
-                    <option value="on-hold">On Hold</option>
+                    <option value="paused">Paused</option>
                   </select>
                 </div>
               </div>
@@ -253,7 +301,7 @@ const EditProject = () => {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Update Project'}
               </button>

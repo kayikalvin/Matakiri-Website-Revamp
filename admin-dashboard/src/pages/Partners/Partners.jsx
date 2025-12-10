@@ -110,14 +110,46 @@ import {
   BuildingOfficeIcon 
 } from '@heroicons/react/24/outline';
 
+import { useEffect } from 'react';
+import { partnersAPI } from '../../services/api';
+
 const Partners = () => {
-  const [partners] = useState([
-    { id: 1, name: 'ABC Foundation', type: 'NGO', country: 'Kenya', contact: '+254 712 345 678', status: 'active', since: '2022' },
-    { id: 2, name: 'XYZ Corporation', type: 'Corporate', country: 'Tanzania', contact: '+255 712 345 679', status: 'active', since: '2023' },
-    { id: 3, name: 'Community Health Org', type: 'Health Organization', country: 'Uganda', contact: '+256 712 345 680', status: 'inactive', since: '2021' },
-    { id: 4, name: 'Education For All', type: 'NGO', country: 'Kenya', contact: '+254 712 345 681', status: 'active', since: '2023' },
-    { id: 5, name: 'Tech Solutions Ltd', type: 'Corporate', country: 'Rwanda', contact: '+250 712 345 682', status: 'active', since: '2024' },
-  ]);
+  const [partners, setPartners] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchPartners = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await partnersAPI.getAll();
+        // API returns { success, data: [...] }, accept either shape
+        const payload = res.data && res.data.data ? res.data.data : res.data;
+        setPartners(Array.isArray(payload) ? payload : []);
+        console.log(res);
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || 'Failed to load partners');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPartners();
+  }, []);
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-500">{error}</div>
+    );
+  }
 
   const getStatusColor = (status) => {
     return status === 'active' 
@@ -127,7 +159,7 @@ const Partners = () => {
 
   const getTypeColor = (type) => {
     const colors = {
-      'NGO': 'bg-blue-100 text-blue-800',
+      'NGO': 'bg-primary-100 text-primary-600',
       'Corporate': 'bg-purple-100 text-purple-800',
       'Health Organization': 'bg-red-100 text-red-800',
     };
@@ -143,7 +175,7 @@ const Partners = () => {
         </div>
         <Link
           to="/partners/create"
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           Add Partner
@@ -154,8 +186,8 @@ const Partners = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="flex items-center">
-            <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-              <UserGroupIcon className="h-5 w-5 text-blue-600" />
+            <div className="h-10 w-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+              <UserGroupIcon className="h-5 w-5 text-primary-600" />
             </div>
             <div>
               <p className="text-sm text-gray-500">Total Partners</p>
@@ -209,8 +241,7 @@ const Partners = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Partner</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Website</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Since</th>
@@ -219,53 +250,53 @@ const Partners = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {partners.map((partner) => (
-                <tr key={partner.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-blue-600 font-medium">{partner.name.charAt(0)}</span>
+                <tr key={partner._id || partner.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-start">
+                      {partner.logo ? (
+                        <img src={partner.logo} alt={partner.name} className="h-12 w-12 rounded-lg object-cover mr-4" />
+                      ) : (
+                        <div className="h-12 w-12 rounded-lg bg-primary-100 flex items-center justify-center mr-4">
+                          <span className="text-primary-600 font-medium">{(partner.name || '').charAt(0)}</span>
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-900">{partner.name || '—'}</div>
+                        {partner.description && (
+                          <div className="text-sm text-gray-500 mt-1 max-w-xl">{partner.description}</div>
+                        )}
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{partner.name}</div>
-                      </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(partner.type)}`}>
-                      {partner.type}
-                    </span>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-primary-600">
+                    {partner.website ? (
+                      <a href={partner.website} target="_blank" rel="noreferrer" className="underline">
+                        {partner.website.replace(/^https?:\/\//, '')}
+                      </a>
+                    ) : '—'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center text-sm text-gray-900">
-                      <GlobeAltIcon className="h-4 w-4 mr-1 text-gray-400" />
-                      {partner.country}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center text-sm text-gray-900">
-                      <PhoneIcon className="h-4 w-4 mr-1 text-gray-400" />
-                      {partner.contact}
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {partner.contact || '—'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(partner.status)}`}>
-                      {partner.status.charAt(0).toUpperCase() + partner.status.slice(1)}
+                      {partner.status ? (partner.status.charAt(0).toUpperCase() + partner.status.slice(1)) : '—'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {partner.since}
+                    {partner.since || ''}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <Link
-                        to={`/partners/edit/${partner.id}`}
-                        className="text-blue-600 hover:text-blue-900"
+                        to={`/partners/edit/${partner._id || partner.id}`}
+                        className="text-primary-500 hover:text-primary-700"
                       >
                         <PencilIcon className="h-5 w-5" />
                       </Link>
                       <button
                         className="text-red-600 hover:text-red-900"
-                        onClick={() => console.log('Delete partner', partner.id)}
+                        onClick={() => console.log('Delete partner', partner._id || partner.id)}
                       >
                         <TrashIcon className="h-5 w-5" />
                       </button>

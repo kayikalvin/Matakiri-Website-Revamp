@@ -2,6 +2,8 @@
 import { useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 
+import { newsAPI } from '../../services/api';
+
 const NewsForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -22,26 +24,43 @@ const NewsForm = () => {
     }));
   };
 
+
+  const [error, setError] = useState(null);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-
-    // Mock save process
-    setTimeout(() => {
+    setError(null);
+    try {
+      await newsAPI.create(formData);
       toast.success('News article saved successfully!');
       setSaving(false);
       navigate('/news');
-    }, 1500);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to save news');
+      setSaving(false);
+    }
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     setFormData(prev => ({ ...prev, status: 'published' }));
-    toast.success('Article published!');
-    setTimeout(() => navigate('/news'), 1000);
+    setSaving(true);
+    setError(null);
+    try {
+      await newsAPI.create({ ...formData, status: 'published' });
+      toast.success('Article published!');
+      setSaving(false);
+      navigate('/news');
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to publish news');
+      setSaving(false);
+    }
   };
 
   return (
     <div className="p-6">
+      {error && (
+        <div className="mb-4 text-center text-red-500">{error}</div>
+      )}
       <Toaster />
       
       <div className="mb-8">
@@ -65,7 +84,7 @@ const NewsForm = () => {
                   value={formData.title}
                   onChange={handleChange}
                   required
-                  className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Enter news title"
                 />
               </div>
@@ -81,7 +100,7 @@ const NewsForm = () => {
                   onChange={handleChange}
                   required
                   rows="12"
-                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Write your news content here..."
                 />
               </div>
@@ -96,7 +115,7 @@ const NewsForm = () => {
                   value={formData.excerpt}
                   onChange={handleChange}
                   rows="3"
-                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Brief summary of the article"
                 />
               </div>
@@ -140,7 +159,7 @@ const NewsForm = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="general">General</option>
                   <option value="projects">Projects</option>
@@ -171,14 +190,14 @@ const NewsForm = () => {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                    className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
                   >
                     {saving ? 'Saving...' : 'Save Draft'}
                   </button>
                   <button
                     type="button"
                     onClick={handlePublish}
-                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                   >
                     Publish
                   </button>

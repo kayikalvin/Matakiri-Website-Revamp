@@ -3,13 +3,13 @@
 const Modal = ({ isOpen, onClose, title, children, size = "md" }) => {
   if (!isOpen) return null;
 
-  const sizeClasses = @{
-    sm = "max-w-sm";
-    md = "max-w-md"; 
-    lg = "max-w-lg";
-    xl = "max-w-xl";
-    "2xl" = "max-w-2xl";
-  }
+  const sizeClasses = {
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
+    "2xl": "max-w-2xl",
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -22,7 +22,7 @@ const Modal = ({ isOpen, onClose, title, children, size = "md" }) => {
         ></div>
 
         {/* Modal panel */}
-        <div className={`inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle $($sizeClasses[$size]) sm:w-full`}>
+        <div className={`inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle ${sizeClasses[size] || sizeClasses.md} sm:w-full`}>
           {/* Header */}
           {title && (
             <div className="bg-gray-50 px-6 py-4 border-b">
@@ -42,7 +42,7 @@ const Modal = ({ isOpen, onClose, title, children, size = "md" }) => {
           </div>
           
           {/* Footer */}
-          <div className="bg-gray-50 px-6 py-3 border-t flex justify-end space-x-3">
+            <div className="bg-gray-50 px-6 py-3 border-t flex justify-end space-x-3">
             <button
               onClick={onClose}
               className="px-4 py-2 text-gray-700 hover:text-gray-900"
@@ -51,7 +51,7 @@ const Modal = ({ isOpen, onClose, title, children, size = "md" }) => {
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
             >
               Confirm
             </button>
