@@ -13,11 +13,13 @@ const EditPartner = () => {
     type: 'NGO',
     description: '',
     country: 'Kenya',
-    contact: '',
-    email: '',
+    contactName: '',
+    contactEmail: '',
+    contactPhone: '',
     website: '',
     logo: '',
-    status: 'active'
+    status: 'active',
+    since: ''
   });
 
   const [error, setError] = useState(null);
@@ -36,12 +38,13 @@ const EditPartner = () => {
           type: partner.type || '',
           description: partner.description || '',
           country: partner.country || '',
-          contact: partner.contact || '',
-          email: partner.email || '',
+          contactName: partner.contactPerson?.name || partner.contact || '',
+          contactEmail: partner.contactPerson?.email || partner.email || '',
+          contactPhone: partner.contactPerson?.phone || partner.contact || '',
           website: partner.website || '',
           logo: partner.logo || '',
-          status: partner.status || '',
-          since: partner.since || ''
+          status: typeof partner.isActive === 'boolean' ? (partner.isActive ? 'active' : 'inactive') : (partner.status || 'active'),
+          since: partner.partnershipStart ? String(partner.partnershipStart).slice(0,10) : (partner.since || '')
         });
       } catch (err) {
         setError(err.response?.data?.message || err.message || 'Failed to load partner');
@@ -57,7 +60,25 @@ const EditPartner = () => {
     setLoading(true);
     setError(null);
     try {
-      await partnersAPI.update(id, formData);
+      // Map contact fields into contactPerson for backend
+      const payload = { ...formData };
+      payload.contactPerson = {
+        name: formData.contactName || undefined,
+        email: formData.contactEmail || undefined,
+        phone: formData.contactPhone || undefined
+      };
+      // Map status to isActive and since to partnershipStart
+      payload.isActive = formData.status === 'active';
+      if (formData.since) payload.partnershipStart = new Date(formData.since);
+
+      // Remove top-level contact fields to avoid duplication
+      delete payload.contactName;
+      delete payload.contactEmail;
+      delete payload.contactPhone;
+      delete payload.status;
+      delete payload.since;
+
+      await partnersAPI.update(id, payload);
       setLoading(false);
       navigate('/partners');
     } catch (err) {
@@ -202,15 +223,30 @@ const EditPartner = () => {
 
             {/* Contact */}
             <div>
-              <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-2">
-                Contact Number *
+                <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 mb-2">
+                Contact Person
+              </label>
+              <input
+                type="text"
+                id="contactName"
+                name="contactName"
+                required
+                value={formData.contactName}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+
+            {/* Contact Phone */}
+            <div>
+              <label htmlFor="contactPhone" className="block text-sm font-medium text-gray-700 mb-2">
+                Contact Number
               </label>
               <input
                 type="tel"
-                id="contact"
-                name="contact"
-                required
-                value={formData.contact}
+                id="contactPhone"
+                name="contactPhone"
+                value={formData.contactPhone}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
@@ -218,15 +254,14 @@ const EditPartner = () => {
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address *
+              <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
               </label>
               <input
                 type="email"
-                id="email"
-                name="email"
-                required
-                value={formData.email}
+                id="contactEmail"
+                name="contactEmail"
+                value={formData.contactEmail}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />

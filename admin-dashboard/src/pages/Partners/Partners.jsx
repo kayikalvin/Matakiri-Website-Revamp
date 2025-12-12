@@ -152,9 +152,16 @@ const Partners = () => {
   }
 
   const getStatusColor = (status) => {
-    return status === 'active' 
-      ? 'bg-green-100 text-green-800' 
+    return status === true || status === 'active' || status === 1
+      ? 'bg-green-100 text-green-800'
       : 'bg-gray-100 text-gray-800';
+  };
+
+  const formatDate = (val) => {
+    if (!val) return '—';
+    const d = new Date(val);
+    if (Number.isNaN(d.getTime())) return String(val).slice(0,10);
+    return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   const getTypeColor = (type) => {
@@ -276,15 +283,27 @@ const Partners = () => {
                     ) : '—'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {partner.contact || '—'}
+                    {partner.contactPerson?.name || partner.contact || '—'}
+                    {partner.contactPerson?.email && (
+                      <div className="text-xs text-gray-500">{partner.contactPerson.email}</div>
+                    )}
+                    {!partner.contactPerson?.email && partner.email && (
+                      <div className="text-xs text-gray-500">{partner.email}</div>
+                    )}
+                    {!partner.contactPerson?.phone && partner.contact && (
+                      <div className="text-xs text-gray-500">{partner.contact}</div>
+                    )}
+                    {partner.contactPerson?.phone && (
+                      <div className="text-xs text-gray-500">{partner.contactPerson.phone}</div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(partner.status)}`}>
-                      {partner.status ? (partner.status.charAt(0).toUpperCase() + partner.status.slice(1)) : '—'}
+                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(partner.isActive ?? partner.status)}`}>
+                      { (partner.isActive === true) ? 'Active' : (partner.isActive === false ? 'Inactive' : (partner.status ? (partner.status.charAt(0).toUpperCase() + partner.status.slice(1)) : '—')) }
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {partner.since || ''}
+                    {formatDate(partner.partnershipStart || partner.since)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
