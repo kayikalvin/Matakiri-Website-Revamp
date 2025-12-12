@@ -233,6 +233,9 @@ const Projects = () => {
     paused: 0,
     totalBudget: 0
   });
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
     fetchProjects();
@@ -341,6 +344,22 @@ const Projects = () => {
     
     return matchesSearch && matchesStatus;
   });
+
+  const openGallery = (images = [], index = 0) => {
+    if (!images || images.length === 0) return;
+    // normalize images array to have url strings
+    const urls = images.map(img => (typeof img === 'string' ? img : img.url || ''))
+      .filter(Boolean);
+    if (!urls.length) return;
+    setLightboxImages(urls);
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const closeGallery = () => setLightboxOpen(false);
+
+  const showPrev = () => setLightboxIndex(i => (i - 1 + lightboxImages.length) % lightboxImages.length);
+  const showNext = () => setLightboxIndex(i => (i + 1) % lightboxImages.length);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 sm:p-6 lg:p-8">
@@ -544,6 +563,22 @@ const Projects = () => {
         </div>
       ) : (
         <>
+          {/* Lightbox modal for viewing project images */}
+          {lightboxOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={closeGallery}>
+              <div className="relative max-w-4xl w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                <button onClick={closeGallery} className="absolute top-3 right-3 text-white bg-black/40 rounded-full p-2">✕</button>
+                <div className="bg-black rounded-lg overflow-hidden">
+                  <img src={lightboxImages[lightboxIndex]} alt={`img-${lightboxIndex}`} className="w-full h-[60vh] object-contain bg-black" />
+                </div>
+                <div className="flex items-center justify-between mt-2 text-white">
+                  <button onClick={showPrev} className="px-4 py-2 bg-black/40 rounded">Prev</button>
+                  <div className="text-sm">{lightboxIndex + 1} / {lightboxImages.length}</div>
+                  <button onClick={showNext} className="px-4 py-2 bg-black/40 rounded">Next</button>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Projects Grid/Table */}
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
             {filteredProjects.length === 0 ? (
@@ -590,13 +625,27 @@ const Projects = () => {
                       <tr key={project._id || project.id} className="hover:bg-gray-50 transition-colors">
                         <td className="py-5 px-6">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 h-12 w-12">
-                              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center shadow-sm">
-                                <span className="text-xl font-bold text-blue-600">
-                                  {(project.title || project.name || '').charAt(0).toUpperCase()}
-                                </span>
+                              <div className="flex-shrink-0 h-12 w-12">
+                                {project.images && project.images.length > 0 ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => openGallery(project.images, 0)}
+                                    className="h-12 w-12 rounded-xl overflow-hidden shadow-sm"
+                                  >
+                                    <img
+                                      src={project.images[0].url || project.images[0]}
+                                      alt={project.title}
+                                      className="h-full w-full object-cover"
+                                    />
+                                  </button>
+                                ) : (
+                                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center shadow-sm">
+                                    <span className="text-xl font-bold text-blue-600">
+                                      {(project.title || project.name || '').charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
-                            </div>
                             <div className="ml-4">
                               <div className="text-base font-semibold text-gray-900">
                                 {project.title || project.name}
