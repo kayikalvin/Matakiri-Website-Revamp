@@ -287,7 +287,7 @@ const HeroSection = () => {
         className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-20"
       >
         <div className="flex flex-col items-center">
-          <span className="text-blue-200/80 text-sm mb-2">Scroll to explore</span>
+          <span className="text-green-700 text-sm mb-2">Scroll to explore</span>
           <div className="w-6 h-10 border-2 border-blue-300/40 rounded-full flex justify-center shadow-lg backdrop-blur-sm">
             <div className="w-1 h-3 bg-cyan-300/80 rounded-full mt-2"></div>
           </div>

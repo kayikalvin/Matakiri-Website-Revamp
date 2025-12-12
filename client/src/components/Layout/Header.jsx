@@ -38,10 +38,10 @@ const Header = () => {
       path: '/programs', 
       label: 'Programs',
       subItems: [
-        { path: '/programs/education', label: 'Education' },
-        { path: '/programs/healthcare', label: 'Healthcare' },
-        { path: '/programs/agriculture', label: 'Agriculture' },
-        { path: '/programs/environment', label: 'Environment' }
+        { path: '/programs?category=education', label: 'Education' },
+        { path: '/programs?category=health', label: 'Health' },
+        { path: '/programs?category=agriculture', label: 'Agriculture' },
+        { path: '/programs?category=water', label: 'Water & Sanitation' }
       ]
     },
     { 
@@ -49,8 +49,8 @@ const Header = () => {
       label: 'Projects',
       subItems: [
         { path: '/projects', label: 'All Projects' },
-        { path: '/projects/ai', label: 'AI Projects' },
-        { path: '/projects/featured', label: 'Featured Projects' }
+        { path: '/ai-projects', label: 'AI Projects' },
+        { path: '/projects?featured=true', label: 'Featured Projects' }
       ]
     },
     { path: '/partners', label: 'Partners' },
@@ -130,7 +130,7 @@ const Header = () => {
         scrolled ? 'shadow-lg' : 'shadow'
       }`}>
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center h-16 md:h-20">
+          <div className="flex justify-between items-center h-24 md:h-28 lg:h-32">
             {/* Logo */}
             <div className="flex items-center">
               <NavLink 
@@ -141,28 +141,27 @@ const Header = () => {
                   setActiveDropdown(null);
                 }}
               >
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-full flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300">
-                  <span className="text-white font-bold text-lg md:text-xl">MTC</span>
+                <div className="w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300 overflow-hidden">
+                  <img
+                    src="/matakiri-logo.png"
+                    alt="Matakiri Tumaini logo"
+                    className="w-full h-full object-contain bg-white"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                  <span className="sr-only">Matakiri Tumaini</span>
                 </div>
-                <div>
-                  <h1 className="font-display font-bold text-lg md:text-xl text-gray-900 leading-tight">
-                    Matakiri Tumaini
-                  </h1>
-                  <p className="text-xs md:text-sm text-gray-500 hidden md:block">
-                    Transforming Communities Through Innovation
-                  </p>
-                </div>
+                {/* logo only: title and tagline removed */}
               </NavLink>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
+            <div className="hidden lg:flex items-center space-x-1 ">
               {navItems.map((item, index) => (
-                <div key={index} className="relative group">
+                <div key={index} className="relative group ">
                   {item.subItems ? (
                     <button
                       onClick={() => handleDropdownToggle(index)}
-                      className={`flex items-center space-x-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      className={`flex items-center space-x-1 px-4 py-2 rounded-lg text-lg font-semi-bold transition-all ${
                         activeDropdown === index || window.location.pathname.startsWith(item.path)
                           ? 'text-emerald-700 bg-emerald-50'
                           : 'text-gray-700 hover:text-emerald-700 hover:bg-emerald-50'
@@ -178,7 +177,7 @@ const Header = () => {
                       to={item.path}
                       end={item.exact}
                       className={({ isActive }) =>
-                        `px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        `px-4 py-2 rounded-lg text-lg font-semi-bold transition-all ${
                           isActive
                             ? 'text-emerald-700 bg-emerald-50'
                             : 'text-gray-700 hover:text-emerald-700 hover:bg-emerald-50'
@@ -255,8 +254,8 @@ const Header = () => {
                     to={item.path}
                     end={item.exact}
                     onClick={() => setIsMenuOpen(false)}
-                    className={({ isActive }) =>
-                      `px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        className={({ isActive }) =>
+                          `px-4 py-2 rounded-lg text-xl font-bold transition-all ${
                         isActive
                           ? 'text-emerald-700 bg-emerald-50'
                           : 'text-gray-700 hover:text-emerald-700 hover:bg-emerald-50'
@@ -320,7 +319,7 @@ const Header = () => {
                         end={item.exact}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium transition-colors ${
+                          `flex items-center justify-between px-4 py-3 rounded-lg text-xl font-bold transition-colors ${
                             isActive
                               ? 'text-emerald-700 bg-emerald-50'
                               : 'text-gray-700 hover:text-emerald-700 hover:bg-emerald-50'
@@ -340,7 +339,7 @@ const Header = () => {
                               to={subItem.path}
                               onClick={() => setIsMobileMenuOpen(false)}
                               className={({ isActive }) =>
-                                `block px-4 py-2 text-sm rounded-lg transition-colors ${
+                                `block px-4 py-2 text-xl font-bold rounded-lg transition-colors ${
                                   isActive
                                     ? 'text-emerald-700 bg-emerald-50'
                                     : 'text-gray-600 hover:text-emerald-700 hover:bg-emerald-50'

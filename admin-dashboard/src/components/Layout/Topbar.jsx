@@ -31,14 +31,16 @@ const Topbar = ({ onMenuClick, sidebarCollapsed, onToggleSidebar }) => {
   const [recentContacts, setRecentContacts] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [activityTab, setActivityTab] = useState('contacts');
-    // Example: fetch recent admin activities (replace with real API)
+    // Fetch recent admin activities: use recent users as activity feed fallback
     const fetchRecentActivities = async () => {
       try {
-        // Replace with your backend endpoint for recent activities
-        // Example shape: [{ type: 'user', message: 'New user registered', time: ... }, ...]
-        const res = await api.get('/activity/recent');
-        const payload = res?.data?.data ?? res?.data ?? [];
-        setRecentActivities(Array.isArray(payload) ? payload : []);
+        // Get recent users as a simple activity source
+        const res = await api.get('/users', { params: { page: 1, limit: 6, sort: '-createdAt' } });
+        const users = res?.data?.data ?? res?.data ?? [];
+        const activities = Array.isArray(users)
+          ? users.map(u => ({ type: 'user', message: `New user registered: ${u.name || u.email}`, time: u.createdAt }))
+          : [];
+        setRecentActivities(activities);
       } catch (err) {
         setRecentActivities([]);
       }

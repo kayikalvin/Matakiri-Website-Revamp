@@ -24,6 +24,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
 import { projectsAPI, partnersAPI, usersAPI } from '../services/api';
+import QuickActions from '../components/Dashboard/QuickActions';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -437,59 +438,7 @@ const Dashboard = () => {
                 </div>
                 
                 {/* QuickActions Component */}
-                <div className="space-y-3">
-                  <button className="flex items-center justify-between w-full p-4 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors group">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-500/20 rounded-lg">
-                        <PencilIcon className="h-5 w-5 text-blue-400" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-medium">Create News</div>
-                        <div className="text-sm text-gray-400">Write a new article</div>
-                      </div>
-                    </div>
-                    <ArrowUpTrayIcon className="h-5 w-5 text-gray-400 group-hover:text-white" />
-                  </button>
-
-                  <button className="flex items-center justify-between w-full p-4 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors group">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-green-500/20 rounded-lg">
-                        <UserPlusIcon className="h-5 w-5 text-green-400" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-medium">Add User</div>
-                        <div className="text-sm text-gray-400">Create new user account</div>
-                      </div>
-                    </div>
-                    <ArrowUpTrayIcon className="h-5 w-5 text-gray-400 group-hover:text-white" />
-                  </button>
-
-                  <button className="flex items-center justify-between w-full p-4 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors group">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-purple-500/20 rounded-lg">
-                        <ArrowUpTrayIcon className="h-5 w-5 text-purple-400" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-medium">Upload Media</div>
-                        <div className="text-sm text-gray-400">Add files to gallery</div>
-                      </div>
-                    </div>
-                    <ArrowUpTrayIcon className="h-5 w-5 text-gray-400 group-hover:text-white" />
-                  </button>
-
-                  <button className="flex items-center justify-between w-full p-4 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors group">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-amber-500/20 rounded-lg">
-                        <EyeIcon className="h-5 w-5 text-amber-400" />
-                      </div>
-                      <div className="text-left">
-                        <div className="font-medium">View Reports</div>
-                        <div className="text-sm text-gray-400">System analytics</div>
-                      </div>
-                    </div>
-                    <ArrowUpTrayIcon className="h-5 w-5 text-gray-400 group-hover:text-white" />
-                  </button>
-                </div>
+                <QuickActions />
               </div>
             </div>
           </div>

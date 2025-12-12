@@ -218,7 +218,7 @@ const Login = () => {
                     <div className="h-5 w-5 rounded bg-primary-100 flex items-center justify-center mr-2">
                       <LockClosedIcon className="h-3 w-3 text-primary-600" />
                     </div>
-                    <span className="text-sm text-primary-700">password</span>
+                    <span className="text-sm text-primary-700">password123</span>
                   </div>
                 </div>
               </div>
