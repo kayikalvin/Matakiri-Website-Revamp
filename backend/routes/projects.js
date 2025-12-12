@@ -9,9 +9,11 @@ const {
   getFeaturedProjects,
   getAIProjects,
   getProjectStats
+  , addProjectImages
 } = require('../controllers/projectController');
 const { protect, authorize } = require('../middleware/auth');
 const { validateProject } = require('../middleware/validation');
+const { upload } = require('../middleware/upload');
 
 // Public routes
 router.get('/', getProjects);
@@ -26,6 +28,7 @@ router.use(protect);
 // Admin/Editor routes
 router.post('/', authorize('admin', 'editor'), validateProject, createProject);
 router.put('/:id', authorize('admin', 'editor'), validateProject, updateProject);
+router.post('/:id/images', authorize('admin', 'editor'), upload, addProjectImages);
 router.delete('/:id', authorize('admin'), deleteProject);
 
 module.exports = router;

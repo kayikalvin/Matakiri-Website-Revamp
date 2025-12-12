@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 
@@ -13,11 +13,14 @@ const CreateProject = () => {
     startDate: '',
     endDate: '',
     budget: '',
-    status: 'planned',
+    status: 'planning',
     location: '',
     manager: ''
   });
   const [saving, setSaving] = useState(false);
+  const [imagesFiles, setImagesFiles] = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,13 +30,67 @@ const CreateProject = () => {
     }));
   };
 
+  const handleFiles = (e) => {
+    const files = Array.from(e.target.files || []);
+    addFiles(files);
+  };
+
+  const addFiles = (files) => {
+    const max = 5;
+    const existing = imagesFiles.slice();
+    for (let i = 0; i < files.length; i++) {
+      if (existing.length >= max) break;
+      const f = files[i];
+      if (!f.type.startsWith('image/')) continue;
+      existing.push(f);
+    }
+    setImagesFiles(existing);
+  };
+
+  // Drag & drop handlers
+  const onDrop = (e) => {
+    e.preventDefault();
+    const dt = e.dataTransfer;
+    const files = Array.from(dt.files || []);
+    addFiles(files);
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const removeImage = (index) => {
+    setImagesFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Generate previews and cleanup
+  useEffect(() => {
+    // Revoke old previews
+    previews.forEach(url => URL.revokeObjectURL(url));
+    const urls = imagesFiles.map(f => URL.createObjectURL(f));
+    setPreviews(urls);
+    return () => urls.forEach(url => URL.revokeObjectURL(url));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imagesFiles]);
+
   const [error, setError] = useState(null);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
     try {
-      await projectsAPI.create(formData);
+      // Remove slug if present, let backend generate it
+      const { slug, ...payload } = formData;
+      const res = await projectsAPI.create(payload);
+      const projectId = res?.data?.data?._id || res?.data?.data?.id;
+
+      // If images selected, upload them to the project
+      if (imagesFiles && imagesFiles.length && projectId) {
+        const form = new FormData();
+        imagesFiles.forEach((file) => form.append('images', file));
+        await projectsAPI.uploadImages(projectId, form);
+      }
+
       toast.success('Project created successfully!');
       setSaving(false);
       navigate('/projects');
@@ -130,6 +187,49 @@ const CreateProject = () => {
               </div>
             </div>
 
+              {/* Images */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Project Images</h3>
+                <div
+                  onDrop={onDrop}
+                  onDragOver={onDragOver}
+                  className="border-dashed border-2 border-gray-300 rounded p-4 flex flex-col items-center justify-center cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    name="images"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFiles}
+                    className="hidden"
+                  />
+                  <div className="text-center">
+                    <p className="font-medium text-gray-700">Drag & drop images here, or click to select</p>
+                    <p className="text-sm text-gray-500 mt-1">Up to 5 images. Images upload after project creation.</p>
+                  </div>
+                </div>
+
+                {previews && previews.length > 0 && (
+                  <div className="mt-4 grid grid-cols-3 gap-3">
+                    {previews.map((src, i) => (
+                      <div key={i} className="relative group">
+                        <img src={src} alt={`preview-${i}`} className="w-full h-32 object-cover rounded" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(i)}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                          aria-label="Remove image"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             {/* Timeline & Budget */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">Timeline & Budget</h3>
@@ -207,10 +307,10 @@ const CreateProject = () => {
                     required
                     className="w-full p-2 border border-gray-300 rounded"
                   >
-                    <option value="planned">Planned</option>
-                    <option value="ongoing">Ongoing</option>
+                    <option value="planning">Planning</option>
+                    <option value="active">Active</option>
                     <option value="completed">Completed</option>
-                    <option value="on-hold">On Hold</option>
+                    <option value="paused">Paused</option>
                   </select>
                 </div>
               </div>

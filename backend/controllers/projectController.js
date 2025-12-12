@@ -257,3 +257,44 @@ exports.getProjectStats = asyncHandler(async (req, res, next) => {
     }
   });
 });
+
+// @desc    Upload images for a project
+// @route   POST /api/projects/:id/images
+// @access  Private/Admin/Editor
+exports.addProjectImages = asyncHandler(async (req, res, next) => {
+  const project = await Project.findById(req.params.id);
+
+  if (!project) {
+    return next(new ErrorResponse('Project not found', 404));
+  }
+
+  // Ensure files are present
+  const files = (req.files && req.files.images) || [];
+
+  if (!files.length) {
+    return next(new ErrorResponse('No images uploaded', 400));
+  }
+
+  // Optional captions can be sent as JSON array in `captions` field
+  let captions = [];
+  try {
+    if (req.body.captions) captions = JSON.parse(req.body.captions);
+  } catch (e) {
+    captions = [];
+  }
+
+  const newImages = files.map((file, i) => ({
+    url: `${req.protocol}://${req.get('host')}/uploads/${file.filename}`,
+    caption: captions[i] || '',
+    isFeatured: false
+  }));
+
+  project.images = project.images ? project.images.concat(newImages) : newImages;
+  await project.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Images uploaded successfully',
+    data: project
+  });
+});

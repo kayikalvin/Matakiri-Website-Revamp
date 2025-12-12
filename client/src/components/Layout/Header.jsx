@@ -357,7 +357,7 @@ const Header = () => {
                 </div>
 
                 {/* Admin Link in Mobile Menu */}
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                {/* <div className="mt-4 pt-4 border-t border-gray-100">
                   <a
                     href="http://localhost:3002"
                     target="_blank"
@@ -368,7 +368,7 @@ const Header = () => {
                     <FaTachometerAlt className="text-emerald-600" />
                     <span>Admin Dashboard</span>
                   </a>
-                </div>
+                </div> */}
               </div>
             </motion.div>
           )}

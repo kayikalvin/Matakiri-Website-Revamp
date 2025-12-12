@@ -125,16 +125,23 @@ projectSchema.index({ isAIPowered: 1 });
 projectSchema.index({ createdAt: -1 });
 
 // Pre-save middleware to generate slug
-projectSchema.pre('save', function(next) {
-  if (!this.isModified('title')) return next();
-  
-  this.slug = this.title
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/--+/g, '-')
-    .trim();
-    
+// Ensure slug exists before validation so `required` validators pass
+projectSchema.pre('validate', function(next) {
+  // If there's no title yet, proceed and let validation handle it
+  if (!this.title) return next();
+
+  // Generate slug when creating a new doc or when title changed, or if slug missing
+  if (this.isNew || this.isModified('title') || !this.slug) {
+    this.slug = this.title
+      .toString()
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .trim();
+  }
+
   next();
 });
 

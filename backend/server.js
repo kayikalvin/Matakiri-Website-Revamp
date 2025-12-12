@@ -169,6 +169,10 @@ const errorHandler = require('./middleware/error');
 // Use error handler (must be after all routes)
 app.use(errorHandler);
 
+// Serve uploaded files
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({

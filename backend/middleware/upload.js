@@ -38,7 +38,9 @@ const upload = multer({
   { name: 'media', maxCount: 1 },
   { name: 'logo', maxCount: 1 },
   { name: 'image', maxCount: 1 },
+  { name: 'images', maxCount: 5 },
   { name: 'document', maxCount: 1 }
 ]);
 
 module.exports = { upload };
+

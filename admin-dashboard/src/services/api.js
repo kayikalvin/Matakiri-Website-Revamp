@@ -45,6 +45,9 @@ export const projectsAPI = {
   getFeatured: () => api.get('/projects/featured'),
   getAI: () => api.get('/projects/ai'),
   getStats: () => api.get('/projects/stats'),
+  uploadImages: (id, formData) => api.post(`/projects/${id}/images`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
 };
 
 // Partners API
