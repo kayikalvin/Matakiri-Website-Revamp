@@ -205,36 +205,49 @@ exports.getAIProjects = asyncHandler(async (req, res, next) => {
 // @route   GET /api/projects/stats
 // @access  Public
 exports.getProjectStats = asyncHandler(async (req, res, next) => {
-  const stats = await Project.aggregate([
-    {
-      $group: {
-        _id: null,
-        totalProjects: { $sum: 1 },
-        activeProjects: {
-          $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] }
-        },
-        completedProjects: {
-          $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
-        },
-        aiProjects: {
-          $sum: { $cond: ['$isAIPowered', 1, 0] }
-        },
-        totalBeneficiaries: { $sum: '$impactMetrics.beneficiaries' },
-        totalCommunities: { $sum: '$impactMetrics.communitiesReached' }
-      }
-    },
-    {
-      $project: {
-        _id: 0,
-        totalProjects: 1,
-        activeProjects: 1,
-        completedProjects: 1,
-        aiProjects: 1,
-        totalBeneficiaries: { $ifNull: ['$totalBeneficiaries', 0] },
-        totalCommunities: { $ifNull: ['$totalCommunities', 0] }
-      }
+  // Optional date filtering via query params: startDate, endDate (ISO strings)
+  const { startDate, endDate } = req.query;
+  const match = {};
+  if (startDate || endDate) {
+    match.createdAt = {};
+    if (startDate) match.createdAt.$gte = new Date(startDate);
+    if (endDate) match.createdAt.$lte = new Date(endDate);
+  }
+
+  const pipeline = [];
+  if (Object.keys(match).length) pipeline.push({ $match: match });
+
+  pipeline.push({
+    $group: {
+      _id: null,
+      totalProjects: { $sum: 1 },
+      activeProjects: {
+        $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] }
+      },
+      completedProjects: {
+        $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+      },
+      aiProjects: {
+        $sum: { $cond: ['$isAIPowered', 1, 0] }
+      },
+      totalBeneficiaries: { $sum: '$impactMetrics.beneficiaries' },
+      totalCommunities: { $sum: '$impactMetrics.communitiesReached' }
     }
-  ]);
+  });
+
+  pipeline.push({
+    $project: {
+      _id: 0,
+      totalProjects: 1,
+      activeProjects: 1,
+      completedProjects: 1,
+      aiProjects: 1,
+      totalBeneficiaries: { $ifNull: ['$totalBeneficiaries', 0] },
+      totalCommunities: { $ifNull: ['$totalCommunities', 0] }
+    }
+  });
+
+  const stats = await Project.aggregate(pipeline);
 
   // Category distribution
   const categoryStats = await Project.aggregate([
