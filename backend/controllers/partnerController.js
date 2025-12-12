@@ -1,6 +1,8 @@
 const Partner = require('../models/Partner');
 const asyncHandler = require('../utils/asyncHandler');
 const ErrorResponse = require('../utils/ErrorResponse');
+const fs = require('fs');
+const path = require('path');
 
 // @desc    Get all partners
 // @route   GET /api/partners
@@ -89,6 +91,20 @@ exports.getPartner = asyncHandler(async (req, res, next) => {
 // @route   POST /api/partners
 // @access  Private/Admin
 exports.createPartner = asyncHandler(async (req, res, next) => {
+  // If form-data was sent with a JSON payload field, merge it
+  if (req.body && req.body.payload) {
+    try {
+      const parsed = JSON.parse(req.body.payload);
+      req.body = { ...req.body, ...parsed };
+    } catch (e) {}
+  }
+
+  // If logo file uploaded, set logo URL before validation/create
+  if (req.files && req.files.logo && req.files.logo[0]) {
+    const file = req.files.logo[0];
+    req.body.logo = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+  }
+
   const partner = await Partner.create(req.body);
 
   res.status(201).json({
@@ -106,6 +122,41 @@ exports.updatePartner = asyncHandler(async (req, res, next) => {
 
   if (!partner) {
     return next(new ErrorResponse('Partner not found', 404));
+  }
+
+  // If form-data was sent with a JSON payload field, merge it
+  if (req.body && req.body.payload) {
+    try {
+      const parsed = JSON.parse(req.body.payload);
+      req.body = { ...req.body, ...parsed };
+    } catch (e) {}
+  }
+
+  // If logo file uploaded, set logo URL in body and remove previous logo file if present
+  if (req.files && req.files.logo && req.files.logo[0]) {
+    const file = req.files.logo[0];
+    req.body.logo = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+    // remove previous logo file from uploads if exists and is local
+    try {
+      if (partner.logo && partner.logo.includes('/uploads/')) {
+        const prevFilename = partner.logo.split('/uploads/').pop();
+        const prevPath = path.join(process.cwd(), 'uploads', prevFilename);
+        if (fs.existsSync(prevPath)) fs.unlinkSync(prevPath);
+      }
+    } catch (e) {
+      // non-fatal
+    }
+  } else if (typeof req.body.logo !== 'undefined' && req.body.logo === '') {
+    // client requested removal of existing logo
+    try {
+      if (partner.logo && partner.logo.includes('/uploads/')) {
+        const prevFilename = partner.logo.split('/uploads/').pop();
+        const prevPath = path.join(process.cwd(), 'uploads', prevFilename);
+        if (fs.existsSync(prevPath)) fs.unlinkSync(prevPath);
+      }
+    } catch (e) {
+      // ignore errors
+    }
   }
 
   partner = await Partner.findByIdAndUpdate(req.params.id, req.body, {
@@ -158,37 +209,48 @@ exports.getFeaturedPartners = asyncHandler(async (req, res, next) => {
 // @route   GET /api/partners/stats
 // @access  Public
 exports.getPartnerStats = asyncHandler(async (req, res, next) => {
-  const stats = await Partner.aggregate([
-    {
-      $group: {
-        _id: null,
-        totalPartners: { $sum: 1 },
-        featuredPartners: {
-          $sum: { $cond: ['$isFeatured', 1, 0] }
-        }
-      }
-    },
-    {
-      $project: {
-        _id: 0,
-        totalPartners: 1,
-        featuredPartners: 1
+  const { startDate, endDate } = req.query;
+  const match = {};
+  if (startDate || endDate) {
+    match.createdAt = {};
+    if (startDate) match.createdAt.$gte = new Date(startDate);
+    if (endDate) match.createdAt.$lte = new Date(endDate);
+  }
+
+  const pipeline = [];
+  if (Object.keys(match).length) pipeline.push({ $match: match });
+
+  pipeline.push({
+    $group: {
+      _id: null,
+      totalPartners: { $sum: 1 },
+      featuredPartners: {
+        $sum: { $cond: ['$isFeatured', 1, 0] }
       }
     }
-  ]);
+  });
+
+  pipeline.push({
+    $project: {
+      _id: 0,
+      totalPartners: 1,
+      featuredPartners: 1
+    }
+  });
+
+  const stats = await Partner.aggregate(pipeline);
 
   // Partnership level distribution
-  const levelStats = await Partner.aggregate([
-    {
-      $group: {
-        _id: '$partnershipLevel',
-        count: { $sum: 1 }
-      }
-    },
-    {
-      $sort: { count: -1 }
+  const levelPipeline = [];
+  if (Object.keys(match).length) levelPipeline.push({ $match: match });
+  levelPipeline.push({
+    $group: {
+      _id: '$partnershipLevel',
+      count: { $sum: 1 }
     }
-  ]);
+  });
+  levelPipeline.push({ $sort: { count: -1 } });
+  const levelStats = await Partner.aggregate(levelPipeline);
 
   res.status(200).json({
     success: true,
