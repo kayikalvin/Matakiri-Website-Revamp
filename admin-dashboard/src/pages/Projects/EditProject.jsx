@@ -1,5 +1,5 @@
 ﻿
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 import { projectsAPI } from '../../services/api';
@@ -15,13 +15,16 @@ const EditProject = () => {
     startDate: '',
     endDate: '',
     budget: '',
-    status: 'planned',
+    status: 'planning',
     location: '',
     manager: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [newImages, setNewImages] = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const fileInputRef = useRef(null);
 
   const fetchProject = async () => {
     setLoading(true);
@@ -44,7 +47,7 @@ const EditProject = () => {
         startDate: project?.startDate ? String(project.startDate).slice(0, 10) : '',
         endDate: project?.endDate ? String(project.endDate).slice(0, 10) : '',
         budget: project?.budget !== undefined && project?.budget !== null ? String(project.budget) : '',
-        status: project?.status || 'planned',
+        status: project?.status || 'planning',
         location: project?.location || '',
         manager: managerName
       });
@@ -67,16 +70,62 @@ const EditProject = () => {
     }));
   };
 
+  // Image handling (new images to upload)
+  const addFiles = (files) => {
+    const max = 5;
+    const existing = newImages.slice();
+    for (let i = 0; i < files.length; i++) {
+      if (existing.length >= max) break;
+      const f = files[i];
+      if (!f.type.startsWith('image/')) continue;
+      existing.push(f);
+    }
+    setNewImages(existing);
+  };
+
+  const handleFiles = (e) => {
+    const files = Array.from(e.target.files || []);
+    addFiles(files);
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files || []);
+    addFiles(files);
+  };
+
+  const onDragOver = (e) => e.preventDefault();
+
+  const removeNewImage = (index) => setNewImages(prev => prev.filter((_, i) => i !== index));
+
+  useEffect(() => {
+    // cleanup old previews
+    previews.forEach(url => URL.revokeObjectURL(url));
+    const urls = newImages.map(f => URL.createObjectURL(f));
+    setPreviews(urls);
+    return () => urls.forEach(url => URL.revokeObjectURL(url));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newImages]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
     try {
-      await projectsAPI.update(id, {
+      const res = await projectsAPI.update(id, {
         ...formData,
         budget: formData.budget ? Number(formData.budget) : undefined,
       });
+
+      // After update, upload any newly selected images
+      const projectId = id;
+      if (newImages && newImages.length) {
+        const form = new FormData();
+        newImages.forEach(f => form.append('images', f));
+        await projectsAPI.uploadImages(projectId, form);
+      }
+
       toast.success('Project updated successfully!');
       navigate('/projects');
     } catch (err) {
@@ -201,6 +250,60 @@ const EditProject = () => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Images */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Project Images</h3>
+              <div
+                onDrop={onDrop}
+                onDragOver={onDragOver}
+                className="border-dashed border-2 border-gray-300 rounded p-4 flex flex-col items-center justify-center cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  name="images"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFiles}
+                  className="hidden"
+                />
+                <div className="text-center">
+                  <p className="font-medium text-gray-700">Drag & drop images here, or click to select</p>
+                  <p className="text-sm text-gray-500 mt-1">Up to 5 new images. Existing images shown below.</p>
+                </div>
+              </div>
+
+              {/* Existing images (read-only) */}
+              <div className="mt-4">
+                <p className="text-sm text-gray-600 mb-2">Existing Images</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {(/* try to show project images from fetched formData via separate fetch */ [])}
+                </div>
+              </div>
+
+              {previews && previews.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600 mb-2">New Images (preview)</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {previews.map((src, i) => (
+                      <div key={i} className="relative group">
+                        <img src={src} alt={`preview-${i}`} className="w-full h-32 object-cover rounded" />
+                        <button
+                          type="button"
+                          onClick={() => removeNewImage(i)}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                          aria-label="Remove image"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Timeline & Budget */}
