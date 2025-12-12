@@ -44,7 +44,7 @@ export const projectsAPI = {
   delete: (id) => api.delete(`/projects/${id}`),
   getFeatured: () => api.get('/projects/featured'),
   getAI: () => api.get('/projects/ai'),
-  getStats: () => api.get('/projects/stats'),
+  getStats: (params) => api.get('/projects/stats', { params }),
   uploadImages: (id, formData) => api.post(`/projects/${id}/images`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
@@ -54,9 +54,10 @@ export const projectsAPI = {
 export const partnersAPI = {
   getAll: (params) => api.get('/partners', { params }),
   getById: (id) => api.get(`/partners/${id}`),
-  create: (data) => api.post('/partners', data),
-  update: (id, data) => api.put(`/partners/${id}`, data),
+  create: (data) => (data instanceof FormData ? api.post('/partners', data, { headers: { 'Content-Type': 'multipart/form-data' } }) : api.post('/partners', data)),
+  update: (id, data) => (data instanceof FormData ? api.put(`/partners/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } }) : api.put(`/partners/${id}`, data)),
   delete: (id) => api.delete(`/partners/${id}`),
+  getStats: (params) => api.get('/partners/stats', { params }),
 };
 
 // News API
@@ -84,6 +85,7 @@ export const usersAPI = {
   create: (data) => api.post('/users', data),
   update: (id, data) => api.put(`/users/${id}`, data),
   delete: (id) => api.delete(`/users/${id}`),
+  getStats: (params) => api.get('/users/stats', { params }),
 };
 
 // Contact API
