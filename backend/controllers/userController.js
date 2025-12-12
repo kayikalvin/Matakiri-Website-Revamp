@@ -150,53 +150,60 @@ exports.deleteUser = asyncHandler(async (req, res, next) => {
 // @route   GET /api/users/stats
 // @access  Private/Admin
 exports.getUserStats = asyncHandler(async (req, res, next) => {
-  const stats = await User.aggregate([
-    {
-      $group: {
-        _id: null,
-        totalUsers: { $sum: 1 },
-        activeUsers: {
-          $sum: { $cond: ['$isActive', 1, 0] }
-        }
-      }
-    },
-    {
-      $project: {
-        _id: 0,
-        totalUsers: 1,
-        activeUsers: 1
+  const { startDate, endDate } = req.query;
+  const match = {};
+  if (startDate || endDate) {
+    match.createdAt = {};
+    if (startDate) match.createdAt.$gte = new Date(startDate);
+    if (endDate) match.createdAt.$lte = new Date(endDate);
+  }
+
+  const pipeline = [];
+  if (Object.keys(match).length) pipeline.push({ $match: match });
+  pipeline.push({
+    $group: {
+      _id: null,
+      totalUsers: { $sum: 1 },
+      activeUsers: {
+        $sum: { $cond: ['$isActive', 1, 0] }
       }
     }
-  ]);
+  });
+  pipeline.push({
+    $project: {
+      _id: 0,
+      totalUsers: 1,
+      activeUsers: 1
+    }
+  });
+  const stats = await User.aggregate(pipeline);
 
   // Role distribution
-  const roleStats = await User.aggregate([
-    {
-      $group: {
-        _id: '$role',
-        count: { $sum: 1 }
-      }
-    },
-    {
-      $sort: { count: -1 }
+  const rolePipeline = [];
+  if (Object.keys(match).length) rolePipeline.push({ $match: match });
+  rolePipeline.push({
+    $group: {
+      _id: '$role',
+      count: { $sum: 1 }
     }
-  ]);
+  });
+  rolePipeline.push({ $sort: { count: -1 } });
+  const roleStats = await User.aggregate(rolePipeline);
 
   // Department distribution
-  const departmentStats = await User.aggregate([
-    {
-      $match: { department: { $ne: null } }
-    },
-    {
-      $group: {
-        _id: '$department',
-        count: { $sum: 1 }
-      }
-    },
-    {
-      $sort: { count: -1 }
+  const deptPipeline = [];
+  if (Object.keys(match).length) deptPipeline.push({ $match: match });
+  deptPipeline.push({
+    $match: { department: { $ne: null } }
+  });
+  deptPipeline.push({
+    $group: {
+      _id: '$department',
+      count: { $sum: 1 }
     }
-  ]);
+  });
+  deptPipeline.push({ $sort: { count: -1 } });
+  const departmentStats = await User.aggregate(deptPipeline);
 
   res.status(200).json({
     success: true,
