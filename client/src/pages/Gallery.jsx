@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { FaImage, FaVideo, FaFilter, FaTimes, FaPlay, FaDownload } from 'react-icons/fa';
@@ -13,15 +14,17 @@ const Gallery = () => {
   const [categories, setCategories] = useState([{ id: 'all', name: 'All Media', count: 0 }]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [stats, setStats] = useState({ photos: 0, videos: 0, categories: 0, latest: null });
 
   useEffect(() => {
     setLoading(true);
     setError('');
     Promise.all([
       galleryAPI.getAll(),
-      galleryAPI.getAlbums()
+      galleryAPI.getAlbums(),
+      galleryAPI.getStats()
     ])
-      .then(([galleryRes, albumsRes]) => {
+      .then(([galleryRes, albumsRes, statsRes]) => {
         // Support both {data: []} and []
         const items = galleryRes.data?.data || galleryRes.data?.gallery || galleryRes.data || [];
         setGalleryItems(items);
@@ -36,6 +39,25 @@ const Gallery = () => {
           })));
         }
         setCategories(cats);
+        // Stats
+        let photos = 0, videos = 0, latest = null;
+        if (statsRes?.data) {
+          // If backend provides stats
+          photos = statsRes.data.photos || statsRes.data.images || 0;
+          videos = statsRes.data.videos || 0;
+          latest = statsRes.data.latest || null;
+        } else {
+          // Fallback: calculate from items
+          photos = items.filter(i => i.type === 'image' || i.type === 'photo').length;
+          videos = items.filter(i => i.type === 'video').length;
+          latest = items.length > 0 ? items.reduce((a, b) => (new Date(a.createdAt || a.date) > new Date(b.createdAt || b.date) ? a : b)).createdAt || null : null;
+        }
+        setStats({
+          photos,
+          videos,
+          categories: cats.length - 1, // exclude 'all'
+          latest
+        });
       })
       .catch(() => setError('Failed to load gallery.'))
       .finally(() => setLoading(false));
@@ -104,9 +126,9 @@ const Gallery = () => {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
+                {categories.map((category, idx) => (
                   <button
-                    key={category.id}
+                    key={category.id || category.name || idx}
                     onClick={() => setSelectedCategory(category.id)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                       selectedCategory === category.id
@@ -247,19 +269,21 @@ const Gallery = () => {
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="text-4xl font-bold text-primary-600 mb-2">45+</div>
+                <div className="text-4xl font-bold text-primary-600 mb-2">{stats.photos}</div>
                 <div className="text-gray-600">Photos</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-primary-600 mb-2">12+</div>
+                <div className="text-4xl font-bold text-primary-600 mb-2">{stats.videos}</div>
                 <div className="text-gray-600">Videos</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-primary-600 mb-2">6</div>
+                <div className="text-4xl font-bold text-primary-600 mb-2">{stats.categories}</div>
                 <div className="text-gray-600">Categories</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-primary-600 mb-2">2023</div>
+                <div className="text-4xl font-bold text-primary-600 mb-2">
+                  {stats.latest ? new Date(stats.latest).getFullYear() : '—'}
+                </div>
                 <div className="text-gray-600">Latest Updates</div>
               </div>
             </div>
@@ -276,9 +300,12 @@ const Gallery = () => {
               Are you a community member with photos or videos of our projects in action? 
               We'd love to feature your content in our gallery!
             </p>
-            <button className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors">
+            <Link
+              to="/contact"
+              className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+            >
               Submit Media
-            </button>
+            </Link>
           </div>
         </section>
 
@@ -324,7 +351,8 @@ const Gallery = () => {
                       src={(() => {
                         const src = selectedImage.url || selectedImage.fileUrl;
                         if (src && src.startsWith('/api/uploads')) {
-                          return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${src}`;
+                          const base = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+                          return `${base}${src.replace('/api/uploads', '/uploads')}`;
                         }
                         return src || '/images/placeholder.png';
                       })()}
@@ -378,10 +406,10 @@ const Gallery = () => {
                             : 'Unknown date';
                         })()}
                       </span>
-                      <button className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition-colors">
+                      {/* <button className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition-colors">
                         <FaDownload className="mr-2" />
                         Download
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 </div>
