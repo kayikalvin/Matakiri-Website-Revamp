@@ -124,43 +124,42 @@
 
 // export default Footer;
 
-
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  FaFacebook, 
-  FaTwitter, 
-  FaInstagram, 
-  FaLinkedin, 
-  FaMapMarkerAlt, 
-  FaPhone, 
+import React from "react";
+import { Link } from "react-router-dom";
+import {
+  FaFacebook,
+  FaTwitter,
+  FaInstagram,
+  FaLinkedin,
+  FaMapMarkerAlt,
+  FaPhone,
   FaEnvelope,
   FaHandsHelping,
-  FaArrowRight
-} from 'react-icons/fa';
+  FaArrowRight,
+} from "react-icons/fa";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
-    'Quick Links': [
-      { to: '/', label: 'Home' },
-      { to: '/about', label: 'About Us' },
-      { to: '/programs', label: 'Our Programs' },
-      { to: '/ai-projects', label: 'AI Projects' },
+    "Quick Links": [
+      { to: "/", label: "Home" },
+      { to: "/about", label: "About Us" },
+      { to: "/programs", label: "Our Programs" },
+      { to: "/ai-projects", label: "AI Projects" },
     ],
-    'Resources': [
-      { to: '/news', label: 'News & Updates' },
-      { to: '/gallery', label: 'Photo Gallery' },
-      { to: '/projects', label: 'Projects' },
-      { to: '/partners', label: 'Partners' },
+    Resources: [
+      { to: "/news", label: "News & Updates" },
+      { to: "/gallery", label: "Photo Gallery" },
+      { to: "/projects", label: "Projects" },
+      { to: "/partners", label: "Partners" },
     ],
-    'Support': [
-      { to: '/donate', label: 'Donate' },
-      { to: '/volunteer', label: 'Volunteer' },
-      { to: '/contact', label: 'Contact Us' },
-      { to: '/reports', label: 'Annual Reports' },
-    ]
+    // 'Support': [
+    //   { to: '/donate', label: 'Donate' },
+    //   { to: '/volunteer', label: 'Volunteer' },
+    //   { to: '/contact', label: 'Contact Us' },
+    //   { to: '/reports', label: 'Annual Reports' },
+    // ]
   };
 
   return (
@@ -172,9 +171,12 @@ const Footer = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-6">
               <FaHandsHelping className="text-2xl" />
             </div>
-            <h3 className="text-2xl font-bold font-display mb-4 text-accent-500">Stay Updated with Our Work</h3>
+            <h3 className="text-2xl font-bold font-display mb-4 text-accent-500">
+              Stay Updated with Our Work
+            </h3>
             <p className="text-primary-100 mb-8 max-w-2xl mx-auto">
-              Subscribe to our newsletter for the latest updates on our projects, success stories, and upcoming events.
+              Subscribe to our newsletter for the latest updates on our
+              projects, success stories, and upcoming events.
             </p>
             <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
               <input
@@ -200,34 +202,34 @@ const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             {/* Organization Info */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-14 h-14 shadow-lg flex items-center justify-center overflow-hidden">
-                  <img
-                    src="/matakiri-logo.png"
-                    alt="Matakiri Tumaini Centre logo"
-                    className="w-full h-full object-contain bg-white"
-                    onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
-                  />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold font-display text-accent-500">Matakiri Tumaini Centre</h3>
-                  <p className="text-accent-500 text-sm">Transforming Communities Through Innovation</p>
-                </div>
-              </div>
-              <p className="text-neutral-200">
-                A humanitarian and innovation-driven institution focused on community development 
-                and AI-based solutions for sustainable impact in Kenya.
+              <div className="w-full h-32 md:h-20">
+  <img
+    src="/matakiri-logo.png"
+    alt="Matakiri Tumaini Centre Logo"
+    className="h-full w-auto object-contain align-top"
+    onError={(e) => {
+      e.target.onerror = null;
+      e.target.src = "/assets/images/fallback-logo.png";
+    }}
+  />
+</div>
+              <p className="text-neutral-200 font-semibold text-sm">
+                A humanitarian and innovation-driven institution focused on
+                community development and AI-based solutions for sustainable
+                impact in Kenya.
               </p>
               <div className="flex space-x-4">
-                {[FaFacebook, FaTwitter, FaInstagram, FaLinkedin].map((Icon, index) => (
-                  <a
-                    key={index}
-                    href="#"
-                    className="w-10 h-10 bg-accent-500 rounded-full flex items-center justify-center hover:bg-accent-600 transition-colors shadow"
-                  >
-                    <Icon className="text-white" />
-                  </a>
-                ))}
+                {[FaFacebook, FaTwitter, FaInstagram, FaLinkedin].map(
+                  (Icon, index) => (
+                    <a
+                      key={index}
+                      href="#"
+                      className="w-10 h-10 bg-accent-500 rounded-full flex items-center justify-center hover:bg-accent-600 transition-colors shadow"
+                    >
+                      <Icon className="text-white" />
+                    </a>
+                  )
+                )}
               </div>
             </div>
 
@@ -242,7 +244,7 @@ const Footer = () => {
                     <li key={link.to}>
                       <Link
                         to={link.to}
-                        className="text-neutral-200 hover:text-accent-500 transition-colors flex items-center group font-semibold"
+                        className="text-neutral-200 text-sm hover:text-accent-500 transition-colors flex items-center group font-semibold"
                       >
                         <span className="w-1 h-1 bg-accent-500 rounded-full mr-3 group-hover:scale-125 transition-transform"></span>
                         <span>{link.label}</span>
@@ -258,11 +260,12 @@ const Footer = () => {
               <h4 className="text-lg font-semibold mb-4 border-b border-accent-500 pb-2 text-accent-500">
                 Contact Us
               </h4>
-              <div className="space-y-4">
+              <div className="space-y-4 font-semibold text-sm">
                 <div className="flex items-start space-x-3">
                   <FaMapMarkerAlt className="text-accent-500 mt-1 flex-shrink-0" />
-                  <span className="text-neutral-200">
-                    Matakiri Village<br />
+                  <span className="text-neutral-200 ">
+                    Matakiri Village
+                    <br />
                     56 Wells Road, Wolverhampton, UK
                   </span>
                 </div>
@@ -272,7 +275,9 @@ const Footer = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaEnvelope className="text-accent-500 flex-shrink-0" />
-                  <span className="text-neutral-200">info@matakiritrust.org</span>
+                  <span className="text-neutral-200">
+                    info@matakiritrust.org
+                  </span>
                 </div>
               </div>
             </div>
@@ -281,7 +286,7 @@ const Footer = () => {
       </div>
 
       {/* Copyright */}
-      <div className="border-t border-accent-500 py-6">
+      <div className="border-t border-accent-500 py-6 font-bold">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-neutral-200 text-sm">
@@ -291,10 +296,20 @@ const Footer = () => {
               Registered Charity No: 1204161
               {/* OP.218/051/12-0392/10036 */}
             </div>
-            <div className="text-neutral-200 text-sm mt-2 md:mt-0 flex gap-4">
-              <Link to="/privacy" className="hover:text-accent-500 transition-colors">Privacy Policy</Link>
-              <Link to="/terms" className="hover:text-accent-500 transition-colors">Terms of Service</Link>
-            </div>
+            {/* <div className="text-neutral-200 text-sm mt-2 md:mt-0 flex gap-4">
+              <Link
+                to="/privacy"
+                className="hover:text-accent-500 transition-colors"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                to="/terms"
+                className="hover:text-accent-500 transition-colors"
+              >
+                Terms of Service
+              </Link>
+            </div> */}
           </div>
         </div>
       </div>
