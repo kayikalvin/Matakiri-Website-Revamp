@@ -176,7 +176,7 @@ const APIConnectionTest = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span>Backend URL:</span>
-                <span className="text-sm bg-blue-100 px-2 py-1 rounded">{process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}</span>
+                <span className="text-sm bg-blue-100 px-2 py-1 rounded">{process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}</span>
               </div>
               <div className={`flex items-center justify-between ${projectsError ? 'text-red-600' : 'text-green-600'}`}>
                 <span>Projects API:</span>

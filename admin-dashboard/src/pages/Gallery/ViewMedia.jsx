@@ -129,16 +129,33 @@ const ViewMedia = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete "${media.title}"?`)) return;
-    
-    try {
-      await galleryAPI.delete(id);
-      toast.success('Media deleted successfully');
-      navigate('/gallery');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete media');
-    }
+  const handleDelete = () => {
+    toast((t) => (
+      <span>
+        Are you sure you want to delete <b>{media.title}</b>?<br/>
+        <button
+          onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              await galleryAPI.delete(id);
+              toast.success('Media deleted successfully');
+              navigate('/gallery');
+            } catch (err) {
+              toast.error(err.response?.data?.message || 'Failed to delete media');
+            }
+          }}
+          className="mt-2 mr-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Yes, Delete
+        </button>
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="mt-2 px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+        >
+          Cancel
+        </button>
+      </span>
+    ), { duration: 8000 });
   };
 
   if (loading) {

@@ -155,17 +155,34 @@ const Gallery = () => {
     getStats();
   }, []);
 
-  const handleDelete = async (id, title) => {
-    if (!window.confirm(`Are you sure you want to delete "${title || 'this media'}"?`)) return;
-    try {
-      await galleryAPI.delete(id);
-      setMedia(prev => prev.filter(m => (m._id || m.id) !== id));
-      toast.success('Media deleted successfully');
-      // Refresh stats
-      fetchMedia(page, limit);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete media');
-    }
+  const handleDelete = (id, title) => {
+    toast((t) => (
+      <span>
+        Are you sure you want to delete <b>{title || 'this media'}</b>?<br/>
+        <button
+          onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              await galleryAPI.delete(id);
+              setMedia(prev => prev.filter(m => (m._id || m.id) !== id));
+              toast.success('Media deleted successfully');
+              fetchMedia(page, limit);
+            } catch (err) {
+              toast.error(err.response?.data?.message || 'Failed to delete media');
+            }
+          }}
+          className="mt-2 mr-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Yes, Delete
+        </button>
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="mt-2 px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+        >
+          Cancel
+        </button>
+      </span>
+    ), { duration: 8000 });
   };
 
   const handleRefresh = () => {
@@ -511,6 +528,7 @@ const Gallery = () => {
                             )}
                           </div>
                           <button
+                            type="button"
                             onClick={() => handleDelete(item._id || item.id, item.title)}
                             className="p-1.5 text-red-500 hover:text-red-700 transition-colors"
                             title="Delete"

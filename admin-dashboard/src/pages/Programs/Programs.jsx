@@ -175,7 +175,16 @@ const Programs = () => {
                 <tbody>
                   {filteredPrograms.map((program) => (
                     <tr key={program._id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="py-4 px-6 font-medium text-gray-900">{program.title}</td>
+                      <td className="py-4 px-6 font-medium text-gray-900 flex items-center gap-3">
+                        {program.image && (
+                          <img
+                            src={program.image.startsWith('http') ? program.image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${program.image}`}
+                            alt={program.title}
+                            className="h-10 w-10 object-cover rounded shadow border"
+                          />
+                        )}
+                        <span>{program.title}</span>
+                      </td>
                       <td className="py-4 px-6">{program.category}</td>
                       <td className="py-4 px-6">
                         <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(program.status)}`}>

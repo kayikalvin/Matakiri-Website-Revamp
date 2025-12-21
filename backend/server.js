@@ -11,7 +11,10 @@
 
 // // Security middleware
 // app.use(helmet());
-// app.use(cors());
+// app.use(cors({
+//   origin: 'http://localhost:5173', // Change to your frontend URL if different
+//   credentials: true
+// }));
 // app.use(express.json({ limit: '10mb' }));
 // app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // app.use(mongoSanitize());
@@ -69,7 +72,7 @@
 //   });
 // });
 
-// const PORT = process.env.PORT || 5001;
+// const PORT = process.env.PORT || 5000;
 // app.listen(PORT, () => {
 //   console.log(`Server running on port ${PORT}`);
 // });
@@ -87,7 +90,28 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
-app.use(cors());
+// Allow multiple origins for local dev
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3002',
+  'http://localhost:5000',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3002',
+];
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS: ' + origin));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(mongoSanitize());
@@ -171,9 +195,27 @@ const errorHandler = require('./middleware/error');
 // Use error handler (must be after all routes)
 app.use(errorHandler);
 
-// Serve uploaded files
+// Serve uploaded files with CORS headers for images
 const path = require('path');
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const staticCors = (req, res, next) => {
+  // Check the origin and allow specific origins
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // If no origin or not in allowed list, allow all (for direct access)
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  
+  // Also add these headers for images
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  next();
+};
+
+app.use('/uploads', staticCors, express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', staticCors, express.static(path.join(__dirname, 'uploads')));
 
 // 404 handler
 app.use((req, res) => {

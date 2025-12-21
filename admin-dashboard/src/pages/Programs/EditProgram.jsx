@@ -1,13 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { programsAPI } from '../../services/api';
 
-const PROGRAM_STATUSES = ['Draft', 'Active', 'Completed', 'Archived'];
-const PROGRAM_CATEGORIES = ['Education', 'Healthcare', 'Environment', 'Community', 'Employment', 'Other'];
+// Backend enum values and user-friendly labels
+const PROGRAM_STATUSES = [
+  { value: 'active', label: 'Active' },
+  { value: 'planning', label: 'Planning' },
+  { value: 'paused', label: 'Paused' },
+  { value: 'completed', label: 'Completed' }
+];
+const PROGRAM_CATEGORIES = [
+  { value: 'agriculture', label: 'Agriculture' },
+  { value: 'education', label: 'Education' },
+  { value: 'health', label: 'Health' },
+  { value: 'water', label: 'Water' },
+  { value: 'ai', label: 'AI' },
+  { value: 'community', label: 'Community' }
+];
 
 const EditProgram = () => {
+  // Get the id from URL params
   const { id } = useParams();
   const navigate = useNavigate();
+  
+  // Debug: log the id
+  // console.log('🔍 EditProgram - ID from URL params:', id);
+  // console.log('🔍 EditProgram - Full URL:', window.location.href);
   
   const [form, setForm] = useState(null);
   const [initialData, setInitialData] = useState(null);
@@ -15,25 +33,98 @@ const EditProgram = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [touched, setTouched] = useState({});
+  const [imageFile, setImageFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+  const inputRef = useRef();
+
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setImageFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleImageAreaClick = () => {
+    inputRef.current?.click();
+  };
 
   useEffect(() => {
-    setLoading(true);
-    programsAPI.getById(id)
-      .then(res => {
-        setForm(res.data);
-        setInitialData(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.response?.data?.message || err.message || 'Failed to load program');
-        setLoading(false);
-      });
-  }, [id]);
+  // console.log('🔍 EditProgram - useEffect triggered with id:', id);
+  
+  // Check if id exists before making API call
+  if (!id) {
+    console.error('❌ EditProgram - No ID provided in URL');
+    setError('No program ID provided in URL');
+    setLoading(false);
+    navigate('/programs'); // Redirect to programs list
+    return;
+  }
+  
+  setLoading(true);
+  // console.log('🔍 EditProgram - Starting to fetch program with ID:', id);
+  
+  programsAPI.getById(id)
+    .then(response => {
+      // console.log('✅ EditProgram - API response:', response);
+      
+      // Extract the actual program data from response.data.data
+      const responseData = response.data || response;
+      // console.log('✅ EditProgram - Response data structure:', responseData);
+      
+      // Get the actual program data (nested in data property)
+      const programData = responseData.data || responseData;
+      // console.log('✅ EditProgram - Program data to set:', programData);
+      
+      if (!programData) {
+        throw new Error('No program data returned from API');
+      }
+      
+      setForm(programData);
+      setInitialData(programData);
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error('❌ EditProgram - Error fetching program:', err);
+      console.error('❌ EditProgram - Error response:', err.response);
+      setError(err.response?.data?.message || err.message || 'Failed to load program');
+      setLoading(false);
+    });
+}, [id, navigate]);
+
+  // useEffect(() => {
+  //   console.log('📊 Form state updated:', form);
+  // }, [form]);
+
+  // useEffect(() => {
+  //   console.log('📊 InitialData state updated:', initialData);
+  // }, [initialData]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-    setTouched(prev => ({ ...prev, [name]: true }));
+    const { name, value, type } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [name]: type === 'number' && value ? value : value
+    }));
   };
 
   const handleBlur = (e) => {
@@ -41,15 +132,15 @@ const EditProgram = () => {
     setTouched(prev => ({ ...prev, [name]: true }));
   };
 
-  const getFieldError = (fieldName) => {
-    if (!touched[fieldName]) return '';
+  const getFieldError = (field) => {
+    if (!touched[field] || !form) return '';
+    const value = form[field];
     
-    const value = form[fieldName];
-    
-    switch(fieldName) {
+    switch (field) {
       case 'title':
         if (!value?.trim()) return 'Title is required';
-        if (value.length > 100) return 'Title must be less than 100 characters';
+        if (value.length < 3) return 'Title must be at least 3 characters';
+        if (value.length > 100) return 'Title is too long';
         break;
       case 'category':
         if (!value) return 'Category is required';
@@ -71,6 +162,7 @@ const EditProgram = () => {
   };
 
   const isFormValid = () => {
+    if (!form) return false;
     return (
       form?.title?.trim() &&
       form?.category &&
@@ -88,23 +180,30 @@ const EditProgram = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!isFormValid()) {
-      setTouched(Object.keys(form).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
+      setTouched(Object.keys(form || {}).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
       return;
     }
-
     setSaving(true);
     setError('');
-    
     try {
-      const programData = {
-        ...form,
-        beneficiaries: form.beneficiaries ? parseInt(form.beneficiaries) : 0,
-        duration: form.duration ? parseInt(form.duration) : 0,
-      };
-      
-      await programsAPI.update(id, programData);
+      let dataToSend;
+      if (imageFile) {
+        dataToSend = new FormData();
+        Object.entries(form).forEach(([key, value]) => {
+          dataToSend.append(key, value);
+        });
+        dataToSend.set('beneficiaries', form.beneficiaries ? parseInt(form.beneficiaries) : 0);
+        dataToSend.set('duration', form.duration ? parseInt(form.duration) : 0);
+        dataToSend.append('image', imageFile);
+      } else {
+        dataToSend = {
+          ...form,
+          beneficiaries: form.beneficiaries ? parseInt(form.beneficiaries) : 0,
+          duration: form.duration ? parseInt(form.duration) : 0,
+        };
+      }
+      await programsAPI.update(id, dataToSend);
       navigate('/programs', { state: { message: 'Program updated successfully!' } });
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to update program. Please try again.');
@@ -113,50 +212,51 @@ const EditProgram = () => {
     }
   };
 
-  const getCategoryIcon = (category) => {
+  const getCategoryIcon = (label) => {
     const icons = {
+      Agriculture: '🌾',
       Education: '📚',
-      Healthcare: '🏥',
-      Environment: '🌱',
-      Community: '🤝',
-      Employment: '💼',
-      Other: '📋'
+      Health: '🏥',
+      Water: '💧',
+      AI: '🤖',
+      Community: '🤝'
     };
-    return icons[category] || '📋';
+    return icons[label] || '📋';
   };
 
   const renderInput = (name, label, type = 'text', placeholder = '', options = [], icon = null) => {
+    if (!form) return null;
+    
     const error = getFieldError(name);
     const isError = touched[name] && error;
     const isRequired = ['title', 'category'].includes(name);
-    const hasChanged = initialData && form[name] !== initialData[name];
+    const hasChanged = initialData && form && form[name] !== initialData[name];
+    const value = form[name] || '';
     
     return (
       <div className="group">
         <label className="block text-sm font-semibold text-gray-900 mb-2">
-          {label} 
+          {label}
           {isRequired && <span className="text-red-500 ml-1">*</span>}
           {hasChanged && (
             <span className="ml-2 text-xs text-amber-600 font-medium">• Modified</span>
           )}
         </label>
-        
         <div className="relative">
           {icon && (
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
               {icon}
             </div>
           )}
-          
           {type === 'select' ? (
             <select
               name={name}
-              value={form[name] || ''}
+              value={value}
               onChange={handleChange}
               onBlur={handleBlur}
               className={`w-full ${icon ? 'pl-12' : 'pl-4'} pr-4 py-3.5 bg-white border-2 rounded-xl transition-all duration-200 appearance-none cursor-pointer font-medium ${
-                isError 
-                  ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-50' 
+                isError
+                  ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-50'
                   : hasChanged
                   ? 'border-amber-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-50 hover:border-amber-400'
                   : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 hover:border-gray-300'
@@ -165,22 +265,22 @@ const EditProgram = () => {
             >
               <option value="">Select {label}</option>
               {options.map(option => (
-                <option key={option} value={option}>
-                  {name === 'category' ? `${getCategoryIcon(option)} ${option}` : option}
+                <option key={option.value} value={option.value}>
+                  {name === 'category' ? `${getCategoryIcon(option.label)} ${option.label}` : option.label}
                 </option>
               ))}
             </select>
           ) : type === 'textarea' ? (
             <textarea
               name={name}
-              value={form[name] || ''}
+              value={value}
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder={placeholder}
               rows={5}
               className={`w-full ${icon ? 'pl-12' : 'pl-4'} pr-4 py-3.5 bg-white border-2 rounded-xl transition-all duration-200 resize-none ${
-                isError 
-                  ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-50' 
+                isError
+                  ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-50'
                   : hasChanged
                   ? 'border-amber-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-50 hover:border-amber-400'
                   : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 hover:border-gray-300'
@@ -191,13 +291,13 @@ const EditProgram = () => {
             <input
               type={type}
               name={name}
-              value={form[name] || ''}
+              value={value}
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder={placeholder}
               className={`w-full ${icon ? 'pl-12' : 'pl-4'} pr-4 py-3.5 bg-white border-2 rounded-xl transition-all duration-200 ${
-                isError 
-                  ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-50' 
+                isError
+                  ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-50'
                   : hasChanged
                   ? 'border-amber-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-50 hover:border-amber-400'
                   : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 hover:border-gray-300'
@@ -205,7 +305,6 @@ const EditProgram = () => {
               required={isRequired}
             />
           )}
-          
           {type === 'select' && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +313,6 @@ const EditProgram = () => {
             </div>
           )}
         </div>
-        
         {isError && (
           <div className="mt-2 flex items-start gap-2 text-red-600 animate-in slide-in-from-top-1">
             <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -223,7 +321,6 @@ const EditProgram = () => {
             <span className="text-sm font-medium">{error}</span>
           </div>
         )}
-        
         {name === 'description' && (
           <div className="mt-2 flex justify-between items-center text-xs">
             <span className="text-gray-500">Provide detailed information about the program</span>
@@ -236,6 +333,29 @@ const EditProgram = () => {
     );
   };
 
+  // Show error if no ID
+  if (!id) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Invalid Program</h2>
+          <p className="text-gray-600 mb-6">No program ID specified in the URL</p>
+          <button
+            onClick={() => navigate('/programs')}
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+          >
+            Back to Programs
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 flex items-center justify-center">
@@ -247,6 +367,7 @@ const EditProgram = () => {
             </svg>
           </div>
           <p className="text-gray-600 font-medium">Loading program details...</p>
+          <p className="text-gray-400 text-sm mt-2">Program ID: {id}</p>
         </div>
       </div>
     );
@@ -262,7 +383,8 @@ const EditProgram = () => {
             </svg>
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Failed to Load Program</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-400 text-sm mb-6">Program ID: {id}</p>
           <button
             onClick={() => navigate('/programs')}
             className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
@@ -274,7 +396,27 @@ const EditProgram = () => {
     );
   }
 
-  if (!form) return null;
+  if (!form) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Program Not Found</h2>
+          <p className="text-gray-600 mb-6">The program with ID {id} could not be found</p>
+          <button
+            onClick={() => navigate('/programs')}
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+          >
+            Back to Programs
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50 py-8 px-4">
@@ -322,7 +464,7 @@ const EditProgram = () => {
                   <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
-                </div>
+               </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-red-900 mb-1">Error Updating Program</h3>
                   <p className="text-red-700 text-sm">{error}</p>
@@ -333,6 +475,59 @@ const EditProgram = () => {
 
           <form onSubmit={handleSubmit} className="p-8">
             <div className="space-y-8">
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Program Image</label>
+                <div
+                  className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${dragActive ? 'border-purple-500 bg-purple-50' : 'border-gray-300 bg-gray-50 hover:border-purple-400'}`}
+                  onClick={handleImageAreaClick}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  style={{ minHeight: '120px' }}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    ref={inputRef}
+                    className="hidden"
+                  />
+                  {imageFile ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <img src={URL.createObjectURL(imageFile)} alt="Preview" className="h-24 rounded shadow object-contain" />
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); setImageFile(null); }}
+                        className="mt-2 px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
+                      >
+                        Remove Image
+                      </button>
+                    </div>
+                  ) : form?.image ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <img src={form.image.startsWith('http') ? form.image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${form.image}`} alt="Current" className="h-24 rounded shadow object-contain" onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); setForm(f => ({ ...f, image: '' })); }}
+                        className="mt-2 px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
+                      >
+                        Remove Image
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center text-gray-400">
+                      <svg className="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4a1 1 0 011-1h8a1 1 0 011 1v12m-4 4h-4a1 1 0 01-1-1v-4m6 5a2 2 0 002-2v-4a2 2 0 00-2-2H7a2 2 0 00-2 2v4a2 2 0 002 2h6z" />
+                      </svg>
+                      <span className="text-sm">Drag & drop or click to upload</span>
+                    </div>
+                  )}
+                  {dragActive && (
+                    <div className="absolute inset-0 bg-purple-100/50 rounded-xl pointer-events-none" />
+                  )}
+                </div>
+              </div>
               {/* Basic Information Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
@@ -385,7 +580,7 @@ const EditProgram = () => {
                   
                   {renderInput('duration', 'Duration (months)', 'number', 'Program length', [],
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h6z" />
                     </svg>
                   )}
                 </div>

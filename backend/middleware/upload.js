@@ -35,7 +35,7 @@ const upload = multer({
     checkFileType(file, cb);
   }
 }).fields([
-  { name: 'media', maxCount: 1 },
+  { name: 'media', maxCount: 10 }, // Allow up to 10 media files at once
   { name: 'logo', maxCount: 1 },
   { name: 'image', maxCount: 1 },
   { name: 'images', maxCount: 5 },

@@ -1,20 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { programsAPI } from '../../services/api';
 
-const PROGRAM_STATUSES = ['Draft', 'Active', 'Completed', 'Archived'];
-const PROGRAM_CATEGORIES = ['Education', 'Healthcare', 'Environment', 'Community', 'Employment', 'Other'];
+const PROGRAM_STATUSES = [
+  { value: 'active', label: 'Active' },
+  { value: 'planning', label: 'Planning' },
+  { value: 'paused', label: 'Paused' },
+  { value: 'completed', label: 'Completed' }
+];
+const PROGRAM_CATEGORIES = [
+  { value: 'agriculture', label: 'Agriculture' },
+  { value: 'education', label: 'Education' },
+  { value: 'health', label: 'Health' },
+  { value: 'water', label: 'Water' },
+  { value: 'ai', label: 'AI' },
+  { value: 'community', label: 'Community' }
+];
 
 const CreateProgram = () => {
   const [form, setForm] = useState({
     title: '',
     category: '',
-    status: 'Draft',
+    status: 'planning',
     beneficiaries: '',
     duration: '',
     description: '',
   });
-  
+  const [imageFile, setImageFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+  const inputRef = useRef();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [touched, setTouched] = useState({});
@@ -71,25 +85,63 @@ const CreateProgram = () => {
     );
   };
 
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setImageFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleImageAreaClick = () => {
+    inputRef.current?.click();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!isFormValid()) {
-      setTouched(Object.keys(form).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
+      setTouched(Object.keys(form).reduce((acc, key) => ({ ...acc, [key]: true })), {});
       return;
     }
-
     setLoading(true);
     setError('');
-    
     try {
-      const programData = {
-        ...form,
-        beneficiaries: form.beneficiaries ? parseInt(form.beneficiaries) : 0,
-        duration: form.duration ? parseInt(form.duration) : 0,
-      };
-      
-      await programsAPI.create(programData);
+      let dataToSend;
+      if (imageFile) {
+        dataToSend = new FormData();
+        Object.entries(form).forEach(([key, value]) => {
+          dataToSend.append(key, value);
+        });
+        dataToSend.set('beneficiaries', form.beneficiaries ? parseInt(form.beneficiaries) : 0);
+        dataToSend.set('duration', form.duration ? parseInt(form.duration) : 0);
+        dataToSend.append('image', imageFile);
+      } else {
+        dataToSend = {
+          ...form,
+          beneficiaries: form.beneficiaries ? parseInt(form.beneficiaries) : 0,
+          duration: form.duration ? parseInt(form.duration) : 0,
+        };
+      }
+      await programsAPI.create(dataToSend);
       navigate('/programs', { state: { message: 'Program created successfully!' } });
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to create program. Please try again.');
@@ -154,8 +206,8 @@ const CreateProgram = () => {
             >
               <option value="">Select {label}</option>
               {options.map(option => (
-                <option key={option} value={option}>
-                  {name === 'category' ? `${getCategoryIcon(option)} ${option}` : option}
+                <option key={option.value} value={option.value}>
+                  {name === 'category' ? `${getCategoryIcon(option.label)} ${option.label}` : option.label}
                 </option>
               ))}
             </select>
@@ -269,6 +321,48 @@ const CreateProgram = () => {
 
           <form onSubmit={handleSubmit} className="p-8">
             <div className="space-y-8">
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Program Image</label>
+                <div
+                  className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-blue-400'}`}
+                  onClick={handleImageAreaClick}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  style={{ minHeight: '120px' }}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    ref={inputRef}
+                    className="hidden"
+                  />
+                  {imageFile ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <img src={URL.createObjectURL(imageFile)} alt="Preview" className="h-24 rounded shadow object-contain" />
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); setImageFile(null); }}
+                        className="mt-2 px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
+                      >
+                        Remove Image
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center text-gray-400">
+                      <svg className="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4a1 1 0 011-1h8a1 1 0 011 1v12m-4 4h-4a1 1 0 01-1-1v-4m6 5a2 2 0 002-2v-4a2 2 0 00-2-2H7a2 2 0 00-2 2v4a2 2 0 002 2h6z" />
+                      </svg>
+                      <span className="text-sm">Drag & drop or click to upload</span>
+                    </div>
+                  )}
+                  {dragActive && (
+                    <div className="absolute inset-0 bg-blue-100/50 rounded-xl pointer-events-none" />
+                  )}
+                </div>
+              </div>
               {/* Basic Information Section */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3 pb-3 border-b border-gray-200">

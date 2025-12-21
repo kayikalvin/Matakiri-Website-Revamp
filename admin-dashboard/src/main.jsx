@@ -5,8 +5,8 @@ import "./index.css";
 import { themesAPI } from './services/api';
 import { applyThemeToRoot } from './utils/theme';
 
-console.log("✅ Admin Dashboard Loading...");
-console.log("Environment:", import.meta.env.MODE);
+// console.log("✅ Admin Dashboard Loading...");
+// console.log("Environment:", import.meta.env.MODE);
 
 try {
   const root = ReactDOM.createRoot(document.getElementById("root"));

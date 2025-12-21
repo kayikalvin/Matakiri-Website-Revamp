@@ -39,6 +39,10 @@ exports.getProgram = asyncHandler(async (req, res, next) => {
 // @route   POST /api/programs
 // @access  Private (admin/editor)
 exports.createProgram = asyncHandler(async (req, res, next) => {
+  // Handle image upload
+  if (req.files && req.files.image && req.files.image[0]) {
+    req.body.image = `/uploads/${req.files.image[0].filename}`;
+  }
   const program = await Program.create(req.body);
   res.status(201).json({ success: true, data: program });
 });
@@ -51,6 +55,10 @@ exports.updateProgram = asyncHandler(async (req, res, next) => {
   if (!program) {
     return next(new ErrorResponse('Program not found', 404));
   }
+  // Handle image upload
+  if (req.files && req.files.image && req.files.image[0]) {
+    req.body.image = `/uploads/${req.files.image[0].filename}`;
+  }
   program = await Program.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
   res.status(200).json({ success: true, data: program });
 });
@@ -59,10 +67,14 @@ exports.updateProgram = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/programs/:id
 // @access  Private (admin)
 exports.deleteProgram = asyncHandler(async (req, res, next) => {
-  const program = await Program.findById(req.params.id);
-  if (!program) {
-    return next(new ErrorResponse('Program not found', 404));
+  try {
+    const program = await Program.findByIdAndDelete(req.params.id);
+    if (!program) {
+      return next(new ErrorResponse('Program not found', 404));
+    }
+    res.status(200).json({ success: true, data: {} });
+  } catch (err) {
+    console.error('Error deleting program:', err);
+    return next(new ErrorResponse(err.message || 'Failed to delete program', 500));
   }
-  await program.remove();
-  res.status(200).json({ success: true, data: {} });
 });

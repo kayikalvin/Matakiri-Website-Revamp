@@ -1,7 +1,7 @@
 const Gallery = require('../models/Gallery');
 const asyncHandler = require('../utils/asyncHandler');
 const ErrorResponse = require('../utils/ErrorResponse');
-const cloudinary = require('../config/cloudinary');
+
 
 // @desc    Get all gallery items
 // @route   GET /api/gallery
@@ -101,52 +101,38 @@ exports.getGalleryItem = asyncHandler(async (req, res, next) => {
 // @route   POST /api/gallery
 // @access  Private/Admin
 exports.uploadMedia = asyncHandler(async (req, res, next) => {
-  if (!req.files || !req.files.media) {
+  // Debug logging
+  console.log('UPLOAD DEBUG req.files:', req.files);
+  console.log('UPLOAD DEBUG req.body:', req.body);
+  console.log('UPLOAD DEBUG req.user:', req.user);
+
+  if (!req.user || !req.user.id) {
+    return next(new ErrorResponse('User authentication failed', 401));
+  }
+  if (!req.files || !req.files.media || req.files.media.length === 0) {
     return next(new ErrorResponse('Please upload a file', 400));
   }
 
-  const file = req.files.media;
-
-  // Check file type
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/avi', 'video/mov'];
-  if (!allowedTypes.includes(file.mimetype)) {
-    return next(new ErrorResponse('Invalid file type', 400));
-  }
-
-  // Check file size (50MB limit)
-  const maxSize = 50 * 1024 * 1024; // 50MB
-  if (file.size > maxSize) {
-    return next(new ErrorResponse('File size too large', 400));
-  }
-
+  const file = req.files.media[0];
   // Determine media type
   const type = file.mimetype.startsWith('image/') ? 'image' : 'video';
 
-  // Upload to Cloudinary
-  const result = await cloudinary.uploader.upload(file.tempFilePath, {
-    folder: 'matakiri-gallery',
-    resource_type: type === 'video' ? 'video' : 'image',
-    quality: 'auto',
-    format: type === 'image' ? 'webp' : undefined
-  });
+  // Save local file path as URL (served from /api/uploads)
+  const url = `/api/uploads/${file.filename}`;
 
   // Create gallery item
   const galleryItem = await Gallery.create({
     title: req.body.title,
     description: req.body.description,
     type,
-    url: result.secure_url,
-    thumbnail: type === 'video' ? result.secure_url.replace('.mp4', '.jpg') : undefined,
+    url,
     album: req.body.album || 'General',
     tags: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
     isFeatured: req.body.isFeatured === 'true',
     uploadedBy: req.user.id,
     metadata: {
-      width: result.width,
-      height: result.height,
-      size: result.bytes,
-      format: result.format,
-      duration: result.duration || null
+      size: file.size,
+      format: file.mimetype
     },
     project: req.body.project,
     location: req.body.location,
@@ -202,12 +188,8 @@ exports.deleteGalleryItem = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Not authorized to delete this item', 403));
   }
 
-  // Delete from Cloudinary
-  const publicId = item.url.split('/').pop().split('.')[0];
-  await cloudinary.uploader.destroy(`matakiri-gallery/${publicId}`, {
-    resource_type: item.type === 'video' ? 'video' : 'image'
-  });
 
+  // Optionally: Delete local file from disk (not implemented here)
   await item.deleteOne();
 
   res.status(200).json({

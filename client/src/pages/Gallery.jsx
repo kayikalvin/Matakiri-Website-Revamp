@@ -22,15 +22,17 @@ const Gallery = () => {
       galleryAPI.getAlbums()
     ])
       .then(([galleryRes, albumsRes]) => {
-        const items = galleryRes.data || [];
+        // Support both {data: []} and []
+        const items = galleryRes.data?.data || galleryRes.data?.gallery || galleryRes.data || [];
         setGalleryItems(items);
         // Build categories from albums or items
         let cats = [{ id: 'all', name: 'All Media', count: items.length }];
-        if (Array.isArray(albumsRes.data)) {
-          cats = cats.concat(albumsRes.data.map(album => ({
+        const albums = albumsRes.data?.data || albumsRes.data || [];
+        if (Array.isArray(albums)) {
+          cats = cats.concat(albums.map(album => ({
             id: album._id || album.id || album.name,
-            name: album.name,
-            count: album.count || (items.filter(i => i.category === (album._id || album.id || album.name)).length)
+            name: album.name || album,
+            count: album.count || (items.filter(i => i.category === (album._id || album.id || album.name || album)).length)
           })));
         }
         setCategories(cats);
@@ -41,7 +43,15 @@ const Gallery = () => {
 
   const filteredItems = selectedCategory === 'all'
     ? galleryItems
-    : galleryItems.filter(item => item.category === selectedCategory);
+    : galleryItems.filter(item => {
+        // Support both string and object for category
+        return (
+          item.category === selectedCategory ||
+          item.category?._id === selectedCategory ||
+          item.category?.id === selectedCategory ||
+          item.category?.name === selectedCategory
+        );
+      });
 
   const openLightbox = (item) => {
     setSelectedImage(item);
@@ -153,9 +163,21 @@ const Gallery = () => {
                       <div className="relative overflow-hidden group">
                         {/* Thumbnail */}
                         <img
-                          src={item.type === 'video' ? item.thumbnail : item.url}
+                          src={(() => {
+                            const isImage = item.type === 'image' || item.type === 'photo';
+                            const src = item.type === 'video'
+                              ? (item.thumbnail || item.url || item.fileUrl)
+                              : (item.url || item.fileUrl);
+                            if (src && src.startsWith('/api/uploads')) {
+                              // Use /uploads for static file serving, not /api/uploads
+                              const base = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+                              return `${base}${src.replace('/api/uploads', '/uploads')}`;
+                            }
+                            return src || '/images/placeholder.png';
+                          })()}
                           alt={item.title}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={e => { e.target.src = '/images/placeholder.png'; }}
                         />
                         
                         {/* Overlay */}
@@ -190,14 +212,25 @@ const Gallery = () => {
                         </p>
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-500">
-                            {new Date(item.date).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })}
+                            {(() => {
+                              const d = item.createdAt || item.date;
+                              const dateObj = d ? new Date(d) : null;
+                              return (dateObj && !isNaN(dateObj))
+                                ? dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                                : 'Unknown date';
+                            })()}
                           </span>
                           <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
-                            {categories.find(c => c.id === item.category)?.name}
+                            {(() => {
+                              const cat = categories.find(c =>
+                                c.id === item.category ||
+                                c.name === item.category ||
+                                c.id === item.category?._id ||
+                                c.id === item.category?.id ||
+                                c.name === item.category?.name
+                              );
+                              return cat?.name || item.category?.name || item.category || 'Uncategorized';
+                            })()}
                           </span>
                         </div>
                       </div>
@@ -288,9 +321,16 @@ const Gallery = () => {
                     </div>
                   ) : (
                     <img
-                      src={selectedImage.url}
+                      src={(() => {
+                        const src = selectedImage.url || selectedImage.fileUrl;
+                        if (src && src.startsWith('/api/uploads')) {
+                          return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${src}`;
+                        }
+                        return src || '/images/placeholder.png';
+                      })()}
                       alt={selectedImage.title}
                       className="w-full h-auto max-h-[70vh] object-contain"
+                      onError={e => { e.target.src = '/images/placeholder.png'; }}
                     />
                   )}
 
@@ -307,7 +347,16 @@ const Gallery = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-                          {categories.find(c => c.id === selectedImage.category)?.name}
+                          {(() => {
+                            const cat = categories.find(c =>
+                              c.id === selectedImage.category ||
+                              c.name === selectedImage.category ||
+                              c.id === selectedImage.category?._id ||
+                              c.id === selectedImage.category?.id ||
+                              c.name === selectedImage.category?.name
+                            );
+                            return cat?.name || selectedImage.category?.name || selectedImage.category || 'Uncategorized';
+                          })()}
                         </span>
                         <span className={`px-3 py-1 rounded-full text-sm ${
                           selectedImage.type === 'video' 
@@ -321,7 +370,13 @@ const Gallery = () => {
                     
                     <div className="flex items-center justify-between pt-4 border-t">
                       <span className="text-gray-500 text-sm">
-                        Date: {new Date(selectedImage.date).toLocaleDateString()}
+                        Date: {(() => {
+                          const d = selectedImage.createdAt || selectedImage.date;
+                          const dateObj = d ? new Date(d) : null;
+                          return (dateObj && !isNaN(dateObj))
+                            ? dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                            : 'Unknown date';
+                        })()}
                       </span>
                       <button className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition-colors">
                         <FaDownload className="mr-2" />

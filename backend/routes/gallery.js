@@ -11,8 +11,7 @@ const {
   getGalleryStats
 } = require('../controllers/galleryController');
 const { protect, authorize } = require('../middleware/auth');
-// Remove upload middleware if not ready
-// const { uploadSingle } = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
 
 // Public routes
 router.get('/', getGallery);
@@ -26,8 +25,7 @@ router.use(protect);
 
 // Admin/Editor routes
 // Temporarily remove upload middleware for testing
-// router.post('/', authorize('admin', 'editor'), uploadSingle('image'), uploadMedia);
-router.post('/', authorize('admin', 'editor'), uploadMedia);
+router.post('/', authorize('admin', 'editor'), upload, uploadMedia);
 router.put('/:id', authorize('admin', 'editor'), updateGalleryItem);
 router.delete('/:id', authorize('admin'), deleteGalleryItem);
 

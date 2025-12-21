@@ -2,8 +2,18 @@
 export const programsAPI = {
   getAll: (params) => api.get('/programs', { params }),
   getById: (id) => api.get(`/programs/${id}`),
-  create: (data) => api.post('/programs', data),
-  update: (id, data) => api.put(`/programs/${id}`, data),
+  create: (data) => {
+    if (data instanceof FormData) {
+      return api.post('/programs', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+    }
+    return api.post('/programs', data);
+  },
+  update: (id, data) => {
+    if (data instanceof FormData) {
+      return api.put(`/programs/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+    }
+    return api.put(`/programs/${id}`, data);
+  },
   delete: (id) => api.delete(`/programs/${id}`),
 };
 import axios from 'axios';
