@@ -34,8 +34,8 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ['Montserrat', 'Open Sans', 'sans-serif'],
-        display: ['Montserrat', 'sans-serif'],
+        sans: ['Poppins', 'Montserrat', 'Open Sans', 'sans-serif'],
+        display: ['Poppins', 'Montserrat', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
