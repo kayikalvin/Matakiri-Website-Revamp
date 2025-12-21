@@ -73,20 +73,40 @@ const Users = () => {
     }
   };
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
-    setDeletingId(id);
-    try {
-      await usersAPI.delete(id);
-      setUsers(users => users.filter(u => u._id !== id && u.id !== id));
-      toast.success('User deleted successfully!');
-      // Refresh stats
-      fetchUsers();
-    } catch (err) {
-      toast.error('Failed to delete user.');
-    } finally {
-      setDeletingId(null);
-    }
+  const handleDelete = (id, name) => {
+    toast((t) => (
+      <span>
+        Are you sure you want to delete <b>{name}</b>?
+        <div className="mt-2 flex gap-2">
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              setDeletingId(id);
+              toast.promise(
+                usersAPI.delete(id).then(() => {
+                  setUsers(users => users.filter(u => u._id !== id && u.id !== id));
+                  fetchUsers();
+                }),
+                {
+                  loading: 'Deleting user...',
+                  success: 'User deleted successfully!',
+                  error: (err) => err?.response?.data?.message || err?.message || 'Failed to delete user.',
+                }
+              ).finally(() => setDeletingId(null));
+            }}
+            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
+          >
+            Yes, Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-xs"
+          >
+            Cancel
+          </button>
+        </div>
+      </span>
+    ), { duration: 8000 });
   };
 
   const handleRefresh = () => {

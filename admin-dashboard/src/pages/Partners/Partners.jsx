@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 import {
@@ -108,7 +108,32 @@ const Partners = () => {
   };
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete partner "${name}"? This action cannot be undone.`)) return;
+    toast((t) => (
+      <span>
+        Are you sure you want to delete <b>{name}</b>?<br/>
+        <button
+          onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              await partnersAPI.delete(id);
+              setPartners(prev => prev.filter(p => p._id !== id && p.id !== id));
+              toast.success('Partner deleted successfully');
+            } catch (err) {
+              toast.error('Failed to delete partner');
+            }
+          }}
+          className="mt-2 mr-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+        >
+          Confirm
+        </button>
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="mt-2 px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+        >
+          Cancel
+        </button>
+      </span>
+    ), { duration: 8000 });
     try {
       await partnersAPI.delete(id);
       setPartners(prev => prev.filter(p => p._id !== id && p.id !== id));

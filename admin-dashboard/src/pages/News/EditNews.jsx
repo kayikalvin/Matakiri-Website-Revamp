@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import toast, { Toaster } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   ArrowLeftIcon, 
@@ -111,14 +112,13 @@ const EditNews = () => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-    try {
-      const payload = {
-        ...formData,
-        tags: typeof formData.tags === 'string' 
-          ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) 
-          : formData.tags
-      };
-
+    const payload = {
+      ...formData,
+      tags: typeof formData.tags === 'string' 
+        ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) 
+        : formData.tags
+    };
+    const doUpdate = async () => {
       if (featuredImageFile) {
         const formDataObj = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
@@ -134,12 +134,22 @@ const EditNews = () => {
       } else {
         await newsAPI.update(id, payload);
       }
-      
-      navigate('/news', { state: { message: 'Article updated successfully' } });
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to update article');
-      setSubmitting(false);
-    }
+    };
+    toast.promise(
+      doUpdate(),
+      {
+        loading: 'Saving article...',
+        success: () => {
+          setTimeout(() => navigate('/news', { state: { message: 'Article updated successfully' } }), 500);
+          return 'Article updated successfully!';
+        },
+        error: (err) => {
+          setError(err?.response?.data?.message || err?.message || 'Failed to update article');
+          setSubmitting(false);
+          return err?.response?.data?.message || err?.message || 'Failed to update article';
+        }
+      }
+    );
   };
 
   const handleChange = (e) => {
@@ -169,6 +179,7 @@ const EditNews = () => {
       setFeaturedImagePreview(url);
     } else {
       setFeaturedImagePreview(null);
+      toast.success('Image removed');
     }
   };
 
@@ -232,660 +243,384 @@ const EditNews = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate('/news')}
-            className="inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-6 group"
-          >
-            <ArrowLeftIcon className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Back to Articles
-          </button>
-          
-          <div className="flex items-start space-x-4">
-            <div className="h-12 w-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-              <PencilIcon className="h-6 w-6 text-primary-600" />
-            </div>
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Edit News Article</h1>
-              <p className="text-gray-600 mt-1">Update article details and content</p>
-              
-              {/* Article Stats Card */}
-              <div className="mt-4 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <div className="flex items-center text-sm text-gray-500 mb-1">
-                      <NewspaperIcon className="h-4 w-4 mr-1" />
-                      Article ID
+    <>
+      <Toaster position="top-right" />
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="mb-8">
+            <button
+              onClick={() => navigate('/news')}
+              className="inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-6 group"
+            >
+              <ArrowLeftIcon className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+              Back to Articles
+            </button>
+            
+            <div className="flex items-start space-x-4">
+              <div className="h-12 w-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                <PencilIcon className="h-6 w-6 text-primary-600" />
+              </div>
+              <div className="flex-1">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Edit News Article</h1>
+                <p className="text-gray-600 mt-1">Update article details and content</p>
+                
+                {/* Article Stats Card */}
+                <div className="mt-4 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <div className="flex items-center text-sm text-gray-500 mb-1">
+                        <NewspaperIcon className="h-4 w-4 mr-1" />
+                        Article ID
+                      </div>
+                      <p className="font-mono text-sm font-semibold text-gray-900">{formData.id}</p>
                     </div>
-                    <p className="font-mono text-sm font-semibold text-gray-900">{formData.id}</p>
-                  </div>
-                  <div>
-                    <div className="flex items-center text-sm text-gray-500 mb-1">
-                      <ChartBarIcon className="h-4 w-4 mr-1" />
-                      Views
+                    <div>
+                      <div className="flex items-center text-sm text-gray-500 mb-1">
+                        <ChartBarIcon className="h-4 w-4 mr-1" />
+                        Views
+                      </div>
+                      <p className="font-semibold text-gray-900">{articleStats.views.toLocaleString()}</p>
                     </div>
-                    <p className="font-semibold text-gray-900">{articleStats.views.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <div className="flex items-center text-sm text-gray-500 mb-1">
-                      <UserIcon className="h-4 w-4 mr-1" />
-                      Author
+                    <div>
+                      <div className="flex items-center text-sm text-gray-500 mb-1">
+                        <UserIcon className="h-4 w-4 mr-1" />
+                        Author
+                      </div>
+                      <p className="font-medium text-gray-900">{formData.author || '—'}</p>
                     </div>
-                    <p className="font-medium text-gray-900">{formData.author || '—'}</p>
-                  </div>
-                  <div>
-                    <div className="flex items-center text-sm text-gray-500 mb-1">
-                      <CalendarIcon className="h-4 w-4 mr-1" />
-                      Published
+                    <div>
+                      <div className="flex items-center text-sm text-gray-500 mb-1">
+                        <CalendarIcon className="h-4 w-4 mr-1" />
+                        Published
+                      </div>
+                      <p className="font-medium text-gray-900">
+                        {articleStats.publishedAt 
+                          ? new Date(articleStats.publishedAt).toLocaleDateString() 
+                          : 'Not published'}
+                      </p>
                     </div>
-                    <p className="font-medium text-gray-900">
-                      {articleStats.publishedAt 
-                        ? new Date(articleStats.publishedAt).toLocaleDateString() 
-                        : 'Not published'}
-                    </p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Main Form Container */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="p-6 md:p-8">
-            {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
-                <InformationCircleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
-                <div className="text-red-700 text-sm">{error}</div>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Content Column (2/3) */}
-                <div className="lg:col-span-2 space-y-8">
-                  {/* Title */}
-                  <div>
-                    <label htmlFor="title" className="block text-sm font-semibold text-gray-800 mb-2">
-                      Article Title <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="title"
-                      name="title"
-                      required
-                      value={formData.title}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                      placeholder="Enter article title"
-                    />
-                  </div>
-
-                  {/* Excerpt */}
-                  <div>
-                    <label htmlFor="excerpt" className="block text-sm font-semibold text-gray-800 mb-2">
-                      Excerpt
-                    </label>
-                    <textarea
-                      id="excerpt"
-                      name="excerpt"
-                      rows="3"
-                      value={formData.excerpt}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                      placeholder="Brief summary of the article"
-                      maxLength={160}
-                    />
-                    <div className="mt-2 text-sm text-gray-500 flex justify-end">
-                      {formData.excerpt.length}/160 characters
-                    </div>
-                  </div>
-
-                  {/* Content Editor */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-2">
-                      Content <span className="text-red-500">*</span>
-                    </label>
-                    <div className="border border-gray-300 rounded-lg overflow-hidden">
-                      <ReactQuill
-                        theme="snow"
-                        value={formData.content}
-                        onChange={handleContentChange}
-                        modules={modules}
-                        className="h-96"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Featured Image */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-800 mb-3">
-                      Featured Image
-                    </label>
-                    <div
-                      onDragEnter={handleDrag}
-                      onDragLeave={handleDrag}
-                      onDragOver={handleDrag}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`
-                        border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer p-8
-                        transition-all duration-200
-                        ${dragActive 
-                          ? 'border-primary-500 bg-primary-50' 
-                          : featuredImagePreview
-                            ? 'border-gray-200'
-                            : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50'
-                        }
-                      `}
-                    >
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleImageUpload(e.target.files?.[0])}
-                      />
-                      
-                      {featuredImagePreview ? (
-                        <div className="relative w-full max-w-2xl">
-                          <img 
-                            src={featuredImagePreview} 
-                            alt="Featured preview" 
-                            className="w-full h-64 object-cover rounded-lg"
-                          />
-                          <button
-                            type="button"
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              handleImageUpload(null); 
-                            }}
-                            className="absolute top-4 right-4 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg"
-                            aria-label="Remove image"
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <>
-                          <CloudArrowUpIcon className={`h-12 w-12 mb-4 ${dragActive ? 'text-primary-500' : 'text-gray-400'}`} />
-                          <p className="text-sm font-medium text-gray-700 mb-2">
-                            Drop featured image here or click to upload
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Recommended: 1200×630px, JPG or PNG, max 5MB
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
+          {/* Main Form Container */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            <div className="p-6 md:p-8">
+              {error && (
+                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
+                  <InformationCircleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <div className="text-red-700 text-sm">{error}</div>
                 </div>
+              )}
 
-                {/* Sidebar Column (1/3) */}
-                <div className="space-y-8">
-                  {/* Publish Box */}
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Publish</h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                          Status
-                        </label>
-                        <select
-                          id="status"
-                          name="status"
-                          value={formData.status}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all"
-                        >
-                          <option value="draft">Draft</option>
-                          <option value="published">Published</option>
-                        </select>
-                      </div>
-
-                      <div className="pt-4 border-t border-gray-200">
-                        <div className="flex space-x-3">
-                          <button
-                            type="button"
-                            onClick={() => navigate('/news')}
-                            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                            disabled={submitting}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="submit"
-                            disabled={submitting}
-                            className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {submitting ? (
-                              <span className="flex items-center justify-center">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                Saving...
-                              </span>
-                            ) : formData.status === 'draft' ? 'Save Draft' : 'Update'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Categories */}
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Main Content Column (2/3) */}
+                  <div className="lg:col-span-2 space-y-8">
+                    {/* Title */}
                     <div>
-                      <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                        Select Category
-                      </label>
-                      <select
-                        id="category"
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all"
-                      >
-                        <option value="Education">Education</option>
-                        <option value="Health">Health</option>
-                        <option value="Events">Events</option>
-                        <option value="Partners">Partners</option>
-                        <option value="Reports">Reports</option>
-                        <option value="Projects">Projects</option>
-                        <option value="Announcements">Announcements</option>
-                        <option value="Research">Research</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-                    <div className="flex items-center mb-4">
-                      <TagIcon className="h-5 w-5 text-gray-500 mr-2" />
-                      <h3 className="text-lg font-semibold text-gray-900">Tags</h3>
-                    </div>
-                    <div>
-                      <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
-                        Add Tags (comma separated)
+                      <label htmlFor="title" className="block text-sm font-semibold text-gray-800 mb-2">
+                        Article Title <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
-                        id="tags"
-                        name="tags"
-                        value={formData.tags}
+                        id="title"
+                        name="title"
+                        required
+                        value={formData.title}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        placeholder="education, project, 2024"
+                        className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                        placeholder="Enter article title"
                       />
+                    </div>
+
+                    {/* Excerpt */}
+                    <div>
+                      <label htmlFor="excerpt" className="block text-sm font-semibold text-gray-800 mb-2">
+                        Excerpt
+                      </label>
+                      <textarea
+                        id="excerpt"
+                        name="excerpt"
+                        rows="3"
+                        value={formData.excerpt}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                        placeholder="Brief summary of the article"
+                        maxLength={160}
+                      />
+                      <div className="mt-2 text-sm text-gray-500 flex justify-end">
+                        {formData.excerpt.length}/160 characters
+                      </div>
+                    </div>
+
+                    {/* Content Editor */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-800 mb-2">
+                        Content <span className="text-red-500">*</span>
+                      </label>
+                      <div className="border border-gray-300 rounded-lg overflow-hidden">
+                        <ReactQuill
+                          theme="snow"
+                          value={formData.content}
+                          onChange={handleContentChange}
+                          modules={modules}
+                          className="h-96"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Featured Image */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-800 mb-3">
+                        Featured Image
+                      </label>
+                      <div
+                        onDragEnter={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`
+                          border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer p-8
+                          transition-all duration-200
+                          ${dragActive 
+                            ? 'border-primary-500 bg-primary-50' 
+                            : featuredImagePreview
+                              ? 'border-gray-200'
+                              : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50'
+                          }
+                        `}
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleImageUpload(e.target.files?.[0])}
+                        />
+                        
+                        {featuredImagePreview ? (
+                          <div className="relative w-full max-w-2xl">
+                            <img 
+                              src={featuredImagePreview} 
+                              alt="Featured preview" 
+                              className="w-full h-64 object-cover rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                handleImageUpload(null); 
+                              }}
+                              className="absolute top-4 right-4 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg"
+                              aria-label="Remove image"
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <CloudArrowUpIcon className={`h-12 w-12 mb-4 ${dragActive ? 'text-primary-500' : 'text-gray-400'}`} />
+                            <p className="text-sm font-medium text-gray-700 mb-2">
+                              Drop featured image here or click to upload
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Recommended: 1200×630px, JPG or PNG, max 5MB
+                            </p>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* SEO Settings */}
-                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h3>
-                    <div className="space-y-4">
+                  {/* Sidebar Column (1/3) */}
+                  <div className="space-y-8">
+                    {/* Publish Box */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Publish</h3>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                            Status
+                          </label>
+                          <select
+                            id="status"
+                            name="status"
+                            value={formData.status}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all"
+                          >
+                            <option value="draft">Draft</option>
+                            <option value="published">Published</option>
+                          </select>
+                        </div>
+
+                        <div className="pt-4 border-t border-gray-200">
+                          <div className="flex space-x-3">
+                            <button
+                              type="button"
+                              onClick={() => navigate('/news')}
+                              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                              disabled={submitting}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={submitting}
+                              className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {submitting ? (
+                                <span className="flex items-center justify-center">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                  Saving...
+                                </span>
+                              ) : formData.status === 'draft' ? 'Save Draft' : 'Update'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Categories */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
                       <div>
-                        <label htmlFor="metaTitle" className="block text-sm font-medium text-gray-700 mb-2">
-                          Meta Title
+                        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                          Select Category
+                        </label>
+                        <select
+                          id="category"
+                          name="category"
+                          value={formData.category}
+                          onChange={handleChange}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all"
+                        >
+                          <option value="Education">Education</option>
+                          <option value="Health">Health</option>
+                          <option value="Events">Events</option>
+                          <option value="Partners">Partners</option>
+                          <option value="Reports">Reports</option>
+                          <option value="Projects">Projects</option>
+                          <option value="Announcements">Announcements</option>
+                          <option value="Research">Research</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+                      <div className="flex items-center mb-4">
+                        <TagIcon className="h-5 w-5 text-gray-500 mr-2" />
+                        <h3 className="text-lg font-semibold text-gray-900">Tags</h3>
+                      </div>
+                      <div>
+                        <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
+                          Add Tags (comma separated)
                         </label>
                         <input
                           type="text"
-                          id="metaTitle"
-                          name="metaTitle"
-                          value={formData.metaTitle}
+                          id="tags"
+                          name="tags"
+                          value={formData.tags}
                           onChange={handleChange}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                          placeholder="SEO title"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700 mb-2">
-                          Meta Description
-                        </label>
-                        <textarea
-                          id="metaDescription"
-                          name="metaDescription"
-                          rows="3"
-                          value={formData.metaDescription}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                          placeholder="SEO description"
+                          placeholder="education, project, 2024"
                         />
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Bottom Actions */}
-              <div className="pt-8 border-t border-gray-200">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div className="text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <InformationCircleIcon className="h-4 w-4 mr-2" />
-                      <span>Last updated: {articleStats.updatedAt ? new Date(articleStats.updatedAt).toLocaleString() : '—'}</span>
+                    {/* SEO Settings */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <label htmlFor="metaTitle" className="block text-sm font-medium text-gray-700 mb-2">
+                            Meta Title
+                          </label>
+                          <input
+                            type="text"
+                            id="metaTitle"
+                            name="metaTitle"
+                            value={formData.metaTitle}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                            placeholder="SEO title"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700 mb-2">
+                            Meta Description
+                          </label>
+                          <textarea
+                            id="metaDescription"
+                            name="metaDescription"
+                            rows="3"
+                            value={formData.metaDescription}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                            placeholder="SEO description"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => navigate('/news')}
-                      className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                      disabled={submitting}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      name="status"
-                      value="draft"
-                      disabled={submitting}
-                      className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                      onClick={() => setFormData({...formData, status: 'draft'})}
-                    >
-                      Save Draft
-                    </button>
-                    <button
-                      type="submit"
-                      name="status"
-                      value="published"
-                      disabled={submitting}
-                      className="px-6 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={() => setFormData({...formData, status: 'published'})}
-                    >
-                      {submitting ? 'Updating...' : 'Update & Publish'}
-                    </button>
+                </div>
+
+                {/* Bottom Actions */}
+                <div className="pt-8 border-t border-gray-200">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <InformationCircleIcon className="h-4 w-4 mr-2" />
+                        <span>Last updated: {articleStats.updatedAt ? new Date(articleStats.updatedAt).toLocaleString() : '—'}</span>
+                      </div>
+                    </div>
+                    <div className="flex space-x-3">
+                      <button
+                        type="button"
+                        onClick={() => navigate('/news')}
+                        className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                        disabled={submitting}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        name="status"
+                        value="draft"
+                        disabled={submitting}
+                        className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setFormData({...formData, status: 'draft'})}
+                      >
+                        Save Draft
+                      </button>
+                      <button
+                        type="submit"
+                        name="status"
+                        value="published"
+                        disabled={submitting}
+                        className="px-6 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => setFormData({...formData, status: 'published'})}
+                      >
+                        {submitting ? 'Updating...' : 'Update & Publish'}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
 export default EditNews;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import React, { useState, useEffect } from 'react';
-// import { useNavigate, useParams } from 'react-router-dom';
-// import { ArrowLeftIcon, NewspaperIcon, PencilIcon } from '@heroicons/react/24/outline';
-
-// import { newsAPI } from '../../services/api';
-
-// const EditNews = () => {
-//   const { id } = useParams();
-//   const navigate = useNavigate();
-//   const [loading, setLoading] = useState(true);
-//   const [formData, setFormData] = useState({
-//     title: '',
-//     content: '',
-//     category: 'Education',
-//     status: 'draft',
-//     tags: ''
-//   });
-
-//   const [error, setError] = useState(null);
-//   useEffect(() => {
-//     const fetchNews = async () => {
-//       setLoading(true);
-//       setError(null);
-//       try {
-//         const res = await newsAPI.getById(id);
-//         const resData = res?.data;
-//         // normalize possible shapes: { data: {...} } | { news: {...} } | direct object
-//         const news = resData?.data ?? resData?.news ?? resData;
-//         setFormData({
-//           id: news._id || news.id,
-//           title: news.title || '',
-//           content: news.content || '',
-//           category: news.category || '',
-//           status: news.status || '',
-//           tags: Array.isArray(news.tags) ? news.tags.join(', ') : (news.tags || ''),
-//           // normalize author: backend may return an object or an id/string
-//           author: typeof news.author === 'object' ? (news.author.name || news.author.email || news.author._id) : (news.author || ''),
-//           publishedDate: news.publishedDate || '',
-//           views: news.views || 0,
-//           // optional fields
-//           thumbnail: news.thumbnail || news.image || ''
-//         });
-//       } catch (err) {
-//         setError(err.response?.data?.message || err.message || 'Failed to load news');
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-//     fetchNews();
-//   }, [id]);
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setLoading(true);
-//     setError(null);
-//     try {
-//       // Prepare tags as array if needed
-//       const payload = {
-//         ...formData,
-//         tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : formData.tags
-//       };
-//       await newsAPI.update(id, payload);
-//       setLoading(false);
-//       navigate('/news');
-//     } catch (err) {
-//       setError(err.response?.data?.message || err.message || 'Failed to update news');
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleChange = (e) => {
-//     setFormData({
-//       ...formData,
-//       [e.target.name]: e.target.value
-//     });
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="p-6">
-//         <div className="flex items-center justify-center h-64">
-//           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-//         </div>
-//       </div>
-//     );
-//   }
-//   if (error) {
-//     return (
-//       <div className="p-6 text-center text-red-500">{error}</div>
-//     );
-//   }
-
-//   return (
-//     <div className="p-6">
-//       <div className="mb-8">
-//         <button
-//           onClick={() => navigate('/news')}
-//           className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
-//         >
-//           <ArrowLeftIcon className="h-5 w-5 mr-2" />
-//           Back to News
-//         </button>
-//         <div className="flex items-center">
-//           <div className="h-10 w-10 bg-primary-100 rounded-lg flex items-center justify-center mr-3">
-//             <PencilIcon className="h-6 w-6 text-primary-600" />
-//           </div>
-//           <div>
-//             <h1 className="text-3xl font-bold text-gray-800">Edit News Article</h1>
-//             <p className="text-gray-600 mt-2">Update article details</p>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="max-w-4xl">
-//         <div className="bg-white shadow rounded-lg p-6">
-//           {/* Article Info */}
-//           <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-//             <div className="grid grid-cols-2 gap-4">
-//               <div>
-//                 <p className="text-sm text-gray-500">Article ID</p>
-//                 <p className="font-medium">{formData.id}</p>
-//               </div>
-//               <div>
-//                 <p className="text-sm text-gray-500">Author</p>
-//                 <p className="font-medium">{formData.author}</p>
-//               </div>
-//               <div>
-//                 <p className="text-sm text-gray-500">Published Date</p>
-//                 <p className="font-medium">{formData.publishedDate}</p>
-//               </div>
-//               <div>
-//                 <p className="text-sm text-gray-500">Views</p>
-//                 <p className="font-medium">{formData.views.toLocaleString()}</p>
-//               </div>
-//             </div>
-//           </div>
-
-//           <form onSubmit={handleSubmit} className="space-y-6">
-//             {/* Title */}
-//             <div>
-//               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-//                 Title *
-//               </label>
-//               <input
-//                 type="text"
-//                 id="title"
-//                 name="title"
-//                 required
-//                 value={formData.title}
-//                 onChange={handleChange}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-//               />
-//             </div>
-
-//             {/* Content */}
-//             <div>
-//               <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-//                 Content *
-//               </label>
-//               <textarea
-//                 id="content"
-//                 name="content"
-//                 rows="10"
-//                 required
-//                 value={formData.content}
-//                 onChange={handleChange}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-//               />
-//             </div>
-
-//             {/* Category */}
-//             <div>
-//               <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-//                 Category *
-//               </label>
-//               <select
-//                 id="category"
-//                 name="category"
-//                 value={formData.category}
-//                 onChange={handleChange}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-//               >
-//                 <option value="Education">Education</option>
-//                 <option value="Health">Health</option>
-//                 <option value="Events">Events</option>
-//                 <option value="Partners">Partners</option>
-//                 <option value="Reports">Reports</option>
-//                 <option value="Projects">Projects</option>
-//                 <option value="Other">Other</option>
-//               </select>
-//             </div>
-
-//             {/* Tags */}
-//             <div>
-//               <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
-//                 Tags (comma separated)
-//               </label>
-//               <input
-//                 type="text"
-//                 id="tags"
-//                 name="tags"
-//                 value={formData.tags}
-//                 onChange={handleChange}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-//               />
-//             </div>
-
-//             {/* Status */}
-//             <div>
-//               <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-//                 Status *
-//               </label>
-//               <select
-//                 id="status"
-//                 name="status"
-//                 value={formData.status}
-//                 onChange={handleChange}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-//               >
-//                 <option value="draft">Draft</option>
-//                 <option value="published">Published</option>
-//               </select>
-//             </div>
-
-//             {/* Buttons */}
-//             <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-//               <button
-//                 type="button"
-//                 onClick={() => navigate('/news')}
-//                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-//               >
-//                 Cancel
-//               </button>
-//               <button
-//                 type="submit"
-//                 disabled={loading}
-//                 className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
-//               >
-//                 {loading ? 'Updating...' : 'Update Article'}
-//               </button>
-//             </div>
-//           </form>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default EditNews;

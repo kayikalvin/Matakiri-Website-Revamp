@@ -136,19 +136,19 @@ const PartnerGridCard = ({ partner, index }) => {
 
           {/* Partner Stats */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center">
+            {/* <div className="text-center">
               <div className="text-2xl font-bold text-gray-900 mb-1">
                 {partner.projects || 3}
               </div>
               <div className="text-xs text-gray-500">Joint Projects</div>
-            </div>
+            </div> */}
             
-            <div className="text-center">
+            {/* <div className="text-center">
               <div className="text-2xl font-bold text-gray-900 mb-1">
                 ${(partner.investment || 500000).toLocaleString()}
               </div>
               <div className="text-xs text-gray-500">Investment</div>
-            </div>
+            </div> */}
           </div>
 
           {/* Location */}
@@ -179,10 +179,10 @@ const PartnerGridCard = ({ partner, index }) => {
           )}
 
           {/* Action Button */}
-          <button className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium hover:from-primary-600 hover:to-primary-700 transition-all flex items-center justify-center gap-2 group">
+          {/* <button className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium hover:from-primary-600 hover:to-primary-700 transition-all flex items-center justify-center gap-2 group">
             View Partnership Details
             <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
-          </button>
+          </button> */}
         </div>
       </div>
     </motion.div>
@@ -235,7 +235,7 @@ const PartnerListCard = ({ partner, index }) => {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="flex items-center gap-3">
+                {/* <div className="flex items-center gap-3">
                   <div className="p-2 bg-gray-100 rounded-lg">
                     <FaChartLine className="text-gray-600" />
                   </div>
@@ -245,9 +245,9 @@ const PartnerListCard = ({ partner, index }) => {
                     </div>
                     <div className="text-xs text-gray-500">Investment</div>
                   </div>
-                </div>
+                </div> */}
                 
-                <div className="flex items-center gap-3">
+                {/* <div className="flex items-center gap-3">
                   <div className="p-2 bg-gray-100 rounded-lg">
                     <FaHandsHelping className="text-gray-600" />
                   </div>
@@ -257,7 +257,7 @@ const PartnerListCard = ({ partner, index }) => {
                     </div>
                     <div className="text-xs text-gray-500">Projects</div>
                   </div>
-                </div>
+                </div> */}
                 
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-gray-100 rounded-lg">

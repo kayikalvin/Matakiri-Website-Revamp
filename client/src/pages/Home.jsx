@@ -25,12 +25,12 @@ const Home = () => {
         transition={{ duration: 0.5 }}
       >
         <HeroSection />
+        <PartnersShowcase />
         <StatsSection />
         {/* Comment out other components until we fix the imports */}
         <FeaturedProjects />
         <AIInitiatives />
         <LatestNews />
-        <PartnersShowcase />
         <CallToAction /> 
       </motion.div>
     </>

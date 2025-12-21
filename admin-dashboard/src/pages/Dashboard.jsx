@@ -23,7 +23,7 @@ import {
   LinkIcon
 } from '@heroicons/react/24/outline';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
-import { projectsAPI, partnersAPI, usersAPI } from '../services/api';
+import { projectsAPI, partnersAPI, usersAPI, galleryAPI, newsAPI } from '../services/api';
 import QuickActions from '../components/Dashboard/QuickActions';
 
 const Dashboard = () => {
@@ -41,6 +41,22 @@ const Dashboard = () => {
   const [usersPage, setUsersPage] = useState(0);
   const pageSize = 5;
   const [selectedRange, setSelectedRange] = useState('30'); // days or 'ytd' or 'custom'
+  // Quick stats and performance
+  const [quickStats, setQuickStats] = useState({
+    users: 0,
+    revenue: 0,
+    score: 0,
+    pending: 0,
+    projects: 0,
+    partners: 0,
+    news: 0,
+    gallery: 0,
+    images: 0,
+    videos: 0,
+    featuredMedia: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState(null);
 
   useEffect(() => {
     // Set greeting based on time of day
@@ -65,15 +81,44 @@ const Dashboard = () => {
     setTimeout(() => setIsRefreshing(false), 1500);
   };
 
-  const performanceData = {
-    score: 94,
-    users: 1247,
-    revenue: 42800,
-    pending: 3,
-    projects: 18,
-    partners: 47,
-    news: 24
-  };
+
+  // Fetch quick stats (projects, partners, users, news, gallery)
+  useEffect(() => {
+    let mounted = true;
+    setStatsLoading(true);
+    setStatsError(null);
+    Promise.all([
+      projectsAPI.getStats(),
+      partnersAPI.getStats(),
+      usersAPI.getStats(),
+      newsAPI.getAll({ limit: 1 }),
+      galleryAPI.getAll({ limit: 1 }),
+      galleryAPI.getAll({ type: 'image', limit: 1 }),
+      galleryAPI.getAll({ type: 'video', limit: 1 }),
+      galleryAPI.getAll({ isFeatured: true, limit: 1 })
+    ]).then(([proj, partners, users, news, gallery, images, videos, featured]) => {
+      if (!mounted) return;
+      setQuickStats({
+        users: users?.data?.data?.totalUsers ?? users?.data?.data?.total ?? users?.data?.totalUsers ?? 0,
+        revenue: 42800, // Placeholder, replace with real revenue if available
+        score: 94, // Placeholder, replace with real score if available
+        pending: 3, // Placeholder, replace with real pending if available
+        projects: proj?.data?.data?.totalProjects ?? proj?.data?.data?.total ?? proj?.data?.totalProjects ?? 0,
+        partners: partners?.data?.data?.totalPartners ?? partners?.data?.data?.total ?? partners?.data?.totalPartners ?? 0,
+        news: news?.data?.total ?? news?.data?.data?.total ?? 0,
+        gallery: gallery?.data?.total ?? gallery?.data?.data?.total ?? 0,
+        images: images?.data?.total ?? images?.data?.data?.total ?? 0,
+        videos: videos?.data?.total ?? videos?.data?.data?.total ?? 0,
+        featuredMedia: featured?.data?.total ?? featured?.data?.data?.total ?? 0
+      });
+    }).catch((err) => {
+      if (!mounted) return;
+      setStatsError(err.response?.data?.message || err.message || 'Failed to load stats');
+    }).finally(() => {
+      if (mounted) setStatsLoading(false);
+    });
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -222,11 +267,12 @@ const Dashboard = () => {
 
         {/* Quick Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          {/* Users */}
           <div className="bg-gradient-to-br from-blue-50 to-white p-4 rounded-xl border border-blue-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Active Users</p>
-                <p className="text-2xl font-bold text-gray-900">{performanceData.users.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.users.toLocaleString()}</p>
               </div>
               <UserGroupIcon className="h-8 w-8 text-blue-500 opacity-80" />
             </div>
@@ -235,12 +281,12 @@ const Dashboard = () => {
               +12% this week
             </div>
           </div>
-
+          {/* Revenue */}
           <div className="bg-gradient-to-br from-green-50 to-white p-4 rounded-xl border border-green-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">${(performanceData.revenue / 1000).toFixed(1)}K</p>
+                <p className="text-2xl font-bold text-gray-900">${statsLoading ? '...' : (quickStats.revenue / 1000).toFixed(1)}K</p>
               </div>
               <CurrencyDollarIcon className="h-8 w-8 text-green-500 opacity-80" />
             </div>
@@ -249,12 +295,12 @@ const Dashboard = () => {
               +18% this month
             </div>
           </div>
-
+          {/* Performance */}
           <div className="bg-gradient-to-br from-amber-50 to-white p-4 rounded-xl border border-amber-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Performance</p>
-                <p className="text-2xl font-bold text-gray-900">{performanceData.score}%</p>
+                <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.score}%</p>
               </div>
               <ChartBarIcon className="h-8 w-8 text-amber-500 opacity-80" />
             </div>
@@ -262,17 +308,17 @@ const Dashboard = () => {
               <div className="w-full bg-amber-100 rounded-full h-2">
                 <div 
                   className="bg-gradient-to-r from-amber-500 to-amber-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${performanceData.score}%` }}
+                  style={{ width: statsLoading ? '0%' : `${quickStats.score}%` }}
                 ></div>
               </div>
             </div>
           </div>
-
+          {/* Pending */}
           <div className="bg-gradient-to-br from-red-50 to-white p-4 rounded-xl border border-red-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Pending Actions</p>
-                <p className="text-2xl font-bold text-gray-900">{performanceData.pending}</p>
+                <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.pending}</p>
               </div>
               <ExclamationTriangleIcon className="h-8 w-8 text-red-500 opacity-80" />
             </div>
@@ -327,11 +373,12 @@ const Dashboard = () => {
 
             {/* DashboardStats Component */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Projects */}
               <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl border border-blue-100">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-sm text-gray-600">Total Projects</p>
-                    <p className="text-3xl font-bold text-gray-900">{performanceData.projects}</p>
+                    <p className="text-3xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.projects}</p>
                   </div>
                   <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center">
                     <DocumentTextIcon className="h-6 w-6 text-blue-600" />
@@ -342,12 +389,12 @@ const Dashboard = () => {
                   <span>+5 from last month</span>
                 </div>
               </div>
-
+              {/* Partners */}
               <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-xl border border-green-100">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-sm text-gray-600">Active Partners</p>
-                    <p className="text-3xl font-bold text-gray-900">{performanceData.partners}</p>
+                    <p className="text-3xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.partners}</p>
                   </div>
                   <div className="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center">
                     <UserGroupIcon className="h-6 w-6 text-green-600" />
@@ -358,12 +405,12 @@ const Dashboard = () => {
                   <span>+3 new this quarter</span>
                 </div>
               </div>
-
+              {/* News */}
               <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-sm text-gray-600">News Articles</p>
-                    <p className="text-3xl font-bold text-gray-900">{performanceData.news}</p>
+                    <p className="text-3xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.news}</p>
                   </div>
                   <div className="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center">
                     <DocumentTextIcon className="h-6 w-6 text-purple-600" />
@@ -374,12 +421,12 @@ const Dashboard = () => {
                   <span>8 published this month</span>
                 </div>
               </div>
-
+              {/* Media Library */}
               <div className="bg-gradient-to-br from-amber-50 to-white p-6 rounded-xl border border-amber-100">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-sm text-gray-600">Media Library</p>
-                    <p className="text-3xl font-bold text-gray-900">248</p>
+                    <p className="text-3xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.gallery}</p>
                   </div>
                   <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center">
                     <PhotoIcon className="h-6 w-6 text-amber-600" />
@@ -387,7 +434,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex items-center text-sm text-green-600">
                   <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                  <span>+42 items added</span>
+                  <span>+{statsLoading ? '...' : quickStats.featuredMedia} featured</span>
                 </div>
               </div>
             </div>
@@ -415,11 +462,28 @@ const Dashboard = () => {
                 
                 {/* ProjectsChart Component */}
                 <div className="h-64 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200">
-                  <div className="text-center">
-                    <ChartBarIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">Project chart visualization</p>
-                    <p className="text-sm text-gray-400 mt-1">Interactive chart showing project progress</p>
-                  </div>
+                  {analyticsLoading ? (
+                    <div className="flex flex-col items-center justify-center w-full h-full">
+                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mb-2"></div>
+                      <span className="text-gray-400">Loading chart...</span>
+                    </div>
+                  ) : analyticsError ? (
+                    <div className="text-red-500">{analyticsError}</div>
+                  ) : analytics && analytics.projects && analytics.projects.categoryDistribution && analytics.projects.categoryDistribution.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={analytics.projects.categoryDistribution.map(d => ({ name: d._id || 'Unknown', count: d.count }))}>
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#4F46E5" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="text-center w-full">
+                      <ChartBarIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">No project data available</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -562,19 +626,19 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="p-4 bg-gradient-to-br from-amber-50 to-white rounded-lg border border-amber-100">
               <p className="text-sm text-gray-600">Score</p>
-              <p className="text-2xl font-bold text-gray-900">{performanceData.score}%</p>
+              <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.score}%</p>
             </div>
             <div className="p-4 bg-gradient-to-br from-blue-50 to-white rounded-lg border border-blue-100">
               <p className="text-sm text-gray-600">Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">${performanceData.revenue.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">${statsLoading ? '...' : quickStats.revenue.toLocaleString()}</p>
             </div>
             <div className="p-4 bg-gradient-to-br from-green-50 to-white rounded-lg border border-green-100">
               <p className="text-sm text-gray-600">Users</p>
-              <p className="text-2xl font-bold text-gray-900">{performanceData.users.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.users.toLocaleString()}</p>
             </div>
             <div className="p-4 bg-gradient-to-br from-red-50 to-white rounded-lg border border-red-100">
               <p className="text-sm text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-900">{performanceData.pending}</p>
+              <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.pending}</p>
             </div>
           </div>
         </div>
@@ -591,7 +655,7 @@ const Dashboard = () => {
       )}
 
       {/* Recent Activities */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+      {/* <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg">
@@ -607,7 +671,7 @@ const Dashboard = () => {
           </button>
         </div>
         
-        {/* RecentActivities Component */}
+       
         <div className="space-y-4">
           {[
             { 
@@ -673,7 +737,7 @@ const Dashboard = () => {
             );
           })}
         </div>
-      </div>
+      </div> */}
 
       {/* System Status Footer */}
       <div className="bg-gradient-to-r from-white to-gray-50 rounded-2xl p-6 border border-gray-200">
