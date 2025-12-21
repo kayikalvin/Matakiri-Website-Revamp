@@ -11,6 +11,7 @@ import Partners from './pages/Partners.jsx';
 import News from './pages/News.jsx';
 import Gallery from './pages/Gallery.jsx';
 import Contact from './pages/Contact.jsx';  
+import Team from './pages/Team.jsx';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="programs" element={<Programs />} />
           <Route path="projects" element={<Projects />} />
           <Route path="ai-projects" element={<AIProjects />} />
+          <Route path="team" element={<Team />} />
           <Route path="partners" element={<Partners />} />
           <Route path="news" element={<News />} />
           <Route path="gallery" element={<Gallery />} />
