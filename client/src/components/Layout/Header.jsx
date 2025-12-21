@@ -53,6 +53,7 @@ const Header = () => {
         { path: '/projects?featured=true', label: 'Featured Projects' }
       ]
     },
+    { path: '/team', label: 'Team' },
     { path: '/partners', label: 'Partners' },
     { path: '/news', label: 'News' },
     { path: '/gallery', label: 'Gallery' },
@@ -69,7 +70,7 @@ const Header = () => {
   const contactInfo = [
     { icon: <FiPhone />, text: '+254 712 345 678' },
     { icon: <FiMail />, text: 'info@matakiritrust.org' },
-    { icon: <FiMapPin />, text: 'Kisumu County, Kenya' },
+    { icon: <FiMapPin />, text: 'Tharaka County, Kenya' },
   ];
 
   const handleDropdownToggle = (index) => {
@@ -161,7 +162,7 @@ const Header = () => {
                   {item.subItems ? (
                     <button
                       onClick={() => handleDropdownToggle(index)}
-                      className={`flex items-center space-x-1 px-4 py-2 rounded-lg text-lg font-semi-bold transition-all ${
+                      className={`flex items-center space-x-1 px-4 py-2 rounded-lg text-md font-semibold transition-all ${
                         activeDropdown === index || window.location.pathname.startsWith(item.path)
                           ? 'text-emerald-700 bg-emerald-50'
                           : 'text-gray-700 hover:text-emerald-700 hover:bg-emerald-50'
@@ -177,7 +178,7 @@ const Header = () => {
                       to={item.path}
                       end={item.exact}
                       className={({ isActive }) =>
-                        `px-4 py-2 rounded-lg text-lg font-semi-bold transition-all ${
+                        `px-4 py-2 rounded-lg text-md font-semibold transition-all ${
                           isActive
                             ? 'text-emerald-700 bg-emerald-50'
                             : 'text-gray-700 hover:text-emerald-700 hover:bg-emerald-50'
@@ -202,7 +203,7 @@ const Header = () => {
                           to={subItem.path}
                           onClick={() => setActiveDropdown(null)}
                           className={({ isActive }) =>
-                            `block px-4 py-2 text-sm transition-colors ${
+                            `block px-4 py-2 text-sm font-semibold transition-colors ${
                               isActive
                                 ? 'text-emerald-700 bg-emerald-50'
                                 : 'text-gray-700 hover:text-emerald-700 hover:bg-emerald-50'

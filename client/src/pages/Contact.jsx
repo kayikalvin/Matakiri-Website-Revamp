@@ -53,7 +53,7 @@ const Contact = () => {
     {
       icon: <FaMapMarkerAlt className="w-5 h-5" />,
       title: "Our Location",
-      details: ["Matakiri Village", "Kisumu County, Kenya"],
+      details: ["Matakiri Village", "Tharaka County, Kenya"],
       color: "from-emerald-500 to-teal-500"
     },
     {
@@ -317,7 +317,7 @@ const Contact = () => {
                 </div>
 
                 {/* Department Contacts */}
-                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6">
+                {/* <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Specific Inquiries</h3>
                   <p className="text-gray-600 text-sm mb-6">
                     For specific department inquiries, please contact:
@@ -337,10 +337,10 @@ const Contact = () => {
                       </div>
                     ))}
                   </div>
-                </div>
+                </div> */}
 
                 {/* Map Placeholder */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100">
+                {/* <div className="bg-white rounded-2xl p-6 border border-gray-100">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Our Location</h3>
                   <div className="aspect-w-16 aspect-h-9 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl overflow-hidden">
                     <div className="flex flex-col items-center justify-center h-48">
@@ -361,7 +361,7 @@ const Contact = () => {
                       Get Directions →
                     </button>
                   </div>
-                </div>
+                </div> */}
               </motion.div>
             </div>
           </div>

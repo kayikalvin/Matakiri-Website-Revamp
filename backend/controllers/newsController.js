@@ -1,6 +1,33 @@
 const News = require('../models/News');
+const mongoose = require('mongoose');
+const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const ErrorResponse = require('../utils/ErrorResponse');
+
+// Helper to safely attach author objects when author field contains a valid ObjectId
+async function safeAttachAuthors(records) {
+  if (!records) return records;
+  const single = !Array.isArray(records);
+  const arr = single ? [records] : records;
+
+  const authorIds = arr
+    .map(r => r.author)
+    .filter(Boolean)
+    .map(a => (typeof a === 'object' && a._id ? String(a._id) : String(a)))
+    .filter(id => mongoose.Types.ObjectId.isValid(id));
+
+  if (authorIds.length === 0) return records;
+
+  const users = await User.find({ _id: { $in: authorIds } }).select('name email avatar');
+  const userMap = users.reduce((acc, u) => { acc[String(u._id)] = u; return acc; }, {});
+
+  const mapped = arr.map(n => ({
+    ...n,
+    author: (n.author && mongoose.Types.ObjectId.isValid(String(n.author))) ? (userMap[String(n.author)] || n.author) : n.author
+  }));
+
+  return single ? mapped[0] : mapped;
+}
 
 // @desc    Get all news
 // @route   GET /api/news
@@ -50,13 +77,29 @@ exports.getNews = asyncHandler(async (req, res, next) => {
   const limitNum = parseInt(limit);
   const skip = (pageNum - 1) * limitNum;
 
-  const news = await News.find(query)
+  let news = await News.find(query)
     .sort(sort)
     .skip(skip)
     .limit(limitNum)
-    .populate('author', 'name email avatar')
     .populate('relatedProjects', 'title slug images')
-    .populate('relatedNews', 'title slug images');
+    .populate('relatedNews', 'title slug images')
+    .lean();
+
+  // Safely populate `author` only for valid ObjectId values
+  const authorIds = news
+    .map(n => n.author)
+    .filter(Boolean)
+    .map(a => typeof a === 'object' && a._id ? String(a._id) : String(a))
+    .filter(id => mongoose.Types.ObjectId.isValid(id));
+
+  if (authorIds.length) {
+    const users = await User.find({ _id: { $in: authorIds } }).select('name email avatar');
+    const userMap = users.reduce((acc, u) => { acc[String(u._id)] = u; return acc; }, {});
+    news = news.map(n => ({
+      ...n,
+      author: (n.author && mongoose.Types.ObjectId.isValid(String(n.author))) ? (userMap[String(n.author)] || n.author) : n.author
+    }));
+  }
 
   // Get total count for pagination
   const total = await News.countDocuments(query);
@@ -85,19 +128,26 @@ exports.getNews = asyncHandler(async (req, res, next) => {
 // @route   GET /api/news/:id
 // @access  Public
 exports.getNewsItem = asyncHandler(async (req, res, next) => {
-  const news = await News.findById(req.params.id)
-    .populate('author', 'name email avatar department')
+  let news = await News.findById(req.params.id)
     .populate('relatedProjects', 'title slug images category')
     .populate('relatedNews', 'title slug images category')
-    .populate('likes', 'name');
+    .populate('likes', 'name')
+    .lean();
 
   if (!news) {
     return next(new ErrorResponse('News article not found', 404));
   }
 
+  // Safe author population
+  if (news.author && mongoose.Types.ObjectId.isValid(String(news.author))) {
+    const user = await User.findById(news.author).select('name email avatar department');
+    news.author = user || news.author;
+  }
+
   // Increment views
-  news.views += 1;
-  await news.save({ validateBeforeSave: false });
+  // Increment views using an update since `news` is a plain object (lean())
+  await News.updateOne({ _id: news._id }, { $inc: { views: 1 } });
+  news.views = (news.views || 0) + 1;
 
   res.status(200).json({
     success: true,
@@ -109,19 +159,24 @@ exports.getNewsItem = asyncHandler(async (req, res, next) => {
 // @route   GET /api/news/slug/:slug
 // @access  Public
 exports.getNewsBySlug = asyncHandler(async (req, res, next) => {
-  const news = await News.findOne({ slug: req.params.slug, published: true })
-    .populate('author', 'name email avatar department')
+  let news = await News.findOne({ slug: req.params.slug, published: true })
     .populate('relatedProjects', 'title slug images category')
     .populate('relatedNews', 'title slug images category')
-    .populate('likes', 'name');
+    .populate('likes', 'name')
+    .lean();
 
   if (!news) {
     return next(new ErrorResponse('News article not found', 404));
   }
 
-  // Increment views
-  news.views += 1;
-  await news.save({ validateBeforeSave: false });
+  // Safe author population
+  if (news.author && mongoose.Types.ObjectId.isValid(String(news.author))) {
+    const user = await User.findById(news.author).select('name email avatar department');
+    news.author = user || news.author;
+  }
+
+  // Increment views (use update to avoid casting issues)
+  await News.updateOne({ _id: news._id }, { $inc: { views: 1 } });
 
   res.status(200).json({
     success: true,
@@ -135,6 +190,40 @@ exports.getNewsBySlug = asyncHandler(async (req, res, next) => {
 exports.createNews = asyncHandler(async (req, res, next) => {
   // Add author to request body
   req.body.author = req.user.id;
+
+  // Ensure slug is present and unique. If slug/title provided, generate a base slug
+  const slugify = (str) => str
+    .toString()
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/--+/g, '-')
+    .trim();
+
+  if (!req.body.slug && req.body.title) {
+    req.body.slug = slugify(req.body.title);
+  } else if (req.body.slug) {
+    req.body.slug = slugify(req.body.slug);
+  }
+
+  if (req.body.slug) {
+    // Find existing slugs that start with the base (e.g., 'test' or 'test-1')
+    const base = req.body.slug;
+    const regex = new RegExp(`^${base}(-\\d+)?$`);
+    const existing = await News.find({ slug: regex }).select('slug');
+
+    if (existing.length) {
+      // collect numeric suffixes
+      const suffixes = existing
+        .map(n => n.slug)
+        .map(s => {
+          const m = s.match(new RegExp(`^${base}-(\\d+)$`));
+          return m ? parseInt(m[1], 10) : 0;
+        });
+      const max = Math.max(...suffixes, 0);
+      req.body.slug = `${base}-${max + 1}`;
+    }
+  }
 
   const news = await News.create(req.body);
 
@@ -156,7 +245,8 @@ exports.updateNews = asyncHandler(async (req, res, next) => {
   }
 
   // Check if user is author or admin
-  if (news.author.toString() !== req.user.id && req.user.role !== 'admin') {
+  const existingAuthorId = news.author && (typeof news.author === 'object' ? (news.author._id || news.author.id) : news.author);
+  if (String(existingAuthorId) !== String(req.user.id) && req.user.role !== 'admin') {
     return next(new ErrorResponse('Not authorized to update this article', 403));
   }
 
@@ -183,7 +273,8 @@ exports.deleteNews = asyncHandler(async (req, res, next) => {
   }
 
   // Check if user is author or admin
-  if (news.author.toString() !== req.user.id && req.user.role !== 'admin') {
+  const existingAuthorIdDel = news.author && (typeof news.author === 'object' ? (news.author._id || news.author.id) : news.author);
+  if (String(existingAuthorIdDel) !== String(req.user.id) && req.user.role !== 'admin') {
     return next(new ErrorResponse('Not authorized to delete this article', 403));
   }
 
@@ -200,11 +291,13 @@ exports.deleteNews = asyncHandler(async (req, res, next) => {
 // @route   GET /api/news/featured
 // @access  Public
 exports.getFeaturedNews = asyncHandler(async (req, res, next) => {
-  const news = await News.find({ isFeatured: true, published: true })
+  let news = await News.find({ isFeatured: true, published: true })
     .sort('-publishedAt')
     .limit(6)
-    .populate('author', 'name avatar')
-    .select('title excerpt slug images publishedAt category views');
+    .select('title excerpt slug images publishedAt category views')
+    .lean();
+
+  news = await safeAttachAuthors(news);
 
   res.status(200).json({
     success: true,
@@ -217,11 +310,13 @@ exports.getFeaturedNews = asyncHandler(async (req, res, next) => {
 // @route   GET /api/news/latest
 // @access  Public
 exports.getLatestNews = asyncHandler(async (req, res, next) => {
-  const news = await News.find({ published: true })
+  let news = await News.find({ published: true })
     .sort('-publishedAt')
     .limit(5)
-    .populate('author', 'name avatar')
-    .select('title excerpt slug images publishedAt category views');
+    .select('title excerpt slug images publishedAt category views')
+    .lean();
+
+  news = await safeAttachAuthors(news);
 
   res.status(200).json({
     success: true,
@@ -363,12 +458,14 @@ exports.getRelatedNews = asyncHandler(async (req, res, next) => {
   })
     .sort('-publishedAt')
     .limit(4)
-    .populate('author', 'name avatar')
-    .select('title excerpt slug images publishedAt category views');
+    .select('title excerpt slug images publishedAt category views')
+    .lean();
+
+  const relatedWithAuthors = await safeAttachAuthors(relatedNews);
 
   res.status(200).json({
     success: true,
-    count: relatedNews.length,
-    data: relatedNews
+    count: relatedWithAuthors.length,
+    data: relatedWithAuthors
   });
 });

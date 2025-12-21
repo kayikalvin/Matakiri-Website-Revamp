@@ -32,7 +32,8 @@ const userSchema = new mongoose.Schema({
   },
   department: {
     type: String,
-    enum: ['management', 'projects', 'ai', 'communications', 'finance', null],
+    trim: true,
+    lowercase: true,
     default: null
   },
   lastLogin: {

@@ -201,8 +201,13 @@ const Footer = () => {
             {/* Organization Info */}
             <div className="lg:col-span-2 space-y-6">
               <div className="flex items-center space-x-3">
-                <div className="w-14 h-14 bg-gradient-to-r from-primary-500 to-primary-700 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-xl">MTC</span>
+                <div className="w-14 h-14 shadow-lg flex items-center justify-center overflow-hidden">
+                  <img
+                    src="/matakiri-logo.png"
+                    alt="Matakiri Tumaini Centre logo"
+                    className="w-full h-full object-contain bg-white"
+                    onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
+                  />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold font-display text-accent-500">Matakiri Tumaini Centre</h3>
@@ -258,7 +263,7 @@ const Footer = () => {
                   <FaMapMarkerAlt className="text-accent-500 mt-1 flex-shrink-0" />
                   <span className="text-neutral-200">
                     Matakiri Village<br />
-                    Kisumu County, Kenya
+                    Tharaka County, Kenya
                   </span>
                 </div>
                 <div className="flex items-center space-x-3">
@@ -283,7 +288,8 @@ const Footer = () => {
               © {currentYear} Matakiri Tumaini Centre. All rights reserved.
             </div>
             <div className="text-neutral-200 text-sm mt-2 md:mt-0">
-              Registered Charity No: OP.218/051/12-0392/10036
+              Registered Charity No: 1204161
+              {/* OP.218/051/12-0392/10036 */}
             </div>
             <div className="text-neutral-200 text-sm mt-2 md:mt-0 flex gap-4">
               <Link to="/privacy" className="hover:text-accent-500 transition-colors">Privacy Policy</Link>

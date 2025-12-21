@@ -20,7 +20,7 @@ const CreateNews = () => {
     title: '',
     content: '',
     excerpt: '',
-    category: 'Education',
+    category: 'projects',
     status: 'draft',
     tags: '',
     featuredImage: null,
@@ -367,15 +367,12 @@ const CreateNews = () => {
                         onChange={handleChange}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all"
                       >
-                        <option value="Education">Education</option>
-                        <option value="Health">Health</option>
-                        <option value="Events">Events</option>
-                        <option value="Partners">Partners</option>
-                        <option value="Reports">Reports</option>
-                        <option value="Projects">Projects</option>
-                        <option value="Announcements">Announcements</option>
-                        <option value="Research">Research</option>
-                        <option value="Other">Other</option>
+                        <option value="announcements">Announcements</option>
+                        <option value="projects">Projects</option>
+                        <option value="partnerships">Partnerships</option>
+                        <option value="events">Events</option>
+                        <option value="research">Research</option>
+                        <option value="community">Community</option>
                       </select>
                     </div>
                   </div>

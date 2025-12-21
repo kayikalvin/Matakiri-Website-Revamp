@@ -215,7 +215,7 @@ const CallToAction = () => {
           </motion.div>
 
           {/* Additional Options */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
             {[
               { title: 'Volunteer', desc: 'Share your skills', icon: '🙋‍♂️', color: 'bg-emerald-100/50' },
               { title: 'Donate', desc: 'Support our projects', icon: '💝', color: 'bg-rose-100/50' },
@@ -243,7 +243,7 @@ const CallToAction = () => {
                 </p>
               </motion.div>
             ))}
-          </div>
+          </div> */}
 
           {/* Trust Indicator */}
           <motion.div

@@ -2,6 +2,7 @@ import { lazy } from 'react';
 
 // Lazy load components for better performance
 const Home = lazy(() => import('./pages/Home'));
+const Team = lazy(() => import('./pages/Team'));
 const About = lazy(() => import('./pages/About'));
 const Programs = lazy(() => import('./pages/Programs'));
 const Projects = lazy(() => import('./pages/Projects'));
@@ -58,3 +59,10 @@ export const routes = [
     title: 'Contact'
   }
 ];
+
+// Add Team page route
+routes.splice(1, 0, {
+  path: '/team',
+  component: Team,
+  title: 'Team'
+});

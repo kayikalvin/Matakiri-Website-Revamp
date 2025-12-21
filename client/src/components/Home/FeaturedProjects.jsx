@@ -14,7 +14,7 @@ const FeaturedProjects = () => {
       title: "AI-Powered Agriculture in Kisumu",
       description: "Using AI to help local farmers increase crop yields through predictive analytics and smart farming techniques.",
       category: "Agriculture",
-      location: "Kisumu County",
+      location: "Tharaka County",
       date: "2023",
       image: "https://images.unsplash.com/photo-1556779144-5b10c6c6d6f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
     },

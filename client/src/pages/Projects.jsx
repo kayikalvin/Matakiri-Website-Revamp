@@ -421,7 +421,7 @@ const Projects = () => {
                   </div>
 
                   {/* Action Button */}
-                  <div className="px-6 py-4 bg-gray-50 border-t">
+                  {/* <div className="px-6 py-4 bg-gray-50 border-t">
                     <button
                       onClick={() => {
                         // You can implement navigation to project details
@@ -432,7 +432,7 @@ const Projects = () => {
                       View Project Details
                       <FaExternalLinkAlt className="ml-2" />
                     </button>
-                  </div>
+                  </div> */}
                 </motion.div>
               ))}
             </div>

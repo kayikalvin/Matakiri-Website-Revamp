@@ -129,11 +129,11 @@ const AIProjects = () => {
                       </div>
                     </div>
                     
-                    <div className="px-6 py-4 bg-gray-50 border-t">
+                    {/* <div className="px-6 py-4 bg-gray-50 border-t">
                       <button className="w-full py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors">
                         View Project Details
                       </button>
-                    </div>
+                    </div> */}
                   </motion.div>
                 ))}
               </div>

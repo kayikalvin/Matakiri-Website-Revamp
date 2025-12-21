@@ -35,10 +35,17 @@ const News = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await newsAPI.getAll();
+        // Request all articles (include drafts) for admin view
+        const res = await newsAPI.getAll({ published: 'all' });
         const payload = res.data && res.data.data ? res.data.data : res.data;
-        const newsData = Array.isArray(payload) ? payload : [];
-        
+        let newsData = Array.isArray(payload) ? payload : [];
+
+        // Normalize backend shape: backend uses `published` boolean while UI expects `status` string
+        newsData = newsData.map(item => ({
+          ...item,
+          status: item.status || (item.published ? 'published' : 'draft')
+        }));
+
         setNews(newsData);
         
         // Calculate stats
@@ -78,6 +85,26 @@ const News = () => {
       'Research': 'bg-cyan-100 text-cyan-800'
     };
     return colors[category] || 'bg-gray-100 text-gray-800';
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this article?')) return;
+    setError(null);
+    try {
+      await newsAPI.delete(id);
+      // remove from list and update stats
+      setNews(prev => {
+        const updated = prev.filter(n => (n._id || n.id) !== id);
+        const total = updated.length;
+        const published = updated.filter(item => item.status === 'published').length;
+        const drafts = updated.filter(item => item.status === 'draft').length;
+        const totalViews = updated.reduce((sum, item) => sum + (Number(item.views) || 0), 0);
+        setStats({ total, published, drafts, totalViews });
+        return updated;
+      });
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to delete article');
+    }
   };
 
   const formatDate = (dateString) => {
@@ -409,11 +436,7 @@ const News = () => {
                           </Link>
                           <button
                             className="p-1.5 text-red-500 hover:text-red-700 transition-colors"
-                            onClick={() => {
-                              if (window.confirm('Are you sure you want to delete this article?')) {
-                                console.log('Delete news', item._id || item.id);
-                              }
-                            }}
+                            onClick={() => handleDelete(item._id || item.id)}
                             title="Delete"
                           >
                             <TrashIcon className="h-5 w-5" />

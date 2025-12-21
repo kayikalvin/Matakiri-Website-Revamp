@@ -39,8 +39,8 @@ const newsSchema = new mongoose.Schema({
     }
   }],
   author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    // Accept either an ObjectId reference or a fallback string/embedded author
+    type: mongoose.Schema.Types.Mixed,
     required: true
   },
   published: {
@@ -92,15 +92,17 @@ newsSchema.index({ publishedAt: -1 });
 newsSchema.index({ author: 1 });
 
 // Pre-save middleware to generate slug
-newsSchema.pre('save', function(next) {
-  if (!this.isModified('title')) return next();
-
-  this.slug = this.title
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/--+/g, '-')
-    .trim();
+// Pre-validate middleware to generate slug before validation runs
+newsSchema.pre('validate', function(next) {
+  // Generate slug if not provided and title exists
+  if (!this.slug && this.title) {
+    this.slug = this.title
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .trim();
+  }
 
   next();
 });

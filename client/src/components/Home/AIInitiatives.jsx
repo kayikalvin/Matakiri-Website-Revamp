@@ -242,11 +242,11 @@ const AIInitiatives = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="px-6 py-4 bg-gray-50 border-t">
+                    {/* <div className="px-6 py-4 bg-gray-50 border-t">
                       <button className="w-full py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors">
                         View Project Details
                       </button>
-                    </div>
+                    </div> */}
                   </motion.div>
                 ))}
               </div>
@@ -432,14 +432,14 @@ const AIInitiatives = () => {
                  </div>
                </div>
 
-               <div className="flex flex-col sm:flex-row gap-4 justify-center">
+               {/* <div className="flex flex-col sm:flex-row gap-4 justify-center">
                  <button className="px-8 py-3 bg-white text-primary-700 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                    Download AI Portfolio
                  </button>
                  <button className="px-8 py-3 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors">
                    Contact Innovation Team
                  </button>
-               </div>
+               </div> */}
              </div>
            </div>
          </section>

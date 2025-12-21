@@ -32,7 +32,12 @@ api.interceptors.response.use(
   },
   (error) => {
     const originalRequest = error.config;
-    
+
+    // Distinguish timeout vs other network errors
+    if (error.code === 'ECONNABORTED') {
+      console.error(`Request timeout: ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`);
+    }
+
     // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       // Clear local storage
@@ -60,9 +65,14 @@ api.interceptors.response.use(
       console.error('Server error occurred. Please try again later.');
     }
 
-    // Handle network errors
+    // Handle network errors (no response)
     if (!error.response) {
-      console.error('Network error. Please check your connection.');
+      console.error('Network error. Please check your connection.', {
+        message: error.message,
+        code: error.code,
+        url: originalRequest?.url,
+        method: originalRequest?.method,
+      });
     }
 
     return Promise.reject(error);
@@ -77,7 +87,9 @@ export const apiService = {
       const response = await api.get(url, { params });
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: error.message, success: false };
+      const payload = error.response?.data || { message: error.message, success: false };
+      payload.status = error.response?.status || null;
+      throw payload;
     }
   },
 
@@ -87,7 +99,9 @@ export const apiService = {
       const response = await api.post(url, data);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: error.message, success: false };
+      const payload = error.response?.data || { message: error.message, success: false };
+      payload.status = error.response?.status || null;
+      throw payload;
     }
   },
 
@@ -97,7 +111,9 @@ export const apiService = {
       const response = await api.put(url, data);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: error.message, success: false };
+      const payload = error.response?.data || { message: error.message, success: false };
+      payload.status = error.response?.status || null;
+      throw payload;
     }
   },
 
@@ -107,7 +123,9 @@ export const apiService = {
       const response = await api.patch(url, data);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: error.message, success: false };
+      const payload = error.response?.data || { message: error.message, success: false };
+      payload.status = error.response?.status || null;
+      throw payload;
     }
   },
 
@@ -117,7 +135,9 @@ export const apiService = {
       const response = await api.delete(url);
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: error.message, success: false };
+      const payload = error.response?.data || { message: error.message, success: false };
+      payload.status = error.response?.status || null;
+      throw payload;
     }
   },
 
