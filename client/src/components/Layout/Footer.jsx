@@ -96,7 +96,7 @@
 //               </div>
 //               <div className="flex items-center space-x-3">
 //                 <FaPhone className="text-primary-400" />
-//                 <span className="text-gray-300">+254 712 345 678</span>
+//                 <span className="text-gray-300">+447935335065</span>
 //               </div>
 //               <div className="flex items-center space-x-3">
 //                 <FaEnvelope className="text-primary-400" />
@@ -268,7 +268,7 @@ const Footer = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaPhone className="text-accent-500 flex-shrink-0" />
-                  <span className="text-neutral-200">+254 712 345 678</span>
+                  <span className="text-neutral-200">+447935335065</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaEnvelope className="text-accent-500 flex-shrink-0" />

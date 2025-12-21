@@ -68,7 +68,7 @@ const Header = () => {
   ];
 
   const contactInfo = [
-    { icon: <FiPhone />, text: '+254 712 345 678' },
+    { icon: <FiPhone />, text: '+447935335065' },
     { icon: <FiMail />, text: 'info@matakiritrust.org' },
     { icon: <FiMapPin />, text: '56 Wells Road, Wolverhampton, UK' },
   ];

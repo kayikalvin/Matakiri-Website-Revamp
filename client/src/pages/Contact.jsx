@@ -59,7 +59,7 @@ const Contact = () => {
     {
       icon: <FaPhone className="w-5 h-5" />,
       title: "Phone Numbers",
-      details: ["+254 712 345 678", "+254 722 456 789"],
+      details: ["+447935335065", "+254 722 456 789"],
       color: "from-emerald-500 to-green-500"
     },
     {

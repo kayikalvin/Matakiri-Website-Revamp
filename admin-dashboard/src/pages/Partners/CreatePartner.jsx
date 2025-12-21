@@ -315,7 +315,7 @@ const CreatePartner = () => {
                         value={formData.contact}
                         onChange={handleChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        placeholder="+254 712 345 678"
+                        placeholder="+447935335065"
                       />
                     </div>
 
@@ -636,7 +636,7 @@ export default CreatePartner;
 //                 value={formData.contact}
 //                 onChange={handleChange}
 //                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-//                 placeholder="+254 712 345 678"
+//                 placeholder="+447935335065"
 //               />
 //             </div>
 
