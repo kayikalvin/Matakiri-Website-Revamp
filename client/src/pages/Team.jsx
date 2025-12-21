@@ -5,13 +5,13 @@ const teamMembers = [
   {
     name: "Colin Turnbull",
     role: "Risk Analyst and Environmentalist",
-    image: "/team/colinturnbull.jpg",
+    image: "/team/colinturnbull.png",
     bio: "Risk assessment, climate and environment expert"
   },
   {
     name: "Wanja",
     role: "Product Manager",
-    image: "/team/prof_wanja.jpg",
+    image: "/team/prof_wanja.jpeg",
     bio: "Academic Professor and quality expert"
   },
   {
@@ -23,25 +23,25 @@ const teamMembers = [
   {
     name: "David Toeman",
     role: "Trustee",
-    image: "/team/david_toeman.jpg",
+    image: "/team/david_toeman.jpeg",
     bio: "Curriculum development expert"
   },
   {
     name: "Peter Wells",
     role: "Trustee",
-    image: "/team/peter_wells.jpg",
+    image: "/team/peter_wells.png",
     bio: "Business management and operations"
   },
   {
     name: "Edward Kunyanga",
     role: "Trustee",
-    image: "/team/edward.jpg",
+    image: "/team/edward_kunyanga.jpg",
     bio: "Systems Strengthening, international and global expert in community empowerment"
   },
   {
     name: "Bismillah Kader",
     role: "Trustee",
-    image: "/team/Bismillah.jpg",
+    image: "/team/Bismillah.png",
     bio: "An educationist, entrepreneur and leader"
   },
   {
