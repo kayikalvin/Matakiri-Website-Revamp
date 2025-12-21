@@ -1,3 +1,14 @@
+
+
+
+export const programsAPI = {
+  getAll: (params = {}) => apiService.get(endpoints.programs, params),
+  getById: (id) => apiService.get(endpoints.programById(id)),
+  create: (programData) => apiService.post(endpoints.programs, programData),
+  update: (id, programData) => apiService.put(endpoints.programById(id), programData),
+  delete: (id) => apiService.delete(endpoints.programById(id)),
+};
+
 import axios from 'axios';
 import { API_BASE_URL } from '../utils/constants.js';
 
@@ -167,6 +178,9 @@ export const apiService = {
 
 // API endpoints - Updated to match your backend
 export const endpoints = {
+    // Programs
+    programs: '/programs',
+    programById: (id) => `/programs/${id}`,
   // Auth
   login: '/auth/login',
   register: '/auth/register',

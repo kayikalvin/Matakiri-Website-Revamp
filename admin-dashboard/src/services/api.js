@@ -1,3 +1,11 @@
+// Programs API
+export const programsAPI = {
+  getAll: (params) => api.get('/programs', { params }),
+  getById: (id) => api.get(`/programs/${id}`),
+  create: (data) => api.post('/programs', data),
+  update: (id, data) => api.put(`/programs/${id}`, data),
+  delete: (id) => api.delete(`/programs/${id}`),
+};
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';

@@ -16,6 +16,7 @@ const Sidebar = ({ collapsed, onCollapse, onNavigate }) => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { name: 'Projects', href: '/projects', icon: FolderIcon },
+    { name: 'Programs', href: '/programs', icon: FolderIcon },
     { name: 'Partners', href: '/partners', icon: UserGroupIcon },
     { name: 'News', href: '/news', icon: NewspaperIcon },
     { name: 'Gallery', href: '/gallery', icon: PhotoIcon },

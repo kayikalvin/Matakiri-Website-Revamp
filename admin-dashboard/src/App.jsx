@@ -19,6 +19,9 @@ import EditNews from "./pages/News/EditNews";
 import ViewMedia from "./pages/Gallery/ViewMedia";
 import CreateUser from "./pages/Users/CreateUser";
 import EditUser from "./pages/Users/EditUser";
+import CreateProgram from "./pages/Programs/CreateProgram";
+import EditProgram from "./pages/Programs/EditProgram";
+import Programs from "./pages/Programs/Programs";
 
 // Lazy load the components
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
@@ -88,6 +91,11 @@ function App() {
                   <Route path="projects" element={<Projects />} />
                   <Route path="projects/create" element={<CreateProject/>} />
                   <Route path="projects/edit/:id" element={<EditProject/>} />
+
+                  {/* Programs */}
+                  <Route path="programs" element={<Programs />} />
+                  <Route path="programs/create" element={<CreateProgram />} />
+                  <Route path="programs/:id/edit" element={<EditProgram />} />
 
                   {/* Partners */}
                   <Route path="partners" element={<Partners />} />

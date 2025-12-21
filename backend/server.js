@@ -140,6 +140,8 @@ const newsRoutes = require('./routes/news');
 const galleryRoutes = require('./routes/gallery');
 const contactRoutes = require('./routes/contact');
 const userRoutes = require('./routes/users');
+
+const programRoutes = require('./routes/programs');
 const themeRoutes = require('./routes/themes');
 
 // Mount routes
@@ -150,6 +152,7 @@ app.use('/api/news', newsRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/programs', programRoutes);
 app.use('/api/themes', themeRoutes);
 
 // Health check endpoint
