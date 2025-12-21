@@ -191,7 +191,7 @@ const Projects = () => {
       </Helmet>
 
       {/* Hero Section with Enhanced Design */}
-      <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 text-white py-24 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 text-white py-24 md:py-8 overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0">
           <div className="absolute top-0 left-0 w-72 h-72 bg-white/5 rounded-full blur-3xl"></div>
@@ -224,7 +224,7 @@ const Projects = () => {
             </p>
             
             {/* Quick Stats */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
@@ -243,7 +243,7 @@ const Projects = () => {
                   <div className="text-sm text-primary-200 font-medium">{stat.label}</div>
                 </div>
               ))}
-            </motion.div>
+            </motion.div> */}
           </motion.div>
         </div>
         
@@ -344,7 +344,7 @@ const Projects = () => {
                     <button
                       key={filter.id}
                       onClick={() => setSelectedCategory(filter.id)}
-                      className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all ${
+                      className={`flex gap-2 items-center p-2 justify-center rounded-xl border-2 transition-all ${
                         selectedCategory === filter.id
                           ? "border-primary-500 bg-primary-50 text-primary-700"
                           : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700"
@@ -418,8 +418,8 @@ const Projects = () => {
       </section>
 
       {/* Projects Display Section */}
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
+      <section className="py-12  bg-gray-50">
+        <div className="container mx-auto px-4 lg:max-w-6xl">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="relative">
