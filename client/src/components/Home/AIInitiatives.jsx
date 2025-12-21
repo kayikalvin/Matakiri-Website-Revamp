@@ -44,7 +44,7 @@ const AIInitiatives = () => {
           icon: getProjectIcon(project.category)
         }));
         setAIProjects(projects);
-        console.log('Fetched AI Projects:', projects);
+        // console.log('Fetched AI Projects:', projects);
       })
       .catch(() => setError('Failed to load AI projects'))
       .finally(() => setLoading(false));
