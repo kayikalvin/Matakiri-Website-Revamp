@@ -263,7 +263,7 @@ const Footer = () => {
                   <FaMapMarkerAlt className="text-accent-500 mt-1 flex-shrink-0" />
                   <span className="text-neutral-200">
                     Matakiri Village<br />
-                    Tharaka County, Kenya
+                    56 Wells Road, Wolverhampton, UK
                   </span>
                 </div>
                 <div className="flex items-center space-x-3">

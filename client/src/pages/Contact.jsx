@@ -53,7 +53,7 @@ const Contact = () => {
     {
       icon: <FaMapMarkerAlt className="w-5 h-5" />,
       title: "Our Location",
-      details: ["Matakiri Village", "Tharaka County, Kenya"],
+      details: ["Matakiri Village", "56 Wells Road, Wolverhampton, UK"],
       color: "from-emerald-500 to-teal-500"
     },
     {

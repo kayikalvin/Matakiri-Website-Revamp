@@ -70,7 +70,7 @@ const Header = () => {
   const contactInfo = [
     { icon: <FiPhone />, text: '+254 712 345 678' },
     { icon: <FiMail />, text: 'info@matakiritrust.org' },
-    { icon: <FiMapPin />, text: 'Tharaka County, Kenya' },
+    { icon: <FiMapPin />, text: '56 Wells Road, Wolverhampton, UK' },
   ];
 
   const handleDropdownToggle = (index) => {
