@@ -227,8 +227,15 @@ app.use((req, res) => {
   });
 });
 
+// Export app for serverless platforms like Vercel.
+// When running locally (not on Vercel), start the server normally.
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
-});
+if (process.env.VERCEL) {
+  // Vercel will use the exported app handler from this file.
+  module.exports = app;
+} else {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Health check: http://localhost:${PORT}/api/health`);
+  });
+}
