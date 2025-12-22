@@ -1,7 +1,7 @@
 // If you don't have this file, create it:
 // client/src/utils/constants.js
 
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://matakiri-website-revamp-backend.vercel.app/api';
 export const APP_NAME = 'Matakiri Tumaini Centre';
 export const APP_VERSION = '1.0.0';
 

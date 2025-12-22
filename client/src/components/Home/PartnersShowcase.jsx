@@ -29,57 +29,17 @@ const PartnersShowcase = () => {
   const getLogoUrl = (partner) => {
     if (partner?.logo) {
       const src = partner.logo;
-      if (src) {
-        // If it's already an absolute URL (well-formed), return it as-is
-        if (/^https?:\/\//i.test(src)) return src;
-
-        // Fix common malformed protocol like "http:/localhost..." -> "http://localhost..."
-        if (/^https?:\/[^\/]/i.test(src)) {
-          const fixed = src.replace(/^(https?:)\/*/, '$1//');
-          return fixed;
-        }
-
-        // Protocol-relative URLs (//example.com/path) - return as-is
-        if (src.startsWith('//')) return src;
-
-        // Normalize leading slash for relative paths
-        const normalized = src.startsWith('/') ? src : `/${src}`;
-
-        // If it's a local static asset (served from the same frontend), return the path as-is
-        if (normalized.startsWith('/uploads')) return normalized;
-
-        // If it's an API-hosted upload path (/api/uploads...) we need a base URL.
-        const envApi = process.env.REACT_APP_API_URL;
-        const baseUrl = envApi && envApi !== '' ? envApi.replace(/\/$/, '') : window.location.origin.replace(/\/$/, '');
-        return `${baseUrl}${normalized.startsWith('/api') ? normalized : `/api${normalized}`}`;
+      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads'))) {
+        const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        return `${baseUrl}${src.startsWith('/api') ? src : `/api${src}`}`;
       }
       return src;
     }
     if (partner?.image) {
       const src = partner.image;
-      if (src) {
-        // If it's already an absolute URL (well-formed), return it as-is
-        if (/^https?:\/\//i.test(src)) return src;
-
-        // Fix common malformed protocol like "http:/localhost..." -> "http://localhost..."
-        if (/^https?:\/[^\/]/i.test(src)) {
-          const fixed = src.replace(/^(https?:)\/*/, '$1//');
-          return fixed;
-        }
-
-        // Protocol-relative URLs (//example.com/path) - return as-is
-        if (src.startsWith('//')) return src;
-
-        // Normalize leading slash for relative paths
-        const normalized = src.startsWith('/') ? src : `/${src}`;
-
-        // If it's a local static asset (served from the same frontend), return the path as-is
-        if (normalized.startsWith('/uploads')) return normalized;
-
-        // If it's an API-hosted upload path (/api/uploads...) we need a base URL.
-        const envApi = process.env.REACT_APP_API_URL;
-        const baseUrl = envApi && envApi !== '' ? envApi.replace(/\/$/, '') : window.location.origin.replace(/\/$/, '');
-        return `${baseUrl}${normalized.startsWith('/api') ? normalized : `/api${normalized}`}`;
+      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads'))) {
+        const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        return `${baseUrl}${src.startsWith('/api') ? src : `/api${src}`}`;
       }
       return src;
     }
