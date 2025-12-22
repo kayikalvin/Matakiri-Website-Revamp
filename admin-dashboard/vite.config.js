@@ -12,7 +12,7 @@ export default defineConfig({
     host: true,  // Allow access from other devices on network
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://matakiri-website-revamp-backend.vercel.app/' || 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')
