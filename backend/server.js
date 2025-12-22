@@ -90,21 +90,27 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
-// Allow multiple origins for local dev
-const allowedOrigins = [
+// Allow multiple origins for local dev and production. Can be overridden via
+// ALLOWED_ORIGINS environment variable (comma-separated list).
+const defaultOrigins = [
   'http://localhost:5173',
   'http://localhost:3002',
   'http://localhost:5000',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3002',
-  'https://matakiri-website-revamp-client.vercel.app/'
+  'https://matakiri-website-revamp-client.vercel.app'
 ];
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || defaultOrigins.join(',')).split(',').map(s => s.trim()).filter(Boolean);
+
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps, curl, etc.)
+    // allow requests with no origin (like mobile apps, curl, server-to-server)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+
+    // Normalize origin (remove trailing slash) before matching
+    const norm = origin.endsWith('/') ? origin.slice(0, -1) : origin;
+    if (allowedOrigins.includes(norm)) {
       return callback(null, true);
     } else {
       return callback(new Error('Not allowed by CORS: ' + origin));
@@ -228,8 +234,14 @@ app.use((req, res) => {
   });
 });
 
+// Export app for serverless platforms like Vercel. When running locally
+// (not on Vercel), start the server with app.listen().
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
-});
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Health check: http://localhost:${PORT}/api/health`);
+  });
+}
