@@ -29,17 +29,31 @@ const PartnersShowcase = () => {
   const getLogoUrl = (partner) => {
     if (partner?.logo) {
       const src = partner.logo;
-      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads'))) {
-        const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        return `${baseUrl}${src.startsWith('/api') ? src : `/api${src}`}`;
+      if (src) {
+        // Normalize leading slash
+        const normalized = src.startsWith('/') ? src : `/${src}`;
+        // If it's a local static asset (served from the same frontend), return the path as-is
+        if (normalized.startsWith('/uploads')) return normalized;
+
+        // If it's an API-hosted upload path (/api/uploads...) we need a base URL.
+        const envApi = process.env.REACT_APP_API_URL;
+        const baseUrl = envApi && envApi !== '' ? envApi : window.location.origin;
+        return `${baseUrl}${normalized.startsWith('/api') ? normalized : `/api${normalized}`}`;
       }
       return src;
     }
     if (partner?.image) {
       const src = partner.image;
-      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads'))) {
-        const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        return `${baseUrl}${src.startsWith('/api') ? src : `/api${src}`}`;
+      if (src) {
+        // Normalize leading slash
+        const normalized = src.startsWith('/') ? src : `/${src}`;
+        // If it's a local static asset (served from the same frontend), return the path as-is
+        if (normalized.startsWith('/uploads')) return normalized;
+
+        // If it's an API-hosted upload path (/api/uploads...) we need a base URL.
+        const envApi = process.env.REACT_APP_API_URL;
+        const baseUrl = envApi && envApi !== '' ? envApi : window.location.origin;
+        return `${baseUrl}${normalized.startsWith('/api') ? normalized : `/api${normalized}`}`;
       }
       return src;
     }
