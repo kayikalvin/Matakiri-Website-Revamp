@@ -164,6 +164,7 @@ const newsRoutes = require('./routes/news');
 const galleryRoutes = require('./routes/gallery');
 const contactRoutes = require('./routes/contact');
 const userRoutes = require('./routes/users');
+const metricsRoutes = require('./routes/metrics');
 
 const programRoutes = require('./routes/programs');
 const themeRoutes = require('./routes/themes');
@@ -178,6 +179,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/programs', programRoutes);
 app.use('/api/themes', themeRoutes);
+app.use('/api/metrics', metricsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

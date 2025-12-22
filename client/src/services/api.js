@@ -1,14 +1,3 @@
-
-
-
-export const programsAPI = {
-  getAll: (params = {}) => apiService.get(endpoints.programs, params),
-  getById: (id) => apiService.get(endpoints.programById(id)),
-  create: (programData) => apiService.post(endpoints.programs, programData),
-  update: (id, programData) => apiService.put(endpoints.programById(id), programData),
-  delete: (id) => apiService.delete(endpoints.programById(id)),
-};
-
 import axios from 'axios';
 import { API_BASE_URL } from '../utils/constants.js';
 
@@ -21,62 +10,17 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for adding auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor for handling common errors
+// NOTE: Authentication removed for the public client app.
+// We intentionally do NOT attach Authorization headers here and we do not
+// perform automatic redirects on 401 responses. Errors are logged and
+// propagated to callers for optional handling in the UI.
 api.interceptors.response.use(
-  (response) => {
-    // You can transform response data here
-    return response;
-  },
+  (response) => response,
   (error) => {
     const originalRequest = error.config;
-
-    // Distinguish timeout vs other network errors
     if (error.code === 'ECONNABORTED') {
       console.error(`Request timeout: ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url}`);
     }
-
-    // Handle 401 Unauthorized
-    if (error.response?.status === 401) {
-      // Clear local storage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Redirect to login if not already there
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
-      }
-    }
-
-    // Handle 403 Forbidden
-    if (error.response?.status === 403) {
-      console.error('Access denied: You do not have permission to perform this action.');
-    }
-
-    // Handle 404 Not Found
-    if (error.response?.status === 404) {
-      console.error('Resource not found');
-    }
-
-    // Handle 500 Server Error
-    if (error.response?.status >= 500) {
-      console.error('Server error occurred. Please try again later.');
-    }
-
-    // Handle network errors (no response)
     if (!error.response) {
       console.error('Network error. Please check your connection.', {
         message: error.message,
@@ -84,8 +28,10 @@ api.interceptors.response.use(
         url: originalRequest?.url,
         method: originalRequest?.method,
       });
+    } else {
+      // Log HTTP errors without performing auth side-effects
+      console.error(`HTTP ${error.response.status} on ${originalRequest?.url}:`, error.response.data?.message || error.message);
     }
-
     return Promise.reject(error);
   }
 );
@@ -229,6 +175,14 @@ export const endpoints = {
 };
 
 // Specific API services for different resources
+export const programsAPI = {
+  getAll: (params = {}) => apiService.get(endpoints.programs, params),
+  getById: (id) => apiService.get(endpoints.programById(id)),
+  create: (programData) => apiService.post(endpoints.programs, programData),
+  update: (id, programData) => apiService.put(endpoints.programById(id), programData),
+  delete: (id) => apiService.delete(endpoints.programById(id)),
+};
+
 export const authAPI = {
   login: (credentials) => apiService.post(endpoints.login, credentials),
   register: (userData) => apiService.post(endpoints.register, userData),

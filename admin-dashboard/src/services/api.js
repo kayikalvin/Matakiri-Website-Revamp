@@ -106,6 +106,12 @@ export const usersAPI = {
   getStats: (params) => api.get('/users/stats', { params }),
 };
 
+// Metrics API
+export const metricsAPI = {
+  // returns { data: { totalSpent } }
+  getRevenue: (params) => api.get('/metrics/revenue', { params })
+};
+
 // Contact API
 export const contactAPI = {
   submit: (data) => api.post('/contact', data),

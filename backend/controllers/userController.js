@@ -205,10 +205,15 @@ exports.getUserStats = asyncHandler(async (req, res, next) => {
   deptPipeline.push({ $sort: { count: -1 } });
   const departmentStats = await User.aggregate(deptPipeline);
 
+  const statsObj = (Array.isArray(stats) && stats.length > 0) ? stats[0] : {
+    totalUsers: 0,
+    activeUsers: 0
+  };
+
   res.status(200).json({
     success: true,
     data: {
-      ...stats[0],
+      ...statsObj,
       roleDistribution: roleStats,
       departmentDistribution: departmentStats
     }

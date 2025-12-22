@@ -314,9 +314,9 @@ const About = () => {
                       <span className="text-sm">Inclusive Education</span>
                     </div>
                   </div>
-                  <button className="w-full mt-8 py-3 bg-white text-primary-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors">
+                  {/* <button className="w-full mt-8 py-3 bg-white text-primary-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors">
                     Learn More About Our Work
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </motion.div>

@@ -46,7 +46,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = asyncHandler(async (req, res, next) => {
-  const { name, email, password, role, department } = req.body;
+  const { name, email, password, role, department, adminCode } = req.body;
 
   // Check if user exists
   const existingUser = await User.findOne({ email });
@@ -54,12 +54,31 @@ exports.register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('User already exists', 400));
   }
 
+  // Determine allowed role
+  const allowedRoles = ['admin', 'editor', 'viewer'];
+  let assignedRole = 'editor';
+
+  if (role && allowedRoles.includes(role)) {
+    if (role === 'admin') {
+      // Only allow admin registration when explicitly enabled via env or correct adminCode
+      const allowAdmin = (process.env.ALLOW_ADMIN_REGISTRATION === 'true') || (process.env.ADMIN_REGISTRATION_CODE && adminCode === process.env.ADMIN_REGISTRATION_CODE);
+      if (allowAdmin) {
+        assignedRole = 'admin';
+      } else {
+        // Deny admin assignment and fallback to editor
+        assignedRole = 'editor';
+      }
+    } else {
+      assignedRole = role;
+    }
+  }
+
   // Create user
   const user = await User.create({
     name,
     email,
     password,
-    role: role || 'editor',
+    role: assignedRole,
     department
   });
 

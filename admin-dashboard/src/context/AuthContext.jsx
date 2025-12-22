@@ -24,8 +24,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        const userData = await authService.getCurrentUser();
-        setUser(userData.user || userData); // support both {user: {...}} and {...}
+        const resp = await authService.getCurrentUser();
+        const userData = resp?.data?.user || resp?.user || resp?.data || null;
+        if (userData) {
+          localStorage.setItem('user', JSON.stringify(userData));
+          setUser(userData);
+        }
       }
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -39,14 +43,41 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await authService.login(credentials);
-      const { user: userData, token } = response.data;
+      const resp = await authService.login(credentials);
+      const token = resp?.token || resp?.data?.token || null;
+      const userData = resp?.data?.user || resp?.user || resp?.data || null;
 
-      localStorage.setItem('token', token);
-      setUser(userData);
+      if (token) localStorage.setItem('token', token);
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+      }
       return { success: true, user: userData };
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Login failed';
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const resp = await authService.register(userData);
+      const token = resp?.token || resp?.data?.token || null;
+      const newUser = resp?.data?.user || resp?.user || resp?.data || null;
+
+      if (token) localStorage.setItem('token', token);
+      if (newUser) {
+        localStorage.setItem('user', JSON.stringify(newUser));
+        setUser(newUser);
+      }
+      return { success: true, user: newUser };
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Register failed';
       setError(errorMsg);
       return { success: false, error: errorMsg };
     } finally {

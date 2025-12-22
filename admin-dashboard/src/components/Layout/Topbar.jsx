@@ -34,6 +34,12 @@ const Topbar = ({ onMenuClick, sidebarCollapsed, onToggleSidebar }) => {
     // Fetch recent admin activities: use recent users as activity feed fallback
     const fetchRecentActivities = async () => {
       try {
+        // Non-admins shouldn't call admin endpoints
+        if (user?.role !== 'admin') {
+          setRecentActivities([]);
+          return;
+        }
+
         // Get recent users as a simple activity source
         const res = await api.get('/users', { params: { page: 1, limit: 6, sort: '-createdAt' } });
         const users = res?.data?.data ?? res?.data ?? [];
@@ -64,10 +70,14 @@ const Topbar = ({ onMenuClick, sidebarCollapsed, onToggleSidebar }) => {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
-  // Fetch notifications count on mount
+  // Fetch notifications count on mount (only for admins)
   useEffect(() => {
-    fetchContactStats();
-  }, []);
+    if (user?.role === 'admin') {
+      fetchContactStats();
+    } else {
+      setNotificationCount(0);
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -214,7 +224,11 @@ const Topbar = ({ onMenuClick, sidebarCollapsed, onToggleSidebar }) => {
                 const willOpen = !notificationsOpen;
                 setNotificationsOpen(willOpen);
                 if (willOpen) {
-                  await fetchRecentContacts();
+                  if (user?.role === 'admin') {
+                    await fetchRecentContacts();
+                  } else {
+                    setRecentContacts([]);
+                  }
                   await fetchRecentActivities();
                 }
               }}

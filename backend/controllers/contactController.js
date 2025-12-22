@@ -305,10 +305,18 @@ exports.getContactStats = asyncHandler(async (req, res, next) => {
     }
   ]);
 
+  const statsObj = (Array.isArray(stats) && stats.length > 0) ? stats[0] : {
+    totalContacts: 0,
+    newContacts: 0,
+    readContacts: 0,
+    repliedContacts: 0,
+    archivedContacts: 0
+  };
+
   res.status(200).json({
     success: true,
     data: {
-      ...stats[0],
+      ...statsObj,
       dailyStats
     }
   });

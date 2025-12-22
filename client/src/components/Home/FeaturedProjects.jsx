@@ -139,13 +139,13 @@ const FeaturedProjects = () => {
                   </div>
                   
                   {/* Learn More Link */}
-                  <Link
+                  {/* <Link
                     to={`/projects/${project?.slug || project?._id || project?.id || ''}`}
                     className="inline-flex items-center text-emerald-600 font-medium text-sm group-hover:text-emerald-700 transition-colors"
                   >
                     Learn More
                     <FaArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                  </Link> */}
                 </div>
                 
                 {/* Hover Indicator */}

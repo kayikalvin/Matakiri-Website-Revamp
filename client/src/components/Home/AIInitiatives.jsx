@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { projectsAPI } from '../../services/api';
+import { Link } from 'react-router-dom';
 import { 
   FaRobot, 
   FaBrain, 
@@ -46,6 +47,7 @@ const AIInitiatives = () => {
   const [aiProjects, setAIProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
 
   useEffect(() => {
     projectsAPI.getAIProjects()
@@ -460,10 +462,10 @@ const AIInitiatives = () => {
                           )}
 
                           {/* Action Button */}
-                          <button className="w-full py-3.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-primary-500/30 transition-all duration-300 flex items-center justify-center gap-2 group">
+                          {/* <button className="w-full py-3.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-primary-500/30 transition-all duration-300 flex items-center justify-center gap-2 group">
                             <span>Explore Project</span>
                             <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                       
@@ -676,23 +678,23 @@ const AIInitiatives = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <Link
+                  to="/projects/"
                   className="px-8 py-4 bg-white text-primary-700 rounded-xl font-semibold hover:shadow-2xl hover:shadow-white/30 transition-all flex items-center justify-center gap-3"
+                  aria-label="Explore AI Portfolio"
                 >
                   <FaRocket />
                   Explore AI Portfolio
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                </Link>
+
+                <Link
+                  to="/contact"
                   className="px-8 py-4 bg-transparent border-2 border-white/30 text-white rounded-xl font-semibold hover:bg-white/10 hover:border-white/50 transition-all flex items-center justify-center gap-3 backdrop-blur-sm"
+                  aria-label="Contact Innovation Team"
                 >
                   Contact Innovation Team
                   <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
-                </motion.button>
+                </Link>
               </div>
             </motion.div>
           </div>

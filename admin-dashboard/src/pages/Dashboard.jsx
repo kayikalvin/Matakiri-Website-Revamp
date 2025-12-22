@@ -23,7 +23,7 @@ import {
   LinkIcon
 } from '@heroicons/react/24/outline';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
-import { projectsAPI, partnersAPI, usersAPI, galleryAPI, newsAPI } from '../services/api';
+import { projectsAPI, partnersAPI, usersAPI, galleryAPI, newsAPI, metricsAPI } from '../services/api';
 import QuickActions from '../components/Dashboard/QuickActions';
 
 const Dashboard = () => {
@@ -57,6 +57,7 @@ const Dashboard = () => {
   });
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState(null);
+  const [percentChanges, setPercentChanges] = useState({ users: null, revenue: null, score: null, pending: null, projectsDelta: null, partnersNew: null, newsThis: null });
 
   useEffect(() => {
     // Set greeting based on time of day
@@ -87,30 +88,106 @@ const Dashboard = () => {
     let mounted = true;
     setStatsLoading(true);
     setStatsError(null);
-    Promise.all([
+
+    // We'll request overall stats plus current and previous period user stats (for percent change)
+    const now = new Date();
+    // Users: weekly comparison
+    const usersThisStart = new Date(); usersThisStart.setDate(now.getDate() - 7);
+    const usersPrevStart = new Date(); usersPrevStart.setDate(now.getDate() - 14);
+    const usersPrevEnd = new Date(); usersPrevEnd.setDate(now.getDate() - 7);
+
+    // Projects: monthly comparison (last 30 days vs previous 30 days)
+    const projThisStart = new Date(); projThisStart.setDate(now.getDate() - 30);
+    const projPrevStart = new Date(); projPrevStart.setDate(now.getDate() - 60);
+    const projPrevEnd = new Date(); projPrevEnd.setDate(now.getDate() - 30);
+
+    // Partners: quarterly comparison (last 90 days)
+    const partnersThisStart = new Date(); partnersThisStart.setDate(now.getDate() - 90);
+
+    // News: monthly (last 30 days)
+    const newsThisStart = new Date(); newsThisStart.setDate(now.getDate() - 30);
+
+    const promises = [
+      // projects overall
       projectsAPI.getStats(),
+      // projects this 30d and previous 30d (for project deltas)
+      projectsAPI.getStats({ startDate: projThisStart.toISOString(), endDate: now.toISOString() }),
+      projectsAPI.getStats({ startDate: projPrevStart.toISOString(), endDate: projPrevEnd.toISOString() }),
+      // revenue overall, this 30d and previous 30d
+      metricsAPI.getRevenue(),
+      metricsAPI.getRevenue({ startDate: projThisStart.toISOString(), endDate: now.toISOString() }),
+      metricsAPI.getRevenue({ startDate: projPrevStart.toISOString(), endDate: projPrevEnd.toISOString() }),
+      // partners overall and this quarter
       partnersAPI.getStats(),
-      usersAPI.getStats(),
+      partnersAPI.getStats({ startDate: partnersThisStart.toISOString(), endDate: now.toISOString() }),
+      // users overall, this week, previous week
+      (user?.role === 'admin') ? usersAPI.getStats() : Promise.resolve({ data: { data: { totalUsers: 0 } } }),
+      (user?.role === 'admin') ? usersAPI.getStats({ startDate: usersThisStart.toISOString(), endDate: now.toISOString() }) : Promise.resolve({ data: { data: { periodCount: 0 } } }),
+      (user?.role === 'admin') ? usersAPI.getStats({ startDate: usersPrevStart.toISOString(), endDate: usersPrevEnd.toISOString() }) : Promise.resolve({ data: { data: { periodCount: 0 } } }),
+      // news overall and this month
       newsAPI.getAll({ limit: 1 }),
+      newsAPI.getAll({ startDate: newsThisStart.toISOString(), endDate: now.toISOString(), limit: 1 }),
+      // gallery totals
       galleryAPI.getAll({ limit: 1 }),
       galleryAPI.getAll({ type: 'image', limit: 1 }),
       galleryAPI.getAll({ type: 'video', limit: 1 }),
       galleryAPI.getAll({ isFeatured: true, limit: 1 })
-    ]).then(([proj, partners, users, news, gallery, images, videos, featured]) => {
+    ];
+
+    Promise.all(promises).then(([projOverall, projThis, projPrev, metricsOverall, metricsThis, metricsPrev, partnersOverall, partnersThis, usersOverall, usersThisPeriod, usersPrevPeriod, newsOverall, newsThis, gallery, images, videos, featured]) => {
       if (!mounted) return;
+      const safeTotal = (res) => {
+        return res?.data?.data?.totalProjects ?? res?.data?.data?.total ?? res?.data?.total ?? res?.data?.data?.totalUsers ?? res?.data?.totalUsers ?? 0;
+      };
+
+      const safePeriodCount = (res) => {
+        return res?.data?.data?.periodCount ?? res?.data?.data?.count ?? res?.data?.data?.total ?? res?.data?.total ?? 0;
+      };
+
+      const currentUsers = safePeriodCount(usersThisPeriod);
+      const previousUsers = safePeriodCount(usersPrevPeriod);
+      const computePercent = (current, previous) => {
+        if (previous === 0) {
+          if (current === 0) return 0;
+          return null;
+        }
+        const raw = ((current - previous) / previous) * 100;
+        return parseFloat(raw.toFixed(1));
+      };
+      const usersPercent = computePercent(currentUsers, previousUsers);
+
+      const projCountOverall = projOverall?.data?.data?.totalProjects ?? projOverall?.data?.total ?? 0;
+      const projThisCount = safePeriodCount(projThis);
+      const projPrevCount = safePeriodCount(projPrev);
+      const projDelta = projThisCount - projPrevCount;
+
+      // Revenue from new metrics endpoint
+      const revThis = metricsThis?.data?.data?.totalSpent ?? metricsThis?.data?.totalSpent ?? 0;
+      const revPrev = metricsPrev?.data?.data?.totalSpent ?? metricsPrev?.data?.totalSpent ?? 0;
+      const revOverall = metricsOverall?.data?.data?.totalSpent ?? metricsOverall?.data?.totalSpent ?? 42800;
+      const revenuePercent = computePercent(revThis, revPrev);
+
+      const partnersCountOverall = partnersOverall?.data?.data?.totalPartners ?? partnersOverall?.data?.total ?? 0;
+      const partnersThisCount = safePeriodCount(partnersThis);
+
+      const newsCountOverall = newsOverall?.data?.total ?? newsOverall?.data?.data?.total ?? 0;
+      const newsThisCount = safePeriodCount(newsThis);
+
       setQuickStats({
-        users: users?.data?.data?.totalUsers ?? users?.data?.data?.total ?? users?.data?.totalUsers ?? 0,
-        revenue: 42800, // Placeholder, replace with real revenue if available
+        users: usersOverall?.data?.data?.totalUsers ?? usersOverall?.data?.totalUsers ?? usersOverall?.data?.total ?? 0,
+        revenue: revOverall,
         score: 94, // Placeholder, replace with real score if available
         pending: 3, // Placeholder, replace with real pending if available
-        projects: proj?.data?.data?.totalProjects ?? proj?.data?.data?.total ?? proj?.data?.totalProjects ?? 0,
-        partners: partners?.data?.data?.totalPartners ?? partners?.data?.data?.total ?? partners?.data?.totalPartners ?? 0,
-        news: news?.data?.total ?? news?.data?.data?.total ?? 0,
+        projects: projCountOverall,
+        partners: partnersCountOverall,
+        news: newsCountOverall,
         gallery: gallery?.data?.total ?? gallery?.data?.data?.total ?? 0,
         images: images?.data?.total ?? images?.data?.data?.total ?? 0,
         videos: videos?.data?.total ?? videos?.data?.data?.total ?? 0,
         featuredMedia: featured?.data?.total ?? featured?.data?.data?.total ?? 0
       });
+
+      setPercentChanges((p) => ({ ...p, users: usersPercent, projectsDelta: projDelta, partnersNew: partnersThisCount, newsThis: newsThisCount, revenue: revenuePercent }));
     }).catch((err) => {
       if (!mounted) return;
       setStatsError(err.response?.data?.message || err.message || 'Failed to load stats');
@@ -118,7 +195,7 @@ const Dashboard = () => {
       if (mounted) setStatsLoading(false);
     });
     return () => { mounted = false; };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     let mounted = true;
@@ -142,11 +219,13 @@ const Dashboard = () => {
           }
         }
 
-        const [projRes, partnersRes, usersRes] = await Promise.all([
+        const statsPromises = [
           projectsAPI.getStats(params),
           partnersAPI.getStats(params),
-          usersAPI.getStats(params)
-        ]);
+          (user?.role === 'admin') ? usersAPI.getStats(params) : Promise.resolve({ data: { data: {} } })
+        ];
+
+        const [projRes, partnersRes, usersRes] = await Promise.all(statsPromises);
 
         if (!mounted) return;
 
@@ -276,9 +355,22 @@ const Dashboard = () => {
               </div>
               <UserGroupIcon className="h-8 w-8 text-blue-500 opacity-80" />
             </div>
-            <div className="mt-2 text-xs text-green-600 flex items-center">
-              <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
-              +12% this week
+            <div title="Compared to previous 7 days" className={`mt-2 text-xs flex items-center ${percentChanges.users === null ? 'text-gray-500' : (percentChanges.users >= 0 ? 'text-green-600' : 'text-red-600')}`}>
+              {percentChanges.users === null ? (
+                <>
+                  <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
+                  New this week
+                </>
+              ) : (
+                <>
+                  {percentChanges.users >= 0 ? (
+                    <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
+                  ) : (
+                    <ArrowTrendingDownIcon className="h-3 w-3 mr-1" />
+                  )}
+                  {percentChanges.users >= 0 ? `+${percentChanges.users.toFixed(1)}%` : `${percentChanges.users.toFixed(1)}%`} this week
+                </>
+              )}
             </div>
           </div>
           {/* Revenue */}
@@ -290,9 +382,22 @@ const Dashboard = () => {
               </div>
               <CurrencyDollarIcon className="h-8 w-8 text-green-500 opacity-80" />
             </div>
-            <div className="mt-2 text-xs text-green-600 flex items-center">
-              <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
-              +18% this month
+            <div title="Compared to previous 30 days" className={`mt-2 text-xs flex items-center ${percentChanges.revenue == null ? 'text-gray-500' : (percentChanges.revenue >= 0 ? 'text-green-600' : 'text-red-600')}`}>
+              {percentChanges.revenue == null ? (
+                <>
+                  <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
+                  New this month
+                </>
+              ) : (
+                <>
+                  {percentChanges.revenue >= 0 ? (
+                    <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
+                  ) : (
+                    <ArrowTrendingDownIcon className="h-3 w-3 mr-1" />
+                  )}
+                  {percentChanges.revenue >= 0 ? `+${percentChanges.revenue.toFixed(1)}%` : `${percentChanges.revenue.toFixed(1)}%`} this month
+                </>
+              )}
             </div>
           </div>
           {/* Performance */}
@@ -384,9 +489,22 @@ const Dashboard = () => {
                     <DocumentTextIcon className="h-6 w-6 text-blue-600" />
                   </div>
                 </div>
-                <div className="flex items-center text-sm text-green-600">
-                  <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                  <span>+5 from last month</span>
+                <div title="Compared to previous 30 days" className={`flex items-center text-sm ${percentChanges.projectsDelta == null ? 'text-gray-500' : (percentChanges.projectsDelta >= 0 ? 'text-green-600' : 'text-red-600')}`}>
+                  {percentChanges.projectsDelta == null ? (
+                    <>
+                      <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
+                      <span>New this month</span>
+                    </>
+                  ) : (
+                    <>
+                      {percentChanges.projectsDelta >= 0 ? (
+                        <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
+                      ) : (
+                        <ArrowTrendingDownIcon className="h-4 w-4 mr-1" />
+                      )}
+                      <span>{percentChanges.projectsDelta >= 0 ? `+${percentChanges.projectsDelta}` : `${percentChanges.projectsDelta}`} from last month</span>
+                    </>
+                  )}
                 </div>
               </div>
               {/* Partners */}
@@ -400,9 +518,9 @@ const Dashboard = () => {
                     <UserGroupIcon className="h-6 w-6 text-green-600" />
                   </div>
                 </div>
-                <div className="flex items-center text-sm text-green-600">
+                <div title="New partners in the last 90 days" className={`flex items-center text-sm ${percentChanges.partnersNew == null ? 'text-gray-500' : (percentChanges.partnersNew > 0 ? 'text-green-600' : 'text-gray-600')}`}>
                   <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                  <span>+3 new this quarter</span>
+                  <span>{statsLoading ? '...' : `${percentChanges.partnersNew ?? 0} new this quarter`}</span>
                 </div>
               </div>
               {/* News */}
@@ -416,9 +534,9 @@ const Dashboard = () => {
                     <DocumentTextIcon className="h-6 w-6 text-purple-600" />
                   </div>
                 </div>
-                <div className="flex items-center text-sm text-green-600">
+                <div title="Articles published in the last 30 days" className="flex items-center text-sm text-green-600">
                   <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                  <span>8 published this month</span>
+                  <span>{statsLoading ? '...' : `${percentChanges.newsThis ?? quickStats.news} published this month`}</span>
                 </div>
               </div>
               {/* Media Library */}
@@ -434,7 +552,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex items-center text-sm text-green-600">
                   <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                  <span>+{statsLoading ? '...' : quickStats.featuredMedia} featured</span>
+                  <span>{statsLoading ? '...' : `${quickStats.featuredMedia} featured`}</span>
                 </div>
               </div>
             </div>

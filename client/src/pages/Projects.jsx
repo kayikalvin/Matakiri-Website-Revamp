@@ -737,10 +737,10 @@ const ProjectCard = ({ project, index }) => {
           )}
 
           {/* Action Button */}
-          <button className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium hover:from-primary-600 hover:to-primary-700 transition-all flex items-center justify-center gap-2 group">
+          {/* <button className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-medium hover:from-primary-600 hover:to-primary-700 transition-all flex items-center justify-center gap-2 group">
             View Project Details
             <FaExternalLinkAlt className="group-hover:translate-x-1 transition-transform" />
-          </button>
+          </button> */}
         </div>
       </div>
     </motion.div>
