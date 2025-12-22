@@ -99,7 +99,8 @@ const defaultOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3002',
-  'https://matakiri-website-revamp-client.vercel.app'
+  'https://matakiri-website-revamp-client.vercel.app',
+  'https://matakiri-website-revamp-admin-dashb-omega.vercel.app'
 ];
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || defaultOrigins.join(',')).split(',').map(s => s.trim()).filter(Boolean);
 
