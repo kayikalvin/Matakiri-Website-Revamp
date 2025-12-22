@@ -98,6 +98,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3002',
+  'https://matakiri-website-revamp-client.vercel.app/'
 ];
 app.use(cors({
   origin: function (origin, callback) {
