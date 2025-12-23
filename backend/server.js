@@ -90,6 +90,31 @@ const app = express();
 
 // Security middleware
 app.use(helmet());
+
+// Remove unknown/unsupported permission features that cause browser warnings (e.g. 'browsing-topics').
+// Helmet or other middleware may inject a Permissions-Policy header that contains new features
+// not yet recognized by some browsers; this middleware strips those tokens.
+app.use((req, res, next) => {
+  try {
+    const headerName = Object.keys(res.getHeaders ? res.getHeaders() : {}).find(h => h.toLowerCase() === 'permissions-policy');
+    if (headerName) {
+      const raw = res.getHeader(headerName) || '';
+      if (typeof raw === 'string' && raw.includes('browsing-topics')) {
+        const parts = raw.split(',').map(p => p.trim()).filter(p => !p.startsWith('browsing-topics'));
+        if (parts.length) {
+          res.setHeader('Permissions-Policy', parts.join(', '));
+        } else {
+          res.removeHeader('Permissions-Policy');
+        }
+      }
+    }
+  } catch (err) {
+    // don't block requests if header manipulation fails
+    // eslint-disable-next-line no-console
+    console.debug('Permissions-Policy normalization skipped:', err.message || err);
+  }
+  next();
+});
 // Allow multiple origins for local dev and production. Can be overridden via
 // ALLOWED_ORIGINS environment variable (comma-separated list).
 const defaultOrigins = [
