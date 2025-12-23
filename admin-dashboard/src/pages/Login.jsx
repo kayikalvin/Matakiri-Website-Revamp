@@ -5,8 +5,8 @@ import { Toaster, toast } from 'react-hot-toast';
 import { LockClosedIcon, EnvelopeIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const Login = () => {
-  const [email, setEmail] = useState('admin@matakiritrust.org');
-  const [password, setPassword] = useState('password');
+  const [email, setEmail] = useState('admin@example.com');
+  const [password, setPassword] = useState('password123');
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState({ email: false, password: false });
   const { login, loading } = useAuth();
@@ -212,7 +212,7 @@ const Login = () => {
                     <div className="h-5 w-5 rounded bg-primary-100 flex items-center justify-center mr-2">
                       <EnvelopeIcon className="h-3 w-3 text-primary-600" />
                     </div>
-                    <span className="text-sm text-primary-700">admin@matakiritrust.org</span>
+                    <span className="text-sm text-primary-700">admin@example.com</span>
                   </div>
                   <div className="flex items-center">
                     <div className="h-5 w-5 rounded bg-primary-100 flex items-center justify-center mr-2">
