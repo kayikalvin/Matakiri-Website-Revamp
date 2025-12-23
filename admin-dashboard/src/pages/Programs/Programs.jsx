@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { resolveAssetUrl } from '../../utils/url';
+// (reverted) original image URL handling will be used via resolveAdminImage helper
 import toast, { Toaster } from 'react-hot-toast';
 import { programsAPI } from '../../services/api';
 
@@ -13,6 +13,16 @@ const Programs = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+
+  // Helper to resolve admin image URLs (original behavior)
+  const resolveAdminImage = (src) => {
+    if (!src) return undefined;
+    if (src.startsWith('http')) return src;
+    const base = (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:5000';
+    if (src.startsWith('/api/uploads')) return `${base}${src.replace('/api/uploads', '/uploads')}`;
+    if (src.startsWith('/uploads')) return `${base}${src}`;
+    return src;
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -179,7 +189,7 @@ const Programs = () => {
                       <td className="py-4 px-6 font-medium text-gray-900 flex items-center gap-3">
                         {program.image && (
                           <img
-                            src={resolveAssetUrl(program.image)}
+                            src={resolveAdminImage(program.image)}
                             alt={program.title}
                             className="h-10 w-10 object-cover rounded shadow border"
                           />

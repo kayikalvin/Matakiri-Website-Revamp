@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { projectsAPI } from '../../services/api';
 import { Link } from 'react-router-dom';
 
-import { resolveAssetUrl } from '../../utils/url';
+// Reverted: use original behavior for image URLs (use REACT_APP_API_URL or localhost fallback)
 import { 
   FaRobot, 
   FaBrain, 
@@ -113,12 +113,15 @@ const AIInitiatives = () => {
     }
   };
 
-  // Helper to get project image URL
-  const { resolveAssetUrl } = require('../../utils/url');
+  // Helper to get project image URL (original fallback logic)
   const getProjectImageUrl = (project) => {
     if (project?.images && Array.isArray(project.images) && project.images[0] && project.images[0].url) {
       const src = project.images[0].url;
-      return resolveAssetUrl(src);
+      if (src && src.startsWith('/api/uploads')) {
+        const base = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+        return `${base}${src.replace('/api/uploads', '/uploads')}`;
+      }
+      return src;
     }
     return 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
   };

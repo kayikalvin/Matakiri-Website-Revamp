@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { programsAPI } from '../../services/api';
-import { resolveAssetUrl } from '../../utils/url';
+// Reverted: use original image URL handling in admin dashboard
 
 // Backend enum values and user-friendly labels
 const PROGRAM_STATUSES = [
@@ -37,6 +37,16 @@ const EditProgram = () => {
   const [imageFile, setImageFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef();
+
+  // Helper to resolve admin image URLs (original behavior)
+  const resolveAdminImage = (src) => {
+    if (!src) return undefined;
+    if (src.startsWith('http')) return src;
+    const base = (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:5000';
+    if (src.startsWith('/api/uploads')) return `${base}${src.replace('/api/uploads', '/uploads')}`;
+    if (src.startsWith('/uploads')) return `${base}${src}`;
+    return src;
+  };
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -507,7 +517,7 @@ const EditProgram = () => {
                     </div>
                   ) : form?.image ? (
                     <div className="flex flex-col items-center gap-2">
-                      <img src={resolveAssetUrl(form.image)} alt="Current" className="h-24 rounded shadow object-contain" onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
+                      <img src={resolveAdminImage(form.image)} alt="Current" className="h-24 rounded shadow object-contain" onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
                       <button
                         type="button"
                         onClick={e => { e.stopPropagation(); setForm(f => ({ ...f, image: '' })); }}

@@ -191,7 +191,6 @@
 // export default LatestNews;
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { resolveAssetUrl } from '../../utils/url';
 import { FaCalendarAlt, FaArrowRight } from 'react-icons/fa';
 
 const LatestNews = () => {
@@ -257,27 +256,25 @@ const LatestNews = () => {
     // First check if there are images array with URL
     if (item?.images && item.images[0] && item.images[0].url) {
       const src = item.images[0].url;
-      // console.log('Image URL from images array:', src);
-      
-      // If it's a local upload path (starts with /uploads or /api/uploads)
-      // Normalize using resolveAssetUrl (handles localhost replacements and relative paths)
-      return resolveAssetUrl(src);
-      // If it's already a full URL (like Unsplash), return as-is
-      // console.log('Full URL, returning as-is:', src);
+      // If it's a local upload path (starts with /api/uploads)
+      if (src && src.startsWith('/api/uploads')) {
+        const base = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+        return `${base}${src.replace('/api/uploads', '/uploads')}`;
+      }
       return src;
     }
-    
+
     // Check for direct image property
     if (item?.image) {
       const src = item.image;
-      // console.log('Image URL from image property:', src);
-      
-      // If it's a local upload path
-      return resolveAssetUrl(src);
+      if (src && src.startsWith('/api/uploads')) {
+        const base = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+        return `${base}${src.replace('/api/uploads', '/uploads')}`;
+      }
+      return src;
     }
-    
+
     // Return fallback image
-    // console.log('No image found, using fallback');
     return 'https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
   };
 

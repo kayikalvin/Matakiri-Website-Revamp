@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { resolveAssetUrl } from '../utils/url';
 import { useLocation } from 'react-router-dom';
 import { programsAPI } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -670,6 +669,16 @@ const Programs = () => {
   );
 };
 
+// Revert helper: resolve program image URLs to original behavior (use REACT_APP_API_URL or localhost fallback)
+const resolveProgramImage = (src) => {
+  if (!src) return undefined;
+  if (src.startsWith('http')) return src;
+  const base = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+  if (src.startsWith('/api/uploads')) return `${base}${src.replace('/api/uploads', '/uploads')}`;
+  if (src.startsWith('/uploads')) return `${base}${src}`;
+  return src;
+};
+
 // Program Card Component for Grid View
 const ProgramCard = ({ program, index }) => {
   const getStatusColor = (status) => {
@@ -718,7 +727,7 @@ const ProgramCard = ({ program, index }) => {
         {/* Program Image */}
         <div className="relative h-48 overflow-hidden">
           <img
-            src={program.image ? resolveAssetUrl(program.image) : undefined}
+            src={resolveProgramImage(program.image)}
             alt={program.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
@@ -836,7 +845,7 @@ const ProgramListCard = ({ program, index }) => {
           {/* Image Section */}
           <div className="md:w-1/3 relative">
             <img
-              src={program.image ? resolveAssetUrl(program.image) : undefined}
+              src={resolveProgramImage(program.image)}
               alt={program.title}
               className="w-full h-64 md:h-full object-cover"
             />
