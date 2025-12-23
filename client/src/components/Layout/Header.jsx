@@ -23,6 +23,10 @@ const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
 
+  // Admin URL from env or global window.__env__, default to relative /admin to avoid hardcoded localhost
+  const ADMIN_URL = (typeof process !== 'undefined' && (process.env.REACT_APP_ADMIN_URL || process.env.VITE_ADMIN_URL)) ||
+    (typeof window !== 'undefined' && window.__env__ && window.__env__.VITE_ADMIN_URL) || '/admin';
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -114,7 +118,7 @@ const Header = () => {
                 ))}
               </div>
               <a
-                href="http://localhost:3002"
+                href={ADMIN_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-1 px-2.5 py-1 bg-white text-emerald-700 text-xs font-semibold rounded hover:bg-emerald-50 transition-colors shadow-sm flex items-center gap-1"

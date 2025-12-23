@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { projectsAPI } from '../../services/api';
 import { Link } from 'react-router-dom';
+
+import { resolveAssetUrl } from '../../utils/url';
 import { 
   FaRobot, 
   FaBrain, 
@@ -112,14 +114,11 @@ const AIInitiatives = () => {
   };
 
   // Helper to get project image URL
+  const { resolveAssetUrl } = require('../../utils/url');
   const getProjectImageUrl = (project) => {
     if (project?.images && Array.isArray(project.images) && project.images[0] && project.images[0].url) {
       const src = project.images[0].url;
-      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads'))) {
-        const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        return `${baseUrl}${src.startsWith('/api') ? src : `/api${src}`}`;
-      }
-      return src;
+      return resolveAssetUrl(src);
     }
     return 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
   };

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { programsAPI } from '../../services/api';
+import { resolveAssetUrl } from '../../utils/url';
 
 // Backend enum values and user-friendly labels
 const PROGRAM_STATUSES = [
@@ -506,7 +507,7 @@ const EditProgram = () => {
                     </div>
                   ) : form?.image ? (
                     <div className="flex flex-col items-center gap-2">
-                      <img src={form.image.startsWith('http') ? form.image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${form.image}`} alt="Current" className="h-24 rounded shadow object-contain" onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
+                      <img src={resolveAssetUrl(form.image)} alt="Current" className="h-24 rounded shadow object-contain" onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }} />
                       <button
                         type="button"
                         onClick={e => { e.stopPropagation(); setForm(f => ({ ...f, image: '' })); }}

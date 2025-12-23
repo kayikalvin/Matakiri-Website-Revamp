@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { resolveAssetUrl } from '../../utils/url';
 import toast, { Toaster } from 'react-hot-toast';
 import { programsAPI } from '../../services/api';
 
@@ -178,7 +179,7 @@ const Programs = () => {
                       <td className="py-4 px-6 font-medium text-gray-900 flex items-center gap-3">
                         {program.image && (
                           <img
-                            src={program.image.startsWith('http') ? program.image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${program.image}`}
+                            src={resolveAssetUrl(program.image)}
                             alt={program.title}
                             className="h-10 w-10 object-cover rounded shadow border"
                           />

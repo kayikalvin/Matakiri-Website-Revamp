@@ -191,6 +191,7 @@
 // export default LatestNews;
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { resolveAssetUrl } from '../../utils/url';
 import { FaCalendarAlt, FaArrowRight } from 'react-icons/fa';
 
 const LatestNews = () => {
@@ -259,12 +260,8 @@ const LatestNews = () => {
       // console.log('Image URL from images array:', src);
       
       // If it's a local upload path (starts with /uploads or /api/uploads)
-      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads'))) {
-        const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        const finalUrl = `${baseUrl}${src.startsWith('/api') ? src : `/api${src}`}`;
-        // console.log('Local upload, final URL:', finalUrl);
-        return finalUrl;
-      }
+      // Normalize using resolveAssetUrl (handles localhost replacements and relative paths)
+      return resolveAssetUrl(src);
       // If it's already a full URL (like Unsplash), return as-is
       // console.log('Full URL, returning as-is:', src);
       return src;
@@ -276,15 +273,7 @@ const LatestNews = () => {
       // console.log('Image URL from image property:', src);
       
       // If it's a local upload path
-      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads'))) {
-        const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        const finalUrl = `${baseUrl}${src.startsWith('/api') ? src : `/api${src}`}`;
-        // console.log('Local upload, final URL:', finalUrl);
-        return finalUrl;
-      }
-      // If it's already a full URL, return as-is
-      // console.log('Full URL, returning as-is:', src);
-      return src;
+      return resolveAssetUrl(src);
     }
     
     // Return fallback image

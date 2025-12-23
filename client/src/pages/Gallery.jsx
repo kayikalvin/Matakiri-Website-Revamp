@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { FaImage, FaVideo, FaFilter, FaTimes, FaPlay, FaDownload } from 'react-icons/fa';
 import { galleryAPI } from '../services/api';
+import { resolveAssetUrl } from '../utils/url';
 
 const Gallery = () => {
 
@@ -190,12 +191,7 @@ const Gallery = () => {
                             const src = item.type === 'video'
                               ? (item.thumbnail || item.url || item.fileUrl)
                               : (item.url || item.fileUrl);
-                            if (src && src.startsWith('/api/uploads')) {
-                              // Use /uploads for static file serving, not /api/uploads
-                              const base = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-                              return `${base}${src.replace('/api/uploads', '/uploads')}`;
-                            }
-                            return src || '/images/placeholder.png';
+                            return resolveAssetUrl(src) || '/images/placeholder.png';
                           })()}
                           alt={item.title}
                           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
@@ -336,7 +332,7 @@ const Gallery = () => {
 
                 {/* Content */}
                 <div className="bg-white rounded-xl overflow-hidden">
-                  {selectedImage.type === 'video' ? (
+                      {selectedImage.type === 'video' ? (
                     <div className="aspect-video">
                       <iframe
                         src={selectedImage.url}
@@ -350,11 +346,7 @@ const Gallery = () => {
                     <img
                       src={(() => {
                         const src = selectedImage.url || selectedImage.fileUrl;
-                        if (src && src.startsWith('/api/uploads')) {
-                          const base = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-                          return `${base}${src.replace('/api/uploads', '/uploads')}`;
-                        }
-                        return src || '/images/placeholder.png';
+                        return resolveAssetUrl(src) || '/images/placeholder.png';
                       })()}
                       alt={selectedImage.title}
                       className="w-full h-auto max-h-[70vh] object-contain"

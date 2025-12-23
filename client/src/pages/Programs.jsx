@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { resolveAssetUrl } from '../utils/url';
 import { useLocation } from 'react-router-dom';
 import { programsAPI } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -717,7 +718,7 @@ const ProgramCard = ({ program, index }) => {
         {/* Program Image */}
         <div className="relative h-48 overflow-hidden">
           <img
-            src={program.image ? (program.image.startsWith('http') ? program.image : `${process.env.REACT_APP_API_URL || 'http://localhost:5000' }${program.image}`) : undefined}
+            src={program.image ? resolveAssetUrl(program.image) : undefined}
             alt={program.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
@@ -835,7 +836,7 @@ const ProgramListCard = ({ program, index }) => {
           {/* Image Section */}
           <div className="md:w-1/3 relative">
             <img
-              src={program.image ? (program.image.startsWith('http') ? program.image : `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${program.image}`) : undefined}
+              src={program.image ? resolveAssetUrl(program.image) : undefined}
               alt={program.title}
               className="w-full h-64 md:h-full object-cover"
             />

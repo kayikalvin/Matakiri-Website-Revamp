@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { FaHandshake, FaArrowRight } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { resolveAssetUrl } from '../../utils/url';
 
 const PartnersShowcase = () => {
   const [partners, setPartners] = useState([]);
@@ -26,43 +27,9 @@ const PartnersShowcase = () => {
     fetchPartners();
   }, []);
 
-  // Determine API base URL supporting Vite (import.meta.env) and CRA env var fallback
-  const getApiBase = () => {
-    // Prefer common env vars without referencing import.meta to avoid runtime errors
-    const viteUrl = (typeof process !== 'undefined' && process.env && process.env.VITE_API_URL) || undefined;
-    const craUrl = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) || undefined;
-    const winEnv = (typeof window !== 'undefined' && window.__env__ && window.__env__.VITE_API_URL) || undefined;
-    let base = viteUrl || craUrl || winEnv || 'http://localhost:5000';
-    // remove trailing slash
-    base = base.replace(/\/+$/g, '');
-    // if env contains /api at end, strip it so we can reliably append /api when needed
-    base = base.replace(/\/api\/?$/i, '');
-    return base;
-  };
-
   const getLogoUrl = (partner) => {
-    const apiBase = getApiBase();
-    const makeFull = (src) => {
-      if (!src) return src;
-      if (src.startsWith('/api')) return `${apiBase}${src}`;
-      if (src.startsWith('/uploads')) return `${apiBase}/api${src}`;
-      return src;
-    };
-
-    if (partner?.logo) {
-      const src = partner.logo;
-      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads') || src.startsWith('/api'))) {
-        return makeFull(src);
-      }
-      return src;
-    }
-    if (partner?.image) {
-      const src = partner.image;
-      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads') || src.startsWith('/api'))) {
-        return makeFull(src);
-      }
-      return src;
-    }
+    if (partner?.logo) return resolveAssetUrl(partner.logo);
+    if (partner?.image) return resolveAssetUrl(partner.image);
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(partner?.name || 'Partner')}&background=009970&color=fff&bold=true`;
   };
 

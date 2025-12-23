@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api'
+// Use configured env var if present; otherwise use relative paths so same-origin applies in production
+const API_BASE_URL = process.env.REACT_APP_API_URL || process.env.VITE_API_URL || ''
 
 const useFetch = (endpoint, options = {}) => {
   const [data, setData] = useState(null)
@@ -12,7 +13,8 @@ const useFetch = (endpoint, options = {}) => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const response = await axios.get(`${API_BASE_URL}${endpoint}`, options)
+        const url = `${API_BASE_URL}${endpoint}`
+        const response = await axios.get(url, options)
         setData(response.data)
         setError(null)
       } catch (err) {
