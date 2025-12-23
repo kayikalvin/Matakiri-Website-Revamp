@@ -19,7 +19,6 @@ export const programsAPI = {
   },
   delete: (id) => api.delete(`/programs/${id}`),
 };
-import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
