@@ -28,10 +28,11 @@ const PartnersShowcase = () => {
 
   // Determine API base URL supporting Vite (import.meta.env) and CRA env var fallback
   const getApiBase = () => {
-    // Vite exposes env via import.meta.env, CRA via process.env
-    const viteUrl = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL;
-    const craUrl = typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL;
-    let base = viteUrl || craUrl || 'http://localhost:5000';
+    // Prefer common env vars without referencing import.meta to avoid runtime errors
+    const viteUrl = (typeof process !== 'undefined' && process.env && process.env.VITE_API_URL) || undefined;
+    const craUrl = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) || undefined;
+    const winEnv = (typeof window !== 'undefined' && window.__env__ && window.__env__.VITE_API_URL) || undefined;
+    let base = viteUrl || craUrl || winEnv || 'http://localhost:5000';
     // remove trailing slash
     base = base.replace(/\/+$/g, '');
     // if env contains /api at end, strip it so we can reliably append /api when needed
