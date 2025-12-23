@@ -18,7 +18,13 @@ const Programs = () => {
   const resolveAdminImage = (src) => {
     if (!src) return undefined;
     if (src.startsWith('http')) return src;
-    const base = (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:5000';
+    // Use Vite's import.meta.env when available, otherwise fall back to localhost
+    let base = 'http://localhost:5000';
+    try {
+      if (import.meta && import.meta.env && import.meta.env.VITE_API_URL) base = import.meta.env.VITE_API_URL;
+    } catch (e) {
+      // ignore — use localhost fallback
+    }
     if (src.startsWith('/api/uploads')) return `${base}${src.replace('/api/uploads', '/uploads')}`;
     if (src.startsWith('/uploads')) return `${base}${src}`;
     return src;
