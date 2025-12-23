@@ -138,9 +138,19 @@ app.use(cors({
     const norm = origin.endsWith('/') ? origin.slice(0, -1) : origin;
     if (allowedOrigins.includes(norm)) {
       return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS: ' + origin));
     }
+
+    // Allow Vercel subdomains for this project (common deployment pattern)
+    try {
+      const hostname = new URL(norm).hostname;
+      if (hostname && hostname.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
+    } catch (e) {
+      // fallthrough to deny
+    }
+
+    return callback(new Error('Not allowed by CORS: ' + origin));
   },
   credentials: true,
   optionsSuccessStatus: 200,
@@ -235,10 +245,21 @@ const path = require('path');
 const staticCors = (req, res, next) => {
   // Check the origin and allow specific origins
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
+  if (origin) {
+    const norm = origin.endsWith('/') ? origin.slice(0, -1) : origin;
+    let allow = allowedOrigins.includes(norm);
+    try {
+      const hostname = new URL(norm).hostname;
+      if (!allow && hostname && hostname.endsWith('.vercel.app')) allow = true;
+    } catch (e) {
+      // ignore
+    }
+    if (allow) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
   } else {
-    // If no origin or not in allowed list, allow all (for direct access)
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
