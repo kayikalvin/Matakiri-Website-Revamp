@@ -26,20 +26,39 @@ const PartnersShowcase = () => {
     fetchPartners();
   }, []);
 
+  // Determine API base URL supporting Vite (import.meta.env) and CRA env var fallback
+  const getApiBase = () => {
+    // Vite exposes env via import.meta.env, CRA via process.env
+    const viteUrl = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL;
+    const craUrl = typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL;
+    let base = viteUrl || craUrl || 'http://localhost:5000';
+    // remove trailing slash
+    base = base.replace(/\/+$/g, '');
+    // if env contains /api at end, strip it so we can reliably append /api when needed
+    base = base.replace(/\/api\/?$/i, '');
+    return base;
+  };
+
   const getLogoUrl = (partner) => {
+    const apiBase = getApiBase();
+    const makeFull = (src) => {
+      if (!src) return src;
+      if (src.startsWith('/api')) return `${apiBase}${src}`;
+      if (src.startsWith('/uploads')) return `${apiBase}/api${src}`;
+      return src;
+    };
+
     if (partner?.logo) {
       const src = partner.logo;
-      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads'))) {
-        const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        return `${baseUrl}${src.startsWith('/api') ? src : `/api${src}`}`;
+      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads') || src.startsWith('/api'))) {
+        return makeFull(src);
       }
       return src;
     }
     if (partner?.image) {
       const src = partner.image;
-      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads'))) {
-        const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        return `${baseUrl}${src.startsWith('/api') ? src : `/api${src}`}`;
+      if (src && (src.startsWith('/uploads') || src.startsWith('/api/uploads') || src.startsWith('/api'))) {
+        return makeFull(src);
       }
       return src;
     }
