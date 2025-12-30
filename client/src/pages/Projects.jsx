@@ -481,7 +481,7 @@ const Projects = () => {
       </section>
 
       {/* Impact Stories Section */}
-      <section className="py-20 bg-gradient-to-br from-primary-50 to-accent-50">
+      {/* <section className="py-20 bg-gradient-to-br from-primary-50 to-accent-50">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-12">
             <div className="inline-flex items-center gap-3 bg-white/50 backdrop-blur-sm rounded-full px-6 py-3 mb-6 border border-white">
@@ -544,10 +544,10 @@ const Projects = () => {
                     </p>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-500">{story.impact}</span>
-                      {/* <span className="inline-flex items-center gap-2 text-primary-600 font-medium text-sm group-hover:gap-3 transition-all">
+                      <span className="inline-flex items-center gap-2 text-primary-600 font-medium text-sm group-hover:gap-3 transition-all">
                         Read full story
                         <FaArrowRight className="text-xs" />
-                      </span> */}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -555,7 +555,7 @@ const Projects = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Call to Action */}
       <section className="py-20 bg-white">
