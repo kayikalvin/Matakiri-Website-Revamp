@@ -70,7 +70,7 @@ const Projects = () => {
       setError(null);
       try {
         const response = await projectsAPI.getAll();
-        console.log("Projects API Response:", response);
+        // console.log("Projects API Response:", response);
         setProjects(response?.data || response || []);
       } catch (err) {
         console.error("Error fetching projects:", err);
