@@ -5,14 +5,14 @@ const boardMembers = [
   {
     name: "Paul Muriku",
     role: "Director",
-    image: "/team/paul_muriku.jpg",
+    image: "/team/paulDirector.png",
     bio: "Board Director with extensive experience in organizational leadership and strategic direction.",
     category: "board"
   },
   {
     name: "Bismillah Binti Kader",
     role: "Curriculum Lead",
-    image: "/team/bismillah_kader.jpg",
+    image: "/team/Bismillah.png",
     bio: `Bismillah was born in Penang, Malaysia and educated at St George's in Balik Pulau and the Convent Pulau Tikus. She completed her degree, postgraduate studies and research at Birmingham University, UK. She taught at Birmingham University, Aston University's Business School and in Further Education colleges in the UK and has over 30 years' experience in education.`,
     category: "board"
   },
@@ -33,7 +33,7 @@ const boardMembers = [
   {
     name: "Prof. Wanja Mwaura-Tenambergen",
     role: "CPD & Employability",
-    image: "/team/prof_wanja.jpg",
+    image: "/team/prof_wanja.jpeg",
     bio: `Prof. Wanja Mwaura-Tenambergen, PhD, is an Associate Professor in the Department of Health Systems Management at Kenya Methodist University. She specialises in strengthening health systems and improving the quality of learning and teaching in higher education.`,
     category: "board"
   },
@@ -57,21 +57,21 @@ const advisoryTeam = [
   {
     name: "Dr Yasmin Bailey (nee Weaver)",
     role: "EduTech Advisor",
-    image: "/team/yasmin_bailley.jpg",
+    image: "/team/yasmin.jpg",
     bio: `Yasmin holds a PhD in Comparative Cell Physiology and a BSc (Hons). She has strong interests in educational technology and an extensive track record in education management, including serving as Principal of an international college.`,
     category: "advisory"
   },
   {
     name: "Timothy Bailey",
     role: "Team Builder",
-    image: "/team/timothy_bailey.jpg",
+    image: "/team/timothy.jpg",
     bio: `Tim has a passion for building teams of professionals skilled in developing innovative learning technologies. He holds an MSc in Information Systems (Distinction), a B.Eng.(Hons) Civil Engineering (2:1), and a Postgraduate Certificate in Designing and Facilitating e-learning (A+).`,
     category: "advisory"
   },
   {
     name: "Benjamin Makai",
     role: "Corporate & Entrepreneurship",
-    image: "/team/benjamin_makai.jpg",
+    image: "/team/benjamin.jpg",
     bio: `Benjamin leads the Technology for Development (T4D) unit at Safaricom PLC, designing and transitioning sustainable products and services that deliver social impact. With 15+ years' experience across Africa and Kenya.`,
     category: "advisory"
   },
@@ -92,42 +92,42 @@ const advisoryTeam = [
   {
     name: "Samuel Gesora",
     role: "Social Media & Branding",
-    image: "/team/samuel_gesora.jpg",
+    image: "/team/samuel.jpg",
     bio: `Samuel is a design thinker and problem solver with experience in graphic design and marketing content creation. He advises on social media strategy and brand presence.`,
     category: "advisory"
   },
   {
     name: "Beatrice Boore",
     role: "Health & Wellbeing",
-    image: "/team/bernice_boore.jpg",
+    image: "/team/bernice.jpg",
     bio: `Beatrice is a KRCHN nurse with over 20 years' experience in acute hospitals, community health care and management. She is passionate about health education, disease prevention, and community empowerment.`,
     category: "advisory"
   },
   {
     name: "Dr Patricia Davies",
     role: "Research & Outreach",
-    image: "/team/patricia_davies.jpg",
+    image: "/team/patricia.jpg",
     bio: `Patricia holds a Doctorate in Educational Leadership, Policy and Management. She was Head of Computer Science at an American college in England and holds an MSc in Mathematics and an MA in Educational Technology.`,
     category: "advisory"
   },
   {
     name: "Muli Boniface",
     role: "Developer",
-    image: "/team/muli_boniface.jpg",
+    image: "/team/muli.jpg",
     bio: `Software developer with expertise in web technologies and application development.`,
     category: "advisory"
   },
   {
     name: "Sarah Mueni Mutambu",
     role: "Developer",
-    image: "/team/sarah_mueni.jpg",
+    image: "/team/sarah.jpg",
     bio: `Full-stack developer specializing in modern web applications and user experience design.`,
     category: "advisory"
   },
   {
     name: "Kalvin Kayi",
     role: "Data Scientist",
-    image: "/team/kalvin_kayi.jpg",
+    image: "/team/kayi.png",
     bio: `Data scientist with expertise in machine learning, data analysis, and statistical modeling.`,
     category: "advisory"
   }
