@@ -90,17 +90,17 @@
 //               <div className="flex items-start space-x-3">
 //                 <FaMapMarkerAlt className="text-primary-400 mt-1" />
 //                 <span className="text-gray-300">
-//                   Matakiri Village, Kisumu County<br />
+//                   Tharaka South Division, Kisumu County<br />
 //                   Kenya
 //                 </span>
 //               </div>
 //               <div className="flex items-center space-x-3">
 //                 <FaPhone className="text-primary-400" />
-//                 <span className="text-gray-300">+447935335065</span>
+//                 <span className="text-gray-300">+254112727453</span>
 //               </div>
 //               <div className="flex items-center space-x-3">
 //                 <FaEnvelope className="text-primary-400" />
-//                 <span className="text-gray-300">info@matakiritrust.org</span>
+//                 <span className="text-gray-300">info@matakiri.org</span>
 //               </div>
 //             </div>
 //           </div>
@@ -264,19 +264,19 @@ const Footer = () => {
                 <div className="flex items-start space-x-3">
                   <FaMapMarkerAlt className="text-accent-500 mt-1 flex-shrink-0" />
                   <span className="text-neutral-200 ">
-                    Matakiri Village
+                    Tharaka South Division
                     <br />
-                    56 Wells Road, Wolverhampton, UK
+                    Tharaka, Kenya
                   </span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaPhone className="text-accent-500 flex-shrink-0" />
-                  <span className="text-neutral-200">+447935335065</span>
+                  <span className="text-neutral-200">+254112727453</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaEnvelope className="text-accent-500 flex-shrink-0" />
                   <span className="text-neutral-200">
-                    info@matakiritrust.org
+                    info@matakiri.org
                   </span>
                 </div>
               </div>

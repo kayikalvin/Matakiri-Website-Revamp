@@ -72,9 +72,9 @@ const Header = () => {
   ];
 
   const contactInfo = [
-    { icon: <FiPhone />, text: '+447935335065' },
-    { icon: <FiMail />, text: 'info@matakiritrust.org' },
-    { icon: <FiMapPin />, text: '56 Wells Road, Wolverhampton, UK' },
+    { icon: <FiPhone />, text: '+254112727453' },
+    { icon: <FiMail />, text: 'info@matakiri.org' },
+    { icon: <FiMapPin />, text: 'Tharaka, Kenya' },
   ];
 
   const handleDropdownToggle = (index) => {
@@ -482,9 +482,9 @@ export default Header;
 //   ];
 
 //   const contactInfo = [
-//     { icon: <FiPhone />, text: '+447935335065' },
-//     { icon: <FiMail />, text: 'info@matakiritrust.org' },
-//     { icon: <FiMapPin />, text: '56 Wells Road, Wolverhampton, UK' },
+//     { icon: <FiPhone />, text: '+254112727453' },
+//     { icon: <FiMail />, text: 'info@matakiri.org' },
+//     { icon: <FiMapPin />, text: 'Tharaka, Kenya' },
 //   ];
 
 //   const handleDropdownToggle = (index) => {

@@ -53,19 +53,19 @@ const Contact = () => {
     {
       icon: <FaMapMarkerAlt className="w-5 h-5" />,
       title: "Our Location",
-      details: ["Matakiri Village", "56 Wells Road, Wolverhampton, UK"],
+      details: ["Tharaka South Division", "Tharaka, Kenya"],
       color: "from-emerald-500 to-teal-500"
     },
     {
       icon: <FaPhone className="w-5 h-5" />,
       title: "Phone Numbers",
-      details: ["+447935335065", "+254 722 456 789"],
+      details: ["+254112727453", "+254 722 456 789"],
       color: "from-emerald-500 to-green-500"
     },
     {
       icon: <FaEnvelope className="w-5 h-5" />,
       title: "Email Address",
-      details: ["info@matakiritrust.org", "support@matakiritrust.org"],
+      details: ["info@matakiri.org", "support@matakiritrust.org"],
       color: "from-teal-500 to-emerald-500"
     },
     {
@@ -351,7 +351,7 @@ const Contact = () => {
                         </div>
                       </div>
                       <div className="text-center">
-                        <p className="text-gray-700 font-medium">Matakiri Village</p>
+                        <p className="text-gray-700 font-medium">Tharaka South Division</p>
                         <p className="text-sm text-gray-500">Kisumu County, Kenya</p>
                       </div>
                     </div>

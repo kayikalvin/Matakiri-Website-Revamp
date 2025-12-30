@@ -657,15 +657,16 @@ const ProjectCard = ({ project, index }) => {
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-500 h-full">
         {/* Project Image */}
         <div className="relative h-56 overflow-hidden">
-          <img
-            src={
-              project.image ||
-              project.imageUrl ||
-              "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-            }
-            alt={project.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
+            <img
+              src={
+                (project.images && project.images.length > 0 && project.images[0].url) ||
+                project.image ||
+                project.imageUrl ||
+                "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+              }
+              alt={project.title}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
           
           {/* Status Badge */}
@@ -776,6 +777,7 @@ const ProjectListCard = ({ project, index }) => {
           <div className="md:w-1/3 relative">
             <img
               src={
+                (project.images && project.images.length > 0 && project.images[0].url) ||
                 project.image ||
                 project.imageUrl ||
                 "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"

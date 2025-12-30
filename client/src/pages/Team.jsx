@@ -1,169 +1,162 @@
-// import React from "react";
-
-// // Example team data. Replace with real data or fetch from API if needed.
-// const teamMembers = [
-//   {
-//     name: "Colin Turnbull",
-//     role: "Risk Analyst and Environmentalist",
-//     image: "/team/colinturnbull.png",
-//     bio: "Risk assessment, climate and environment expert"
-//   },
-//   {
-//     name: "Wanja",
-//     role: "Product Manager",
-//     image: "/team/prof_wanja.jpeg",
-//     bio: "Academic Professor and quality expert"
-//   },
-//   {
-//     name: "Esnas Turnbull",
-//     role: "Trustee",
-//     image: "/team/Esnas.jpg",
-//     bio: "Counsellor and personal development coach"
-//   },
-//   {
-//     name: "David Toeman",
-//     role: "Trustee",
-//     image: "/team/david_toeman.jpeg",
-//     bio: "Curriculum development expert"
-//   },
-//   {
-//     name: "Peter Wells",
-//     role: "Trustee",
-//     image: "/team/peter_wells.png",
-//     bio: "Business management and operations"
-//   },
-//   {
-//     name: "Edward Kunyanga",
-//     role: "Trustee",
-//     image: "/team/edward_kunyanga.jpg",
-//     bio: "Systems Strengthening, international and global expert in community empowerment"
-//   },
-//   {
-//     name: "Bismillah Kader",
-//     role: "Trustee",
-//     image: "/team/Bismillah.png",
-//     bio: "An educationist, entrepreneur and leader"
-//   },
-//   {
-//     name: "John Kanyaru",
-//     role: "Director & Chair",
-//     image: "/team/jk.jpg",
-//     bio: "A software engineering academic and practitioner"
-//   }
-// ];
-
-// const Team = () => {
-//   return (
-//     <div className="container mx-auto py-12 px-4">
-//       <h1 className="text-4xl font-bold mb-8 text-center">Meet Our Team</h1>
-//       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-//         {teamMembers.map((member, idx) => (
-//           <div key={idx} className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center">
-//             <img
-//               src={member.image}
-//               alt={member.name}
-//               className="w-32 h-32 object-cover rounded-full mb-4 border-4 border-primary"
-//               onError={e => { e.target.src = '/assets/images/default-profile.png'; }}
-//             />
-//             <h2 className="text-2xl font-semibold mb-2">{member.name}</h2>
-//             <p className="text-primary font-medium mb-2">{member.role}</p>
-//             <p className="text-gray-600 text-center">{member.bio}</p>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Team;
-
 import React, { useState } from "react";
 
-// Example team data. Replace with real data or fetch from API if needed.
-const teamMembers = [
+// Team data - organized as requested
+const boardMembers = [
   {
-    name: "Colin Turnbull",
-    role: "Risk Analyst and Environmentalist",
-    image: "/team/colinturnbull.png",
-    bio: "Risk assessment, climate and environment expert",
-    category: "expert"
+    name: "Paul Muriku",
+    role: "Director",
+    image: "/team/paul_muriku.jpg",
+    bio: "Board Director with extensive experience in organizational leadership and strategic direction.",
+    category: "board"
   },
   {
-    name: "Wanja",
-    role: "Product Manager",
-    image: "/team/prof_wanja.jpeg",
-    bio: "Academic Professor and quality expert",
-    category: "expert"
-  },
-  {
-    name: "Esnas Turnbull",
-    role: "Trustee",
-    image: "/team/Esnas.jpg",
-    bio: "Counsellor and personal development coach",
-    category: "trustee"
+    name: "Bismillah Binti Kader",
+    role: "Curriculum Lead",
+    image: "/team/bismillah_kader.jpg",
+    bio: `Bismillah was born in Penang, Malaysia and educated at St George's in Balik Pulau and the Convent Pulau Tikus. She completed her degree, postgraduate studies and research at Birmingham University, UK. She taught at Birmingham University, Aston University's Business School and in Further Education colleges in the UK and has over 30 years' experience in education.`,
+    category: "board"
   },
   {
     name: "David Toeman",
-    role: "Trustee",
+    role: "EduTech Lead",
     image: "/team/david_toeman.jpeg",
-    bio: "Curriculum development expert",
-    category: "trustee"
-  },
-  {
-    name: "Peter Wells",
-    role: "Trustee",
-    image: "/team/peter_wells.png",
-    bio: "Business management and operations",
-    category: "trustee"
+    bio: `David is a graduate of UMIST (BSc Physics), Sussex University (MSc History & Philosophy of Science) and the Open University (BA in Mathematics and Philosophy). He lectured in science, mathematics and philosophy, and tutored for the Open University and Nottingham University.`,
+    category: "board"
   },
   {
     name: "Edward Kunyanga",
-    role: "Trustee",
+    role: "Planning & Management",
     image: "/team/edward_kunyanga.jpg",
-    bio: "Systems Strengthening, international and global expert in community empowerment",
-    category: "trustee"
+    bio: "Planning and operational management expert with extensive experience in systems strengthening and community empowerment.",
+    category: "board"
   },
   {
-    name: "Bismillah Kader",
-    role: "Trustee",
-    image: "/team/Bismillah.png",
-    bio: "An educationist, entrepreneur and leader",
-    category: "trustee"
+    name: "Prof. Wanja Mwaura-Tenambergen",
+    role: "CPD & Employability",
+    image: "/team/prof_wanja.jpg",
+    bio: `Prof. Wanja Mwaura-Tenambergen, PhD, is an Associate Professor in the Department of Health Systems Management at Kenya Methodist University. She specialises in strengthening health systems and improving the quality of learning and teaching in higher education.`,
+    category: "board"
+  },
+  {
+    name: "Peter Wells",
+    role: "Charity Governance",
+    image: "/team/peter_wells.png",
+    bio: `Peter spent most of his career in the IT industry, including several years in Kenya. More recently he has taken on roles in the voluntary sector and served as a trustee for several organisations.`,
+    category: "board"
   },
   {
     name: "John Kanyaru",
-    role: "Director & Chair",
+    role: "Chair",
     image: "/team/jk.jpg",
-    bio: "A software engineering academic and practitioner",
-    category: "leadership"
+    bio: "A software engineering academic and practitioner providing strategic leadership and technical oversight.",
+    category: "board"
   }
 ];
 
-// Role-based styling using your theme colors
+const advisoryTeam = [
+  {
+    name: "Dr Yasmin Bailey (nee Weaver)",
+    role: "EduTech Advisor",
+    image: "/team/yasmin_bailley.jpg",
+    bio: `Yasmin holds a PhD in Comparative Cell Physiology and a BSc (Hons). She has strong interests in educational technology and an extensive track record in education management, including serving as Principal of an international college.`,
+    category: "advisory"
+  },
+  {
+    name: "Timothy Bailey",
+    role: "Team Builder",
+    image: "/team/timothy_bailey.jpg",
+    bio: `Tim has a passion for building teams of professionals skilled in developing innovative learning technologies. He holds an MSc in Information Systems (Distinction), a B.Eng.(Hons) Civil Engineering (2:1), and a Postgraduate Certificate in Designing and Facilitating e-learning (A+).`,
+    category: "advisory"
+  },
+  {
+    name: "Benjamin Makai",
+    role: "Corporate & Entrepreneurship",
+    image: "/team/benjamin_makai.jpg",
+    bio: `Benjamin leads the Technology for Development (T4D) unit at Safaricom PLC, designing and transitioning sustainable products and services that deliver social impact. With 15+ years' experience across Africa and Kenya.`,
+    category: "advisory"
+  },
+  {
+    name: "Colin Turnbull",
+    role: "CPD & Ethics",
+    image: "/team/colinturnbull.png",
+    bio: `Colin is a Practice Services Internal Auditor with an international multidisciplinary engineering consultancy. He specialises in management systems, ISO standards (9001, 14001, 45001) and auditing across consultancy and manufacturing.`,
+    category: "advisory"
+  },
+  {
+    name: "Esnas Turnbull",
+    role: "Community Services Lead",
+    image: "/team/Esnas.jpg",
+    bio: `Esnas is a Humanistic & Integrative Counsellor (MBACP) with extensive experience supporting clients in private practice and hospice settings. She specialises in mental health and wellbeing.`,
+    category: "advisory"
+  },
+  {
+    name: "Samuel Gesora",
+    role: "Social Media & Branding",
+    image: "/team/samuel_gesora.jpg",
+    bio: `Samuel is a design thinker and problem solver with experience in graphic design and marketing content creation. He advises on social media strategy and brand presence.`,
+    category: "advisory"
+  },
+  {
+    name: "Beatrice Boore",
+    role: "Health & Wellbeing",
+    image: "/team/bernice_boore.jpg",
+    bio: `Beatrice is a KRCHN nurse with over 20 years' experience in acute hospitals, community health care and management. She is passionate about health education, disease prevention, and community empowerment.`,
+    category: "advisory"
+  },
+  {
+    name: "Dr Patricia Davies",
+    role: "Research & Outreach",
+    image: "/team/patricia_davies.jpg",
+    bio: `Patricia holds a Doctorate in Educational Leadership, Policy and Management. She was Head of Computer Science at an American college in England and holds an MSc in Mathematics and an MA in Educational Technology.`,
+    category: "advisory"
+  },
+  {
+    name: "Muli Boniface",
+    role: "Developer",
+    image: "/team/muli_boniface.jpg",
+    bio: `Software developer with expertise in web technologies and application development.`,
+    category: "advisory"
+  },
+  {
+    name: "Sarah Mueni Mutambu",
+    role: "Developer",
+    image: "/team/sarah_mueni.jpg",
+    bio: `Full-stack developer specializing in modern web applications and user experience design.`,
+    category: "advisory"
+  },
+  {
+    name: "Kalvin Kayi",
+    role: "Data Scientist",
+    image: "/team/kalvin_kayi.jpg",
+    bio: `Data scientist with expertise in machine learning, data analysis, and statistical modeling.`,
+    category: "advisory"
+  }
+];
+
+// Combine all members
+const teamMembers = [...boardMembers, ...advisoryTeam];
+
+// Role styles for different categories
 const roleStyles = {
-  'trustee': {
+  'board': {
     bg: 'bg-gradient-to-br from-primary-50 to-white',
     border: 'border-primary-100',
-    badge: 'bg-primary-100 text-primary-700',
-    dot: 'bg-primary-500',
-    gradient: 'from-primary-500/5',
-    text: 'text-primary-700'
+    badge: 'bg-gradient-to-r from-primary-600 to-accent-600 text-white',
+    dot: 'bg-primary-600',
+    gradient: 'from-primary-600/5',
+    text: 'text-primary-700',
+    title: 'Our Board',
+    description: 'Strategic leadership and governance team providing direction and oversight.'
   },
-  'expert': {
+  'advisory': {
     bg: 'bg-gradient-to-br from-accent-50 to-white',
     border: 'border-accent-100',
     badge: 'bg-accent-100 text-accent-700',
     dot: 'bg-accent-500',
     gradient: 'from-accent-500/5',
-    text: 'text-accent-700'
-  },
-  'leadership': {
-    bg: 'bg-gradient-to-br from-primary-50 to-white',
-    border: 'border-primary-100',
-    badge: 'bg-gradient-to-r from-primary-500 to-accent-500 text-white',
-    dot: 'bg-gradient-to-r from-primary-500 to-accent-500',
-    gradient: 'from-primary-500/5',
-    text: 'text-primary-700'
+    text: 'text-accent-700',
+    title: 'Our Advisory Team',
+    description: 'Expert advisors providing specialized knowledge and guidance across various domains.'
   },
   'default': {
     bg: 'bg-gradient-to-br from-neutral-100 to-white',
@@ -179,35 +172,54 @@ const Team = () => {
   const [filter, setFilter] = useState('all');
   const [hoveredCard, setHoveredCard] = useState(null);
 
-  // Get unique categories from team members
-  const categories = ['all', ...new Set(teamMembers.map(member => member.category))];
+  const categories = [
+    { id: 'all', label: 'All Members' },
+    { id: 'board', label: 'Our Board' },
+    { id: 'advisory', label: 'Advisory Team' }
+  ];
 
   const filteredMembers = filter === 'all' 
     ? teamMembers 
-    : teamMembers.filter(member => member.category === filter);
+    : filter === 'board'
+    ? boardMembers
+    : advisoryTeam;
+
+  const getCurrentTeamData = () => {
+    if (filter === 'all') {
+      return { title: "Meet Our Team", description: "A diverse collective of professionals united by passion and expertise" };
+    }
+    return roleStyles[filter] || roleStyles.default;
+  };
+
+  const currentTeam = getCurrentTeamData();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-neutral-100/30 to-white py-12 px-4 font-sans">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="text-center mb-12">
-          {/* Decorative elements using theme colors */}
+        <div className="text-center mb-12 relative">
+          {/* Decorative elements */}
           <div className="absolute top-0 left-1/4 w-72 h-72 bg-gradient-to-r from-primary-100/20 to-accent-100/20 rounded-full blur-3xl"></div>
           <div className="absolute top-0 right-1/4 w-72 h-72 bg-gradient-to-r from-accent-100/20 to-primary-100/20 rounded-full blur-3xl"></div>
           
           <div className="relative">
             <div className="inline-flex items-center justify-center mb-6">
               <div className="w-24 h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full"></div>
-              <span className="mx-4 text-neutral-400 font-medium font-display tracking-wider">OUR TEAM</span>
+              <span className="mx-4 text-neutral-400 font-medium font-display tracking-wider">MEET THE TEAM</span>
               <div className="w-24 h-1 bg-gradient-to-r from-accent-500 to-primary-500 rounded-full"></div>
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-display">
-              Meet <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-accent-600">Our Team</span>
+              {filter === 'all' ? 'Meet ' : ''}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-accent-600">
+                {currentTeam.title}
+              </span>
             </h1>
             <p className="text-lg text-neutral-400 max-w-3xl mx-auto mb-8 leading-relaxed">
-              A diverse collective of professionals united by passion and expertise, 
-              driving innovation and creating meaningful impact across all our initiatives.
+              {filter === 'all' 
+                ? "A diverse collective of professionals united by passion and expertise, driving innovation and creating meaningful impact across all our initiatives."
+                : currentTeam.description
+              }
             </p>
           </div>
           
@@ -215,43 +227,59 @@ const Team = () => {
           <div className="flex flex-wrap justify-center gap-2 mb-10">
             {categories.map((category) => (
               <button
-                key={category}
-                onClick={() => setFilter(category)}
+                key={category.id}
+                onClick={() => setFilter(category.id)}
                 className={`px-5 py-2 rounded-full font-medium transition-all duration-300 transform hover:scale-105 font-display text-sm
-                  ${filter === category
+                  ${filter === category.id
                     ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white shadow-lg shadow-primary-500/25'
                     : 'bg-white text-gray-700 border border-neutral-300 hover:border-primary-300 hover:text-primary-700 hover:shadow-md'
                   }`}
               >
-                {category === 'all' ? 'All Members' : category.charAt(0).toUpperCase() + category.slice(1)}
+                {category.label}
               </button>
             ))}
           </div>
           
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-neutral-300 hover:shadow-md transition-shadow duration-300">
-              <div className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
-                {teamMembers.length}
+          {/* Team Stats */}
+          {filter === 'all' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
+              <div className="bg-white p-5 rounded-xl shadow-sm border border-neutral-300 hover:shadow-md transition-shadow duration-300">
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
+                  {boardMembers.length}
+                </div>
+                <div className="text-neutral-400 mt-1 text-sm">Board Members</div>
+                <div className="w-10 h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full mt-2"></div>
               </div>
-              <div className="text-neutral-400 mt-1 text-sm">Team Members</div>
-              <div className="w-10 h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full mt-2"></div>
-            </div>
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-neutral-300 hover:shadow-md transition-shadow duration-300">
-              <div className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
-                {teamMembers.filter(m => m.category === 'trustee').length}
+              <div className="bg-white p-5 rounded-xl shadow-sm border border-neutral-300 hover:shadow-md transition-shadow duration-300">
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
+                  {advisoryTeam.length}
+                </div>
+                <div className="text-neutral-400 mt-1 text-sm">Advisors</div>
+                <div className="w-10 h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full mt-2"></div>
               </div>
-              <div className="text-neutral-400 mt-1 text-sm">Trustees</div>
-              <div className="w-10 h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full mt-2"></div>
-            </div>
-            <div className="bg-white p-5 rounded-xl shadow-sm border border-neutral-300 hover:shadow-md transition-shadow duration-300">
-              <div className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
-                {teamMembers.filter(m => m.role.toLowerCase().includes('expert')).length}+
+              <div className="bg-white p-5 rounded-xl shadow-sm border border-neutral-300 hover:shadow-md transition-shadow duration-300">
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
+                  {teamMembers.length}
+                </div>
+                <div className="text-neutral-400 mt-1 text-sm">Total Team</div>
+                <div className="w-10 h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full mt-2"></div>
               </div>
-              <div className="text-neutral-400 mt-1 text-sm">Experts</div>
-              <div className="w-10 h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full mt-2"></div>
             </div>
-          </div>
+          )}
+
+          {/* Team Section Header for specific views */}
+          {filter !== 'all' && (
+            <div className="mb-10">
+              <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-full ${filter === 'board' ? 'bg-primary-50' : 'bg-accent-50'} mb-4`}>
+                <div className={`w-3 h-3 rounded-full ${filter === 'board' ? 'bg-primary-500' : 'bg-accent-500'}`}></div>
+                <span className={`text-sm font-medium ${filter === 'board' ? 'text-primary-700' : 'text-accent-700'}`}>
+                  {filter === 'board' ? 'Governance & Strategy' : 'Expert Guidance & Support'}
+                </span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-3">{currentTeam.title}</h2>
+              <p className="text-neutral-400 max-w-2xl mx-auto">{currentTeam.description}</p>
+            </div>
+          )}
         </div>
 
         {/* Team Grid */}
@@ -353,15 +381,24 @@ const Team = () => {
 
         {/* Footer note */}
         <div className="mt-12 pt-8 border-t border-neutral-300 text-center">
-          <p className="text-neutral-400 mb-4">
-            Our team is committed to excellence, innovation, and collaborative success across all our initiatives.
+          <p className="text-neutral-400 mb-4 max-w-2xl mx-auto">
+            Our team brings together diverse expertise from education, technology, healthcare, and community development 
+            to drive innovation and create meaningful impact.
           </p>
-          <button className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium rounded-full hover:shadow-lg hover:shadow-primary-500/25 transition-all duration-300 transform hover:-translate-y-0.5 font-display text-sm">
-            <span>Join Our Team</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-            </svg>
-          </button>
+          <div className="flex flex-wrap justify-center gap-4">
+            <button className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium rounded-full hover:shadow-lg hover:shadow-primary-500/25 transition-all duration-300 transform hover:-translate-y-0.5 font-display text-sm">
+              <span>Join Our Team</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+              </svg>
+            </button>
+            <button className="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-gray-700 border border-neutral-300 font-medium rounded-full hover:shadow-md hover:border-primary-300 transition-all duration-300 font-display text-sm">
+              <span>Contact Us</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

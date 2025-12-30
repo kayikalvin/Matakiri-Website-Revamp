@@ -205,7 +205,7 @@ const CreateUser = () => {
                         value={formData.phone}
                         onChange={handleChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        placeholder="+447935335065"
+                        placeholder="+254112727453"
                       />
                     </div>
 

@@ -11,6 +11,7 @@ const Partners = lazy(() => import('./pages/Partners'));
 const News = lazy(() => import('./pages/News'));
 const Gallery = lazy(() => import('./pages/Gallery'));
 const Contact = lazy(() => import('./pages/Contact'));
+const AdminRedirect = lazy(() => import('./pages/AdminRedirect'));
 
 export const routes = [
   {
@@ -57,6 +58,12 @@ export const routes = [
     path: '/contact',
     component: Contact,
     title: 'Contact'
+  }
+  ,
+  {
+    path: '/admin',
+    component: AdminRedirect,
+    title: 'Admin'
   }
 ];
 

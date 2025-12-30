@@ -34,7 +34,7 @@ const PartnersShowcase = () => {
     const winEnv = (typeof window !== 'undefined' && window.__env__ && window.__env__.VITE_API_URL) || undefined;
     let base = viteUrl || craUrl || winEnv || 'http://localhost:5000';
     // remove trailing slash
-    base = base.replace(/\/+$\/g, '');
+    base = base.replace(/\/+$/g, '');
     // if env contains /api at end, strip it so we can reliably append /api when needed
     base = base.replace(/\/api\/?$/i, '');
     return base;

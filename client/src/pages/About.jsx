@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -18,6 +18,8 @@ import {
   FaChartLine,
   FaHandsHelping,
   FaGlobe,
+  FaSeedling,
+  FaTint,
   FaArrowRight
 } from 'react-icons/fa';
 
@@ -30,40 +32,52 @@ const About = () => {
     { number: "80", label: "Elderly supported", icon: <FaHandHoldingHeart />, color: "text-purple-600", bg: "bg-purple-50" }
   ];
 
+  // Accordion open state for support areas
+  const [openIndex, setOpenIndex] = useState(null);
+
   // Our Support Areas - Main Focus
   const supportAreas = [
     {
       icon: <FaGraduationCap />,
-      title: "Access to Tuition",
-      description: "Identifying youths with excellent potential hindered by lack of access to personalized learning. We provide bespoke tuition schedules to give each young person a fair chance to succeed.",
-      features: ["Personalized learning plans", "Individual mentoring", "Flexible scheduling", "Progress tracking"],
+      title: "01 Youth Empowerment",
+      description: "Our courses are hands-on and practical, designed to ensure graduates are competent and match-ready on completion. Learners undertake realistic projects and produce artefacts that solve real-world problems. We encourage entrepreneurship to foster self-employment.",
+      features: ["Hands-on projects", "Entrepreneurship focus", "Artefact-based assessment", "Job-ready skills"],
       color: "border-primary-200",
       bg: "bg-gradient-to-br from-primary-50 to-white",
       iconBg: "from-primary-500 to-primary-600"
     },
     {
-      icon: <FaChalkboardTeacher />,
-      title: "Capacity Building",
-      description: "Providing continuing professional development courses for teachers during convenient times around their teaching engagements through partnerships with various institutions.",
-      features: ["Teacher training programs", "Professional development", "Institution partnerships", "Curriculum support"],
+      icon: <FaUserFriends />,
+      title: "02 Engaging the elderly",
+      description: "We run social events to alleviate loneliness while public health experts provide advice on hygiene and self-care. We offer regular health checks and referrals. Events include storytelling and cultural activities which we digitise for posterity.",
+      features: ["Social events", "Health checks & referrals", "Cultural storytelling", "Wellbeing support"],
       color: "border-accent-200",
       bg: "bg-gradient-to-br from-accent-50 to-white",
       iconBg: "from-accent-500 to-accent-600"
     },
     {
+      icon: <FaSeedling />,
+      title: "03 Conservation agriculture",
+      description: "Agriculture is the community's main economic activity. Learners spend time on the farm learning by doing — intensive farming practices that preserve soil fertility and texture, crop preservation and storage to minimise pre- and post-harvest wastage, value addition and agribusiness ventures.",
+      features: ["On-farm practical training", "Soil & fertility management", "Post-harvest handling", "Value addition"],
+      color: "border-green-200",
+      bg: "bg-gradient-to-br from-white to-green-50",
+      iconBg: "from-green-500 to-green-600"
+    },
+    {
       icon: <FaLaptop />,
-      title: "Learning Infrastructure",
-      description: "Renting venues with computers and encouraging clients to bring laptops for continued practice at home. All learning materials are shared through cloud services.",
-      features: ["Computer-equipped venues", "Cloud-based materials", "Bring your own device", "Home practice support"],
+      title: "04 Computer literacy",
+      description: "Besides computing courses for students, we hold open evenings where community members learn word processing, spreadsheets, internet use and online safety.",
+      features: ["Basic digital skills", "Word & spreadsheet training", "Internet & safety", "Open community sessions"],
       color: "border-blue-200",
       bg: "bg-gradient-to-br from-blue-50 to-white",
       iconBg: "from-blue-500 to-blue-600"
     },
     {
-      icon: <FaUserFriends />,
-      title: "Mentoring",
-      description: "Connecting youth with business mentors for workshops on entrepreneurship, accessing capital, taxation, staff recruitment, and financial management.",
-      features: ["Business workshops", "Entrepreneurship guidance", "Industry connections", "Practical business skills"],
+      icon: <FaTint />,
+      title: "05 Access to clean water",
+      description: "We installed a renewable-energy-enabled water system: rainwater harvesting with storage and a borehole pump backup. Solar power supports lighting and device charging. The community water access point saves residents long journeys (nearest source was 8 km away).",
+      features: ["Rainwater harvesting", "Borehole backup", "Solar-powered pumping & lighting", "Community access point"],
       color: "border-purple-200",
       bg: "bg-gradient-to-br from-purple-50 to-white",
       iconBg: "from-purple-500 to-purple-600"
@@ -297,10 +311,30 @@ const About = () => {
                     </div>
                   </div>
                   <p className="text-white/90 mb-6">
-                    A UK-registered charity focused on supporting youths to gain technical and entrepreneurial skills. 
-                    Our work enhances community cohesion and leaves no one behind.
+                    We are a Community &amp; Learning Centre based in the remote, rural village of Matakiri in Tharaka South Division, Tharaka-Nithi county, Kenya. The centre is community-led and driven by the most urgent local needs. These needs include:
                   </p>
+
+                  <ul className="text-white/90 mb-6 space-y-2 text-sm list-disc list-inside">
+                    <li>
+                      <strong>Access to technical and vocational skills training for out-of-school youth</strong> — providing self-employable skills with courses focused on Computing &amp; ICT, Agriculture and Entrepreneurship.
+                    </li>
+                    <li>
+                      <strong>Sustainable Agriculture</strong> — supporting adoption of safe, sustainable farming practices that preserve the environment and minimise pesticide use.
+                    </li>
+                    <li>
+                      <strong>Elderly care and related services</strong> — reducing loneliness and supporting wellbeing through regular social meetings, meals and basic medical checks.
+                    </li>
+                    <li>
+                      <strong>SACCO (community savings &amp; credit)</strong> — a membership-based cooperative enabling members to plan projects and support each other in entrepreneurship and local investment.
+                    </li>
+                  </ul>
+
                   <div className="space-y-4">
+                    <Link to="#our-support">
+                      <button className="mt-2 px-4 py-2 bg-white text-primary-600 rounded-lg font-semibold hover:shadow-md transition">
+                        Learn More
+                      </button>
+                    </Link>
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-white rounded-full"></div>
                       <span className="text-sm">UK Registered Charity</span>
@@ -338,7 +372,7 @@ const About = () => {
                 </span>
                 <div className="w-8 h-0.5 bg-gradient-to-l from-accent-400 to-transparent"></div>
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              <h2 id="our-support" className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 Our Support Areas
               </h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
@@ -346,50 +380,49 @@ const About = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="max-w-3xl mx-auto space-y-4">
               {supportAreas.map((area, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -8 }}
-                  className="group"
-                >
-                  <div className={`h-full rounded-2xl border ${area.color} ${area.bg} p-6 transition-all duration-300 group-hover:shadow-xl`}>
-                    <div className="mb-6">
-                      <div className={`inline-flex p-4 bg-gradient-to-br ${area.iconBg} rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                        <div className="text-2xl text-white">
-                          {area.icon}
-                        </div>
+                <div key={index} className={`bg-white rounded-2xl border ${area.color} p-1`}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenIndex(prev => (prev === index ? null : index))}
+                    aria-expanded={openIndex === index}
+                    className="w-full flex items-center justify-between p-4 text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 text-white flex items-center justify-center font-bold">
+                        {String(index + 1).padStart(2, '0')}
                       </div>
+                      <div className="text-sm font-semibold text-gray-900">{area.title}</div>
                     </div>
-                    
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">
-                      {area.title}
-                    </h3>
-                    
-                    <p className="text-gray-600 text-sm mb-6 leading-relaxed">
-                      {area.description}
-                    </p>
-                    
-                    <div className="space-y-2">
-                      {area.features.map((feature, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-sm text-gray-500">
-                          <div className="w-1.5 h-1.5 bg-primary-400 rounded-full"></div>
-                          {feature}
-                        </div>
-                      ))}
+                    <div className="text-gray-400">
+                      {openIndex === index ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd"/></svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M14.77 12.79a.75.75 0 01-1.06-.02L10 9.06l-3.71 3.71a.75.75 0 01-1.06-1.06l4.24-4.24a.75.75 0 011.06 0l4.24 4.24c.3.3.3.77 0 1.06z" clipRule="evenodd"/></svg>
+                      )}
                     </div>
-                    
-                    {/* <div className="mt-6 pt-4 border-t border-gray-100">
-                      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                        Support Area {index + 1}
+                  </button>
+
+                  {openIndex === index && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="px-6 pb-6 pt-0 text-sm text-gray-600"
+                    >
+                      <div className="mb-3">{area.description}</div>
+                      <div className="space-y-2">
+                        {area.features.map((feature, idx) => (
+                          <div key={idx} className="flex items-start gap-2 text-sm text-gray-500">
+                            <div className="w-1.5 h-1.5 mt-1 bg-primary-400 rounded-full"></div>
+                            <div>{feature}</div>
+                          </div>
+                        ))}
                       </div>
-                    </div> */}
-                  </div>
-                </motion.div>
+                    </motion.div>
+                  )}
+                </div>
               ))}
             </div>
           </motion.div>
