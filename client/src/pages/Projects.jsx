@@ -706,7 +706,7 @@ const ProjectCard = ({ project, index }) => {
           </p>
 
           {/* Project Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          {/* <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-gray-900 mb-1">
                 {(project.beneficiaries || 0).toLocaleString()}
@@ -727,7 +727,7 @@ const ProjectCard = ({ project, index }) => {
               </div>
               <div className="text-xs text-gray-500">Partners</div>
             </div>
-          </div>
+          </div> */}
 
           {/* Location */}
           {project.location && (
