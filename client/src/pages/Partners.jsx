@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import {
   FaHandshake,
-  FaFilter,
   FaSearch,
   FaTimes,
   FaBuilding,
@@ -125,60 +124,6 @@ const Partners = () => {
         </div>
       </section>
 
-      {/* Filter Controls */}
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            {/* Search Bar */}
-            <div className="mb-8">
-              <div className="relative max-w-xl mx-auto">
-                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search partners..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:outline-none"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm("")}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <FaTimes />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Partner Type Filters */}
-            <div className="flex flex-wrap justify-center gap-2 mb-8">
-              {partnerTypes.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => setSelectedType(type.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    selectedType === type.id
-                      ? `bg-gradient-to-r ${type.color} text-white shadow-lg`
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {type.icon}
-                  <span>{type.name}</span>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    selectedType === type.id
-                      ? 'bg-white/20'
-                      : 'bg-gray-200 text-gray-700'
-                  }`}>
-                    {typeCounts[type.id] || 0}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Partners Grid - Logos Only */}
       <section className="py-12 bg-gray-50 min-h-[60vh]">
         <div className="container mx-auto px-4">
@@ -201,25 +146,6 @@ const Partners = () => {
                 Try Again
               </button>
             </div>
-          ) : filteredPartners.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
-                <FaSearch className="text-2xl text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-semibold text-gray-800 mb-3">No partners found</h3>
-              <p className="text-gray-600 mb-6">
-                Try adjusting your search or filter criteria
-              </p>
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedType("all");
-                }}
-                className="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-              >
-                Clear Filters
-              </button>
-            </div>
           ) : (
             <>
               <div className="text-center mb-12">
@@ -227,13 +153,13 @@ const Partners = () => {
                   Partner <span className="text-primary-600">Network</span>
                 </h2>
                 <p className="text-gray-600">
-                  Showing {filteredPartners.length} of {partners.length} partners
+                  Showing {partners.length} partners
                 </p>
               </div>
 
               {/* Logos Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                {filteredPartners.map((partner, index) => (
+              <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-8">
+                {partners.map((partner, index) => (
                   <motion.div
                     key={partner._id || partner.id || index}
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -259,8 +185,8 @@ const Partners = () => {
                         />
                       </div>
                       
-                      {/* Partner Name - Only visible on hover or smaller */}
-                      <div className="text-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {/* Partner Name - Always visible */}
+                      <div className="text-center mt-2 opacity-100 transition-opacity duration-300">
                         <h3 className="font-semibold text-gray-800 text-sm line-clamp-2">
                           {partner.name || "Partner"}
                         </h3>
