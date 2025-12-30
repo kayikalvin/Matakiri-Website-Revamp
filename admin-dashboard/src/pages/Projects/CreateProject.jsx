@@ -164,14 +164,16 @@ const CreateProject = () => {
     }).format(amount);
   };
 
-  const categoryIcons = {
-    education: '📚',
-    health: '🏥',
-    agriculture: '🌾',
-    infrastructure: '🏗️',
-    environment: '🌿',
-    livelihood: '💼'
-  };
+  // Categories as defined in the backend model
+  const categories = [
+    'agriculture',
+    'education',
+    'health',
+    'water',
+    'ai',
+    'innovation',
+    'community'
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-100 p-4 md:p-6">
@@ -282,9 +284,9 @@ const CreateProject = () => {
                           required
                           className="w-full p-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none transition-all bg-white"
                         >
-                          {Object.entries(categoryIcons).map(([value, icon]) => (
+                          {categories.map((value) => (
                             <option key={value} value={value}>
-                              {icon} {value.charAt(0).toUpperCase() + value.slice(1)}
+                              {value.charAt(0).toUpperCase() + value.slice(1)}
                             </option>
                           ))}
                         </select>

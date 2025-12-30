@@ -112,12 +112,19 @@ const EditNews = () => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    // Use event.submitter to get which button was pressed
+    const status = e.nativeEvent.submitter?.value || formData.status;
+    // Map status to published boolean for backend
+    const published = status === 'published';
     const payload = {
       ...formData,
+      published,
       tags: typeof formData.tags === 'string' 
         ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) 
         : formData.tags
     };
+    // Remove status field from payload if present
+    delete payload.status;
     const doUpdate = async () => {
       if (featuredImageFile) {
         const formDataObj = new FormData();
@@ -597,7 +604,6 @@ const EditNews = () => {
                         value="draft"
                         disabled={submitting}
                         className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setFormData({...formData, status: 'draft'})}
                       >
                         Save Draft
                       </button>
@@ -607,7 +613,6 @@ const EditNews = () => {
                         value="published"
                         disabled={submitting}
                         className="px-6 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={() => setFormData({...formData, status: 'published'})}
                       >
                         {submitting ? 'Updating...' : 'Update & Publish'}
                       </button>

@@ -105,11 +105,16 @@ import { Link } from 'react-router-dom';
 import { FaCalendar, FaUser, FaEye, FaHeart } from 'react-icons/fa';
 
 const NewsCard = ({ news }) => {
+  const imageSrc =
+    news?.featuredImage ||
+    news?.image ||
+    (news?.images && Array.isArray(news.images) && news.images[0]?.url) ||
+    'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
       <div className="h-48 overflow-hidden">
         <img
-          src={news?.image || 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'}
+          src={imageSrc}
           alt={news?.title || 'News'}
           className="w-full h-full object-cover"
         />
