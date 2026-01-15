@@ -284,7 +284,7 @@ const Projects = () => {
             {/* Enhanced Filter Controls */}
             <div className="mb-8">
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
+                <div className="hidden md:flex items-center gap-4">
                   <div className="flex items-center gap-2 text-gray-700 font-medium">
                     <FaFilter className="text-primary-500" />
                     <span>Filter Projects</span>
@@ -310,7 +310,7 @@ const Projects = () => {
                 </div>
 
                 {/* View Mode Toggle */}
-                <div className="flex items-center gap-4">
+                <div className="hidden md:flex items-center gap-4">
                   <div className="flex bg-gray-100 rounded-lg p-1">
                     <button
                       onClick={() => setViewMode("grid")}

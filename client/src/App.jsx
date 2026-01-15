@@ -12,6 +12,7 @@ import News from './pages/News.jsx';
 import Gallery from './pages/Gallery.jsx';
 import Contact from './pages/Contact.jsx';  
 import Team from './pages/Team.jsx';
+import Non from './pages/Non.jsx';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="gallery" element={<Gallery />} />
           <Route path="contact" element={<Contact />} />
         </Route>
+          <Route path="*" element={<Non />} />
       </Routes>
     </>
   );
