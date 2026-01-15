@@ -183,7 +183,7 @@ const About = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div id="about" className="bg-gray-50">
       {/* Hero Section */}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
