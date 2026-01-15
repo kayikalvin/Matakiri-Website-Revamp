@@ -129,54 +129,8 @@ const Header = () => {
 
   return (
     <>
-      {/* Top Bar - Contact & Social (Compact) */}
-      <div className="bg-gradient-to-r from-emerald-700 to-emerald-800 text-white font-sans hidden sm:block">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center py-1.5 md:py-1">
-            {/* Contact Info */}
-            <div className="flex items-center gap-3 md:gap-4 text-xs">
-              {contactInfo.map((info, index) => (
-                <div key={index} className="flex items-center gap-1.5 group">
-                  <div className="text-emerald-300 text-xs group-hover:text-white transition-colors">
-                    {info.icon}
-                  </div>
-                  <span className="group-hover:text-emerald-100 transition-colors whitespace-nowrap">
-                    {info.text}
-                  </span>
-                </div>
-              ))}
-            </div>
 
-            {/* Social Links & Admin */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 border-r border-emerald-600 pr-2">
-                {socialLinks.map((social, index) => (
-                  <a
-                    key={index}
-                    href={social.href}
-                    aria-label={social.label}
-                    className="text-emerald-200 hover:text-white transition-colors text-sm"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {social.icon}
-                  </a>
-                ))}
-              </div>
-              <a
-                href={ADMIN_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-1 px-2.5 py-1 bg-white text-emerald-700 text-xs font-semibold rounded hover:bg-emerald-50 transition-colors shadow-sm flex items-center gap-1"
-              >
-                <FaTachometerAlt className="text-xs" />
-                <span className="hidden md:inline">Admin</span>
-                <span className="md:hidden">Login</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Main Navigation (Compact) */}
       <nav className={`bg-white shadow-sm sticky top-0 z-50 font-sans transition-all duration-300 relative ${
@@ -313,7 +267,7 @@ const Header = () => {
                   </div>
 
                   {/* Admin Link in Mobile Menu */}
-                  <div className="mt-4 pt-4 border-t border-gray-100">
+                  {/* <div className="mt-4 pt-4 border-t border-gray-100">
                     <a
                       href={ADMIN_URL}
                       target="_blank"
@@ -324,7 +278,7 @@ const Header = () => {
                       <FaTachometerAlt className="text-emerald-600 text-lg" />
                       <span>Admin Dashboard</span>
                     </a>
-                  </div>
+                  </div> */}
                 </div>
               </motion.div>
             </>

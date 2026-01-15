@@ -213,8 +213,8 @@ const HeroSection = () => {
               transition={{ delay: 0.4 }}
               className="flex flex-col sm:flex-row gap-4 pt-4"
             >
-              <Link
-                to="/programs"
+              {/* <Link
+                to="#programs"
                 className="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-2xl hover:shadow-primary-500/40 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
               >
                 <span className="relative z-10 flex items-center">
@@ -227,15 +227,15 @@ const HeroSection = () => {
                   whileHover={{ x: 0 }}
                   transition={{ duration: 0.3 }}
                 />
-              </Link>
+              </Link> */}
               
-              <Link
-                to="/ai-projects"
+              {/* <Link
+                to="#projects"
                 className="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary-100/40 to-accent-100/40 backdrop-blur-sm text-primary-700 font-semibold rounded-xl border-2 border-primary-200 hover:border-accent-500 hover:bg-primary-100/60 transition-all duration-300 hover:-translate-y-1 shadow-lg"
               >
                 <FaRocket className="mr-3 group-hover:rotate-12 transition-transform" />
                 <span>AI Initiatives</span>
-              </Link>
+              </Link> */}
             </motion.div>
           </motion.div>
 
