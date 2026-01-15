@@ -213,13 +213,13 @@ const StatsSection = () => {
               </div>
             </div>
             
-            <Link to="/contact">
+            {/* <Link to="/contact">
               <button className="ml-4 px-6 py-2 bg-emerald-600 text-white 
                             font-medium rounded-lg hover:bg-emerald-700 
                             transition-colors duration-300">
                 Partner With Us
               </button>
-            </Link>
+            </Link> */}
           </div>
         </motion.div>
       </div>

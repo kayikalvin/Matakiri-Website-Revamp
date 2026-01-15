@@ -133,7 +133,7 @@ const PartnersShowcase = () => {
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-16">
+        {/* <div className="text-center mt-16">
           <Link
             to="/partners"
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-full font-semibold hover:shadow-xl hover:shadow-primary-500/30 transition-all duration-300 group"
@@ -144,7 +144,7 @@ const PartnersShowcase = () => {
           <p className="text-gray-500 text-sm mt-4">
             Discover how we collaborate with organizations to create lasting impact
           </p>
-        </div>
+        </div> */}
       </div>
 
       {/* CSS Animation */}

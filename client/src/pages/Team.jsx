@@ -126,7 +126,7 @@ const advisoryTeam = [
   },
   {
     name: "Kalvin Kayi",
-    role: "Data Scientist",
+    role: "Developer",
     image: "/team/kayi.png",
     bio: `Data scientist with expertise in machine learning, data analysis, and statistical modeling.`,
     category: "advisory"
@@ -380,7 +380,7 @@ const Team = () => {
         )}
 
         {/* Footer note */}
-        <div className="mt-12 pt-8 border-t border-neutral-300 text-center">
+        {/* <div className="mt-12 pt-8 border-t border-neutral-300 text-center">
           <p className="text-neutral-400 mb-4 max-w-2xl mx-auto">
             Our team brings together diverse expertise from education, technology, healthcare, and community development 
             to drive innovation and create meaningful impact.
@@ -399,7 +399,7 @@ const Team = () => {
               </svg>
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

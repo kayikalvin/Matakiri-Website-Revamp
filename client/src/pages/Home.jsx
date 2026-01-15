@@ -8,6 +8,11 @@ import PartnersShowcase from '../components/Home/PartnersShowcase';
 import CallToAction from '../components/Home/CallToAction';
 import HeroSection from '../components/Home/HeroSection';
 import StatsSection from '../components/Home/StatsSection';
+import Contact from '../pages/Contact';
+import Projects from '../pages/Projects';
+import Gallery from '../pages/Gallery';
+import Team from '../pages/Team';
+import About from '../pages/About';
 
 
 
@@ -25,13 +30,18 @@ const Home = () => {
         transition={{ duration: 0.5 }}
       >
         <HeroSection />
+        <About/>
         <PartnersShowcase />
         <StatsSection />
         {/* Comment out other components until we fix the imports */}
-        <FeaturedProjects />
-        <AIInitiatives />
-        <LatestNews />
+        {/* <FeaturedProjects /> */}
+        <Projects/>
+        <Gallery/>
+        {/* <AIInitiatives /> */}
+        <Team/>
         <CallToAction /> 
+        <LatestNews />
+        <Contact/>
       </motion.div>
     </>
   );

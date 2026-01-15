@@ -371,7 +371,7 @@ const LatestNews = () => {
         )}
 
         {/* View All Button */}
-        <div className="text-center">
+        {/* <div className="text-center">
           <Link
             to="/news"
             className="inline-flex items-center bg-emerald-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors duration-300"
@@ -379,7 +379,7 @@ const LatestNews = () => {
             View All News
             <FaArrowRight className="w-4 h-4 ml-2" />
           </Link>
-        </div>
+        </div> */}
       </div>
     </section>
   );

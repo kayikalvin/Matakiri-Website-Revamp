@@ -94,7 +94,7 @@ const Gallery = () => {
         <meta name="description" content="Browse our collection of photos and videos showcasing our projects, community activities, and impact stories." />
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className=" bg-gray-50">
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-primary-700 to-primary-900 text-white py-16">
           <div className="container mx-auto px-4">
@@ -104,12 +104,12 @@ const Gallery = () => {
               className="text-center max-w-3xl mx-auto"
             >
               <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-6">
-                <FaImage className="text-3xl" />
+                <FaImage className="text-xl" />
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold font-display mb-6">
+              <h1 className="text-4xl md:text-3xl font-bold font-display mb-6">
                 Our Gallery
               </h1>
-              <p className="text-xl text-gray-200">
+              <p className="text-lg text-gray-200">
                 Visual stories of impact, innovation, and community transformation.
               </p>
             </motion.div>
@@ -117,7 +117,7 @@ const Gallery = () => {
         </section>
 
         {/* Filter Section */}
-        <section className="py-8 bg-white sticky top-0 z-10 shadow-sm">
+        {/* <section className="py-8 bg-white sticky top-0 z-10 shadow-sm">
           <div className="container mx-auto px-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center">
@@ -142,7 +142,7 @@ const Gallery = () => {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Gallery Grid */}
         <section className="py-12">
@@ -265,7 +265,7 @@ const Gallery = () => {
         </section>
 
         {/* Stats */}
-        <section className="py-12 bg-white">
+        {/* <section className="py-12 bg-white">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center">
@@ -288,10 +288,10 @@ const Gallery = () => {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Call to Action */}
-        <section className="py-16 bg-gradient-to-r from-primary-50 to-primary-100">
+        {/* <section className="py-16 bg-gradient-to-r from-primary-50 to-primary-100">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">
               Share Your Photos With Us
@@ -307,7 +307,7 @@ const Gallery = () => {
               Submit Media
             </Link>
           </div>
-        </section>
+        </section> */}
 
         {/* Lightbox Modal */}
         <AnimatePresence>
