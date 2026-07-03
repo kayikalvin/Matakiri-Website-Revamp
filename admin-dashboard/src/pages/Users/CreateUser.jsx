@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeftIcon, 
+import {
   UserPlusIcon,
-  UserIcon,
-  EnvelopeIcon,
-  PhoneIcon,
   ShieldCheckIcon,
   EyeIcon,
   EyeSlashIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { usersAPI } from '../../services/api';
 import { Toaster, toast } from 'react-hot-toast';
+import FormShell, { FormSection } from '../../components/Common/FormShell';
 
 const CreateUser = () => {
   const navigate = useNavigate();
@@ -23,30 +20,53 @@ const CreateUser = () => {
     role: 'editor',
     department: '',
     position: '',
-    bio: ''
+    bio: '',
   });
-  
   const [passwords, setPasswords] = useState({
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
 
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handlePasswordChange = (e) => {
+    setPasswords(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const passwordStrength = (password) => {
+    if (!password) return { score: 0, label: 'None' };
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    const labels = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+    return { score, label: labels[score] };
+  };
+  const strength = passwordStrength(passwords.password);
+
+  const isFormValid = () =>
+    formData.name.trim() !== '' &&
+    formData.email.trim() !== '' &&
+    passwords.password.length >= 6 &&
+    passwords.password === passwords.confirmPassword;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    
-    // Validate passwords
+
     if (passwords.password !== passwords.confirmPassword) {
       setError('Passwords do not match.');
       toast.error('Passwords do not match.');
       return;
     }
-    
     if (passwords.password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+      setError('Password must be at least 6 characters.');
       toast.error('Password must be at least 6 characters.');
       return;
     }
@@ -61,404 +81,225 @@ const CreateUser = () => {
         password: passwords.password,
         department: formData.department,
         position: formData.position,
-        bio: formData.bio
+        bio: formData.bio,
       });
-      
       toast.success('User created successfully!');
       navigate('/users');
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Failed to create user.';
-      setError(errorMsg);
-      toast.error(errorMsg);
+      const msg = err.response?.data?.message || 'Failed to create user.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  const renderInput = (name, label, type = 'text', placeholder = '', options = null, rows = 0) => (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500">
+        {label} {['name', 'email'].includes(name) && <span className="text-laterite-500">*</span>}
+      </label>
+      {type === 'select' ? (
+        <select
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 outline-none focus:border-laterite-500 transition-colors"
+        >
+          {options.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      ) : type === 'textarea' ? (
+        <textarea
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          placeholder={placeholder}
+          rows={rows || 3}
+          className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 resize-none outline-none focus:border-laterite-500 transition-colors"
+        />
+      ) : (
+        <input
+          type={type}
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          placeholder={placeholder}
+          className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 outline-none focus:border-laterite-500 transition-colors"
+        />
+      )}
+    </div>
+  );
 
-  const handlePasswordChange = (e) => {
-    setPasswords({
-      ...passwords,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const passwordStrength = (password) => {
-    if (!password) return { score: 0, label: 'None' };
-    
-    let score = 0;
-    if (password.length >= 8) score += 1;
-    if (/[A-Z]/.test(password)) score += 1;
-    if (/[0-9]/.test(password)) score += 1;
-    if (/[^A-Za-z0-9]/.test(password)) score += 1;
-    
-    const labels = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
-    return { score, label: labels[score] };
-  };
-
-  const strength = passwordStrength(passwords.password);
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <Toaster position="top-right" />
-      
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate('/users')}
-            className="inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-6 group"
-          >
-            <ArrowLeftIcon className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Back to Users
-          </button>
-          
-          <div className="flex items-start space-x-4">
-            <div className="h-12 w-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-              <UserPlusIcon className="h-6 w-6 text-primary-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Add New User</h1>
-              <p className="text-gray-600 mt-1">Create a new user account with specific permissions</p>
-              
-              {/* Information Card */}
-              <div className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-4 max-w-2xl">
-                <div className="flex items-start">
-                  <InformationCircleIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-blue-700">
-                      Fields marked with <span className="text-red-500 font-semibold">*</span> are required. 
-                      Ensure the email is correct as a verification link may be sent.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Form Container */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="p-6 md:p-8">
-            {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
-                <InformationCircleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
-                <div className="text-red-700 text-sm">{error}</div>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Column 1 - Basic Information */}
-                <div className="lg:col-span-2 space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b border-gray-200">
-                    Basic Information
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-semibold text-gray-800 mb-2">
-                        Full Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        required
-                        value={formData.name}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        placeholder="John Doe"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-semibold text-gray-800 mb-2">
-                        Email Address <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        required
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        placeholder="user@matakiritrust.org"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-semibold text-gray-800 mb-2">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        placeholder="+254112727453"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="position" className="block text-sm font-semibold text-gray-800 mb-2">
-                        Position / Title
-                      </label>
-                      <input
-                        type="text"
-                        id="position"
-                        name="position"
-                        value={formData.position}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        placeholder="e.g., Marketing Manager"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="department" className="block text-sm font-semibold text-gray-800 mb-2">
-                      Department
-                    </label>
-                    <select
-                      id="department"
-                      name="department"
-                      value={formData.department}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all"
-                    >
-                      <option value="">Select Department</option>
-                      <option value="Administration">Administration</option>
-                      <option value="Marketing">Marketing</option>
-                      <option value="Sales">Sales</option>
-                      <option value="Engineering">Engineering</option>
-                      <option value="Support">Support</option>
-                      <option value="Finance">Finance</option>
-                      <option value="HR">Human Resources</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="bio" className="block text-sm font-semibold text-gray-800 mb-2">
-                      Bio / Description
-                    </label>
-                    <textarea
-                      id="bio"
-                      name="bio"
-                      rows="3"
-                      value={formData.bio}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                      placeholder="Brief description about the user..."
-                    />
-                  </div>
-                </div>
-
-                {/* Column 2 - Account & Security */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 pb-2 border-b border-gray-200">
-                    Account & Security
-                  </h3>
-
-                  <div>
-                    <label htmlFor="role" className="block text-sm font-semibold text-gray-800 mb-2">
-                      Role <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="role"
-                        name="role"
-                        value={formData.role}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all appearance-none"
-                      >
-                        <option value="viewer">Viewer (Read only)</option>
-                        <option value="editor">Editor (Create & Edit)</option>
-                        <option value="admin">Administrator (Full access)</option>
-                        <option value="manager">Manager (Team management)</option>
-                      </select>
-                      <ShieldCheckIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-                    </div>
-                    <div className="mt-3 space-y-2">
-                      <div className={`p-3 rounded-lg border ${formData.role === 'viewer' ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
-                        <div className="font-medium text-gray-900">Viewer</div>
-                        <div className="text-sm text-gray-600 mt-1">Can only view content, no editing rights</div>
-                      </div>
-                      <div className={`p-3 rounded-lg border ${formData.role === 'editor' ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
-                        <div className="font-medium text-gray-900">Editor</div>
-                        <div className="text-sm text-gray-600 mt-1">Can create and edit content, moderate comments</div>
-                      </div>
-                      <div className={`p-3 rounded-lg border ${formData.role === 'admin' ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
-                        <div className="font-medium text-gray-900">Administrator</div>
-                        <div className="text-sm text-gray-600 mt-1">Full system access including user management</div>
-                      </div>
-                      <div className={`p-3 rounded-lg border ${formData.role === 'manager' ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
-                        <div className="font-medium text-gray-900">Manager</div>
-                        <div className="text-sm text-gray-600 mt-1">Can manage team members and moderate content</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-gray-200">
-                    <h4 className="text-sm font-semibold text-gray-800 mb-4">
-                      Password <span className="text-red-500">*</span>
-                    </h4>
-                    
-                    <div className="space-y-4">
-                      <div className="relative">
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                          Password
-                        </label>
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          id="password"
-                          name="password"
-                          required
-                          value={passwords.password}
-                          onChange={handlePasswordChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pr-10"
-                          placeholder="Create a strong password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-9 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        >
-                          {showPassword ? (
-                            <EyeSlashIcon className="h-5 w-5" />
-                          ) : (
-                            <EyeIcon className="h-5 w-5" />
-                          )}
-                        </button>
-                      </div>
-
-                      <div>
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                          Confirm Password
-                        </label>
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          required
-                          value={passwords.confirmPassword}
-                          onChange={handlePasswordChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                          placeholder="Confirm your password"
-                        />
-                      </div>
-
-                      {/* Password Strength Indicator */}
-                      {passwords.password && (
-                        <div className="mt-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium text-gray-700">
-                              Password Strength: <span className={`font-semibold ${
-                                strength.score >= 3 ? 'text-green-600' :
-                                strength.score >= 2 ? 'text-yellow-600' :
-                                'text-red-600'
-                              }`}>
-                                {strength.label}
-                              </span>
-                            </span>
-                          </div>
-                          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full transition-all duration-300 ${
-                                strength.score >= 3 ? 'bg-green-500' :
-                                strength.score >= 2 ? 'bg-yellow-500' :
-                                'bg-red-500'
-                              }`}
-                              style={{ width: `${(strength.score / 4) * 100}%` }}
-                            />
-                          </div>
-                          <div className="mt-3 text-xs text-gray-500">
-                            <p>Password should contain:</p>
-                            <ul className="list-disc pl-5 mt-1 space-y-1">
-                              <li className={passwords.password.length >= 8 ? 'text-green-600' : 'text-gray-400'}>
-                                At least 8 characters
-                              </li>
-                              <li className={/[A-Z]/.test(passwords.password) ? 'text-green-600' : 'text-gray-400'}>
-                                One uppercase letter
-                              </li>
-                              <li className={/[0-9]/.test(passwords.password) ? 'text-green-600' : 'text-gray-400'}>
-                                One number
-                              </li>
-                              <li className={/[^A-Za-z0-9]/.test(passwords.password) ? 'text-green-600' : 'text-gray-400'}>
-                                One special character
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Form Actions */}
-              <div className="pt-8 border-t border-gray-200">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div className="text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <InformationCircleIcon className="h-4 w-4 mr-2" />
-                      <span>All fields marked with * are required</span>
-                    </div>
-                  </div>
-                  <div className="flex space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => navigate('/users')}
-                      className="px-6 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                      disabled={loading}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="px-6 py-3 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Creating...
-                        </>
-                      ) : (
-                        'Create User'
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
+  // Custom footer with info text
+  const footerChildren = (
+    <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-3 pt-4 border-t border-border">
+      <div className="text-xs text-ink-500 flex items-center gap-2">
+        <InformationCircleIcon className="h-4 w-4" />
+        All fields marked with * are required
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => navigate('/users')}
+          disabled={loading}
+          className="px-4 py-2 border border-border text-ink-800 text-sm hover:bg-parchment-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="px-5 py-2 bg-soil-900 text-parchment-50 text-sm font-medium hover:bg-ink-800 transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Creating…' : 'Create User'}
+        </button>
       </div>
     </div>
+  );
+
+  return (
+    <FormShell
+      title="Add New User"
+      subtitle="Create a new user account with specific permissions"
+      backPath="/users"
+      error={error}
+      loading={loading}
+      isValid={isFormValid()}
+      onSubmit={handleSubmit}
+      submitLabel=""
+      footerChildren={footerChildren}
+    >
+      {/* Info banner */}
+      <div className="border border-border bg-parchment-50 p-4 text-xs text-ink-500 flex items-start gap-2">
+        <InformationCircleIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+        <span>Fields marked with <span className="text-laterite-500">*</span> are required. An email verification link may be sent.</span>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Basic info column */}
+        <div className="lg:col-span-2 space-y-8">
+          <FormSection title="Basic Information">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderInput('name', 'Full Name')}
+              {renderInput('email', 'Email Address', 'email', 'user@matakiritrust.org')}
+              {renderInput('phone', 'Phone Number', 'tel', '+254...')}
+              {renderInput('position', 'Position / Title', 'text', 'e.g., Manager')}
+            </div>
+            {renderInput('department', 'Department', 'select', '', [
+              { value: '', label: 'None' },
+              { value: 'Administration', label: 'Administration' },
+              { value: 'Marketing', label: 'Marketing' },
+              { value: 'Sales', label: 'Sales' },
+              { value: 'Engineering', label: 'Engineering' },
+              { value: 'Support', label: 'Support' },
+              { value: 'Finance', label: 'Finance' },
+              { value: 'HR', label: 'Human Resources' },
+              { value: 'Other', label: 'Other' },
+            ])}
+            {renderInput('bio', 'Bio / Description', 'textarea', 'Brief description…', null, 3)}
+          </FormSection>
+        </div>
+
+        {/* Permissions & Password column */}
+        <div className="space-y-8">
+          <FormSection title="Account & Security">
+            <div className="space-y-4">
+              {renderInput('role', 'Role', 'select', '', [
+                { value: 'viewer', label: 'Viewer (Read only)' },
+                { value: 'editor', label: 'Editor (Create & Edit)' },
+                { value: 'admin', label: 'Administrator (Full access)' },
+                { value: 'manager', label: 'Manager (Team management)' },
+              ])}
+              
+              {/* Role descriptions */}
+              <div className="text-xs space-y-2 mt-2">
+                {[
+                  { role: 'viewer', title: 'Viewer', desc: 'Can only view content, no editing rights' },
+                  { role: 'editor', title: 'Editor', desc: 'Can create and edit content, moderate comments' },
+                  { role: 'admin', title: 'Administrator', desc: 'Full system access including user management' },
+                  { role: 'manager', title: 'Manager', desc: 'Can manage team members and moderate content' },
+                ].map(r => (
+                  <div
+                    key={r.role}
+                    className={`border p-3 ${formData.role === r.role ? 'border-laterite-500/50 bg-laterite-50' : 'border-border'}`}
+                  >
+                    <div className="font-medium text-ink-800">{r.title}</div>
+                    <div className="text-ink-500 mt-0.5">{r.desc}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Password fields */}
+              <div className="pt-4 border-t border-border space-y-4">
+                <h4 className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-500">
+                  Password <span className="text-laterite-500">*</span>
+                </h4>
+                <div className="relative">
+                  <label className="block text-xs text-ink-500 mb-1">Password</label>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={passwords.password}
+                    onChange={handlePasswordChange}
+                    placeholder="Create a strong password"
+                    className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 outline-none focus:border-laterite-500 transition-colors pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-9 -translate-y-1/2 text-ink-500 hover:text-ink-800"
+                  >
+                    {showPassword ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-xs text-ink-500 mb-1">Confirm Password</label>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    value={passwords.confirmPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Confirm your password"
+                    className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 outline-none focus:border-laterite-500 transition-colors"
+                  />
+                </div>
+
+                {/* Strength indicator */}
+                {passwords.password && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-ink-500">Strength</span>
+                      <span className={`font-semibold ${
+                        strength.score >= 3 ? 'text-acacia-600' : strength.score >= 2 ? 'text-maize-600' : 'text-laterite-600'
+                      }`}>
+                        {strength.label}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-ink-500/10">
+                      <div
+                        className={`h-full transition-all ${
+                          strength.score >= 3 ? 'bg-acacia-500' : strength.score >= 2 ? 'bg-maize-500' : 'bg-laterite-500'
+                        }`}
+                        style={{ width: `${(strength.score / 4) * 100}%` }}
+                      />
+                    </div>
+                    <ul className="text-xs text-ink-500 space-y-0.5 list-disc list-inside">
+                      <li className={passwords.password.length >= 8 ? 'text-acacia-600' : ''}>At least 8 characters</li>
+                      <li className={/[A-Z]/.test(passwords.password) ? 'text-acacia-600' : ''}>One uppercase letter</li>
+                      <li className={/[0-9]/.test(passwords.password) ? 'text-acacia-600' : ''}>One number</li>
+                      <li className={/[^A-Za-z0-9]/.test(passwords.password) ? 'text-acacia-600' : ''}>One special character</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </FormSection>
+        </div>
+      </div>
+    </FormShell>
   );
 };
 
 export default CreateUser;
-
-
-
-
-
-
-
-
-
-
-
-
