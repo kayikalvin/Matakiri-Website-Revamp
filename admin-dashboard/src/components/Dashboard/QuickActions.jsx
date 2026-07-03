@@ -11,30 +11,21 @@ const actions = [
 
 const QuickActions = () => {
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-      <div className="grid grid-cols-2 gap-4">
-        {actions.map((action) => (
-          <Link
-            key={action.title}
-            to={action.href}
-            className="group relative bg-white p-4 focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary-500 rounded-lg border border-primary-100 hover:border-primary-500 transition-colors"
-          >
-            <div>
-              <span className="rounded-lg inline-flex p-3 bg-primary-50 text-primary-700 ring-4 ring-white">
-                <action.icon className="h-6 w-6" aria-hidden="true" />
-              </span>
-            </div>
-            <div className="mt-4">
-              <h3 className="text-sm font-medium text-gray-900">
-                <span className="absolute inset-0" aria-hidden="true" />
-                {action.title}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">{action.description}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+    <div className="grid grid-cols-2 gap-3">
+      {actions.map((action) => (
+        <Link
+          key={action.title}
+          to={action.href}
+          className="group relative bg-white/5 hover:bg-white/10 border border-white/10 hover:border-laterite-500/50 p-4 transition-colors"
+        >
+          <action.icon className="h-5 w-5 text-maize-400 mb-3" aria-hidden="true" />
+          <h3 className="text-sm font-medium text-parchment-50">
+            <span className="absolute inset-0" aria-hidden="true" />
+            {action.title}
+          </h3>
+          <p className="mt-1 text-xs text-parchment-100/60">{action.description}</p>
+        </Link>
+      ))}
     </div>
   );
 };
