@@ -1,102 +1,87 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, Search, ArrowLeft } from 'lucide-react';
+import { HomeIcon, ArrowLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { Link } from 'react-router-dom';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-lime-50 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-green-400 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              opacity: [0.2, 1, 0.2],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 2 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
+    <div className="min-h-screen bg-soil-900 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Subtle background texture */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(circle at 25px 25px, #F7F3EA 1px, transparent 1px)`,
+            backgroundSize: '50px 50px',
+          }}
+        />
       </div>
 
       {/* Main content */}
       <div className="relative z-10 text-center max-w-2xl">
+        {/* 404 Number */}
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="mb-8"
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="mb-6"
         >
-          <motion.h1
-            className="text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-600"
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
+          <h1 className="font-display text-[10rem] md:text-[14rem] font-light leading-none text-parchment-50 tracking-tight">
             404
-          </motion.h1>
+          </h1>
         </motion.div>
 
+        {/* Message */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
+          className="space-y-4"
         >
-          <h2 className="text-4xl font-bold text-green-900 mb-4">
-            Page Not Found
+          <h2 className="font-display text-2xl md:text-3xl font-medium text-parchment-50">
+            Page not found
           </h2>
-          <p className="text-green-700 text-lg mb-8">
-            Oops! The page you're looking for seems to have drifted into the void. 
-            Let's get you back on track.
+          <p className="text-parchment-100/60 text-sm max-w-md mx-auto leading-relaxed">
+            The page you're looking for doesn't exist or has been moved. Let's get you back to solid ground.
           </p>
         </motion.div>
 
-        {/* Floating icon */}
+        {/* Divider */}
         <motion.div
-          className="flex justify-center mb-8"
-          animate={{ rotate: [0, 10, -10, 0] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        >
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center border-4 border-green-300">
-            <Search className="w-12 h-12 text-green-600" />
-          </div>
-        </motion.div>
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="w-16 h-px bg-laterite-500/50 mx-auto my-8"
+        />
 
-        {/* Buttons */}
+        {/* Action buttons */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center"
+          className="flex flex-col sm:flex-row gap-3 justify-center"
         >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-6 py-3 bg-green-400 hover:bg-green-600 text-white font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg"
-            onClick={() => window.location.href = '/'}
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center gap-2 bg-laterite-500 hover:bg-laterite-600 text-white px-6 py-3 text-sm font-medium transition-colors"
           >
-            <Home className="w-5 h-5" />
+            <HomeIcon className="h-4 w-4" />
             Go Home
-          </motion.button>
+          </Link>
 
-          {/* <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-lg flex items-center justify-center gap-2 border border-slate-700 transition-colors"
+          <button
             onClick={() => window.history.back()}
+            className="inline-flex items-center justify-center gap-2 border border-parchment-100/30 hover:border-laterite-500 text-parchment-50 px-6 py-3 text-sm font-medium transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeftIcon className="h-4 w-4" />
             Go Back
-          </motion.button> */}
+          </button>
         </motion.div>
+
+        {/* Footer note */}
+        <p className="mt-12 text-xs font-mono text-parchment-100/30">
+          Matakiri Tumaini Centre
+        </p>
       </div>
     </div>
   );
