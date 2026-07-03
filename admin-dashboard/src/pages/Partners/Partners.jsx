@@ -1,106 +1,48 @@
-﻿import { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { partnersAPI } from '../../services/api';
 import { Toaster, toast } from 'react-hot-toast';
 import {
-  UserGroupIcon,
+  PlusIcon,
   PencilIcon,
   TrashIcon,
-  PlusIcon,
-  PhoneIcon,
-  BuildingOfficeIcon,
-  GlobeAltIcon,
-  EnvelopeIcon,
-  CalendarIcon,
   ArrowPathIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ChevronRightIcon,
-  FunnelIcon,
-  MagnifyingGlassIcon,
-  ChartBarIcon,
-  ShieldCheckIcon,
   UsersIcon,
-  BriefcaseIcon
+  CheckCircleIcon,
+  BriefcaseIcon,
+  ShieldCheckIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  GlobeAltIcon,
+  CalendarIcon,
 } from '@heroicons/react/24/outline';
-import { partnersAPI } from '../../services/api';
+import FilterBar from '../../components/Common/FilterBar';
+import CardGrid from '../../components/Common/CardGrid';
+import DataTable from '../../components/Common/DataTable';
+import StatusBadge from '../../components/Common/StatusBadge';
+import StatCard from '../../components/Common/StatCard';
 
 const Partners = () => {
   const [partners, setPartners] = useState([]);
-  const [filteredPartners, setFilteredPartners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    inactive: 0,
-    ngo: 0,
-    corporate: 0,
-    government: 0,
-    community: 0
-  });
+  const [viewMode, setViewMode] = useState('grid');
 
-  useEffect(() => {
-    fetchPartners();
-  }, []);
-
-  useEffect(() => {
-    if (partners.length > 0) {
-      const total = partners.length;
-      const active = partners.filter(p => p.isActive === true || p.status === 'active').length;
-      const inactive = partners.filter(p => p.isActive === false || p.status === 'inactive').length;
-      const ngo = partners.filter(p => p.type === 'NGO' || p.type?.toLowerCase().includes('ngo')).length;
-      const corporate = partners.filter(p => p.type === 'Corporate' || p.type?.toLowerCase().includes('corporate')).length;
-      const government = partners.filter(p => p.type === 'Government' || p.type?.toLowerCase().includes('government')).length;
-      const community = partners.filter(p => p.type === 'Community' || p.type?.toLowerCase().includes('community')).length;
-      
-      setStats({
-        total,
-        active,
-        inactive,
-        ngo,
-        corporate,
-        government,
-        community
-      });
-    }
-  }, [partners]);
-
-  useEffect(() => {
-    // Filter partners based on search and filters
-    const filtered = partners.filter(partner => {
-      const matchesSearch = 
-        (partner.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (partner.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (partner.type || '').toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = 
-        statusFilter === 'all' || 
-        (statusFilter === 'active' && (partner.isActive === true || partner.status === 'active')) ||
-        (statusFilter === 'inactive' && (partner.isActive === false || partner.status === 'inactive'));
-      
-      const matchesType = 
-        typeFilter === 'all' || 
-        (partner.type || '').toLowerCase().includes(typeFilter.toLowerCase());
-      
-      return matchesSearch && matchesStatus && matchesType;
-    });
-    
-    setFilteredPartners(filtered);
-  }, [partners, searchTerm, statusFilter, typeFilter]);
+  useEffect(() => { fetchPartners(); }, []);
 
   const fetchPartners = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await partnersAPI.getAll();
-      const payload = res.data && res.data.data ? res.data.data : res.data;
+      const payload = res.data?.data || res.data;
       setPartners(Array.isArray(payload) ? payload : []);
-      toast.success('Partners loaded successfully');
+      toast.success('Partners loaded');
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to load partners');
+      setError(err.response?.data?.message || 'Failed to load partners');
       toast.error('Failed to load partners');
     } finally {
       setLoading(false);
@@ -108,522 +50,314 @@ const Partners = () => {
   };
 
   const handleDelete = async (id, name) => {
-    toast((t) => (
-      <span>
-        Are you sure you want to delete <b>{name}</b>?<br/>
-        <button
-          onClick={async () => {
-            toast.dismiss(t.id);
-            try {
-              await partnersAPI.delete(id);
-              setPartners(prev => prev.filter(p => p._id !== id && p.id !== id));
-              toast.success('Partner deleted successfully');
-            } catch (err) {
-              toast.error('Failed to delete partner');
-            }
-          }}
-          className="mt-2 mr-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
-        >
-          Confirm
-        </button>
-        <button
-          onClick={() => toast.dismiss(t.id)}
-          className="mt-2 px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
-        >
-          Cancel
-        </button>
-      </span>
-    ), { duration: 8000 });
+    if (!window.confirm(`Delete "${name}"?`)) return;
     try {
       await partnersAPI.delete(id);
       setPartners(prev => prev.filter(p => p._id !== id && p.id !== id));
-      toast.success('Partner deleted successfully');
-    } catch (err) {
-      toast.error('Failed to delete partner');
+      toast.success('Partner deleted');
+    } catch {
+      toast.error('Failed to delete');
     }
   };
 
-  const getStatusColor = (status, isActive) => {
-    if (isActive === true || status === 'active') {
-      return 'bg-gradient-to-r from-green-100 to-emerald-50 text-emerald-800 border border-emerald-200';
-    } else if (isActive === false || status === 'inactive') {
-      return 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border border-gray-300';
-    }
-    return 'bg-gradient-to-r from-yellow-100 to-amber-50 text-amber-800 border border-amber-200';
-  };
+  // Filtered list computed on the fly (no separate state needed)
+  const filtered = partners.filter(p => {
+    const matchSearch =
+      (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.type || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'active' ? (p.isActive === true || p.status === 'active') : (p.isActive === false || p.status === 'inactive'));
+    const matchType =
+      typeFilter === 'all' || (p.type || '').toLowerCase().includes(typeFilter.toLowerCase());
+    return matchSearch && matchStatus && matchType;
+  });
 
-  const getTypeColor = (type) => {
-    switch ((type || '').toLowerCase()) {
-      case 'ngo':
-        return 'bg-gradient-to-r from-blue-100 to-indigo-50 text-indigo-800 border border-indigo-200';
-      case 'corporate':
-        return 'bg-gradient-to-r from-purple-100 to-violet-50 text-violet-800 border border-violet-200';
-      case 'government':
-        return 'bg-gradient-to-r from-emerald-100 to-teal-50 text-teal-800 border border-teal-200';
-      case 'community':
-        return 'bg-gradient-to-r from-orange-100 to-amber-50 text-amber-800 border border-amber-200';
-      default:
-        return 'bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border border-gray-300';
-    }
+  const stats = {
+    total: partners.length,
+    active: partners.filter(p => p.isActive === true || p.status === 'active').length,
+    inactive: partners.filter(p => p.isActive === false || p.status === 'inactive').length,
+    ngo: partners.filter(p => (p.type || '').toLowerCase().includes('ngo')).length,
+    corporate: partners.filter(p => (p.type || '').toLowerCase().includes('corporate')).length,
+    government: partners.filter(p => (p.type || '').toLowerCase().includes('government')).length,
+    community: partners.filter(p => (p.type || '').toLowerCase().includes('community')).length,
   };
 
   const formatDate = (val) => {
-    if (!val) return 'Not specified';
+    if (!val) return null;
     const d = new Date(val);
     if (isNaN(d.getTime())) return String(val).slice(0, 10);
-    return d.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-  const truncateText = (text, maxLength) => {
-    if (!text) return '';
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-  };
-
-  const getInitials = (name) => {
-    if (!name) return '?';
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <ArrowPathIcon className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600 font-medium">Loading partners...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-        <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <XCircleIcon className="h-8 w-8 text-red-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Partners</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <button
-              onClick={fetchPartners}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 p-4 sm:p-6 lg:p-8">
-      <Toaster position="top-right" />
-      
-      {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8 lg:mb-12">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="relative">
-                <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur opacity-30"></div>
-                <div className="relative p-3 bg-white rounded-2xl shadow-lg border border-gray-100">
-                  <UsersIcon className="h-8 w-8 text-blue-600" />
-                </div>
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  Partner Organizations
-                </h1>
-                <p className="text-gray-600 mt-2">Manage and collaborate with partner organizations</p>
-              </div>
-            </div>
-            
-            {/* Stats Pills */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              <span className="px-4 py-2 bg-blue-50 text-blue-700 text-sm font-medium rounded-xl border border-blue-200">
-                👥 {stats.total} total partners
+  const columns = [
+    {
+      key: 'name',
+      header: 'Partner',
+      render: (row) => (
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-sm bg-parchment-100 border border-border flex items-center justify-center overflow-hidden">
+            {row.logo ? (
+              <img src={row.logo} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <span className="font-mono text-xs text-ink-800">
+                {(row.name || '?')[0].toUpperCase()}
               </span>
-              <span className="px-4 py-2 bg-green-50 text-green-700 text-sm font-medium rounded-xl border border-green-200">
-                ✅ {stats.active} active
-              </span>
-              <span className="px-4 py-2 bg-blue-50 text-blue-700 text-sm font-medium rounded-xl border border-blue-200">
-                📋 {stats.ngo} NGOs
-              </span>
-              <span className="px-4 py-2 bg-purple-50 text-purple-700 text-sm font-medium rounded-xl border border-purple-200">
-                🏢 {stats.corporate} corporates
-              </span>
-              <span className="px-4 py-2 bg-teal-50 text-teal-700 text-sm font-medium rounded-xl border border-teal-200">
-                🏛️ {stats.government} government
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button
-              onClick={fetchPartners}
-              className="p-3 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-gray-200 hover:border-blue-200"
-              title="Refresh partners"
-            >
-              <ArrowPathIcon className="h-5 w-5" />
-            </button>
-            <Link
-              to="/partners/create"
-              className="inline-flex items-center px-5 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-0.5 transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
-              <PlusIcon className="h-5 w-5 mr-2" />
-              Add Partner
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-sm border border-gray-200/80 hover:border-blue-200 transition-all duration-300 hover:shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 font-medium mb-1">Total Partners</p>
-              <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl shadow-inner">
-              <UsersIcon className="h-7 w-7 text-blue-600" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center text-xs text-blue-600 font-medium">
-            <ArrowPathIcon className="h-3 w-3 mr-1" />
-            Updated just now
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-sm border border-gray-200/80 hover:border-green-200 transition-all duration-300 hover:shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 font-medium mb-1">Active Partners</p>
-              <p className="text-3xl font-bold text-green-600">{stats.active}</p>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-green-100 to-green-50 rounded-xl shadow-inner">
-              <CheckCircleIcon className="h-7 w-7 text-green-600" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div 
-                className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${(stats.active / Math.max(stats.total, 1)) * 100}%` }}
-              ></div>
-            </div>
-            <div className="text-xs text-gray-500 mt-2">
-              {Math.round((stats.active / Math.max(stats.total, 1)) * 100)}% active rate
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-sm border border-gray-200/80 hover:border-purple-200 transition-all duration-300 hover:shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 font-medium mb-1">NGO Partners</p>
-              <p className="text-3xl font-bold text-indigo-600">{stats.ngo}</p>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-xl shadow-inner">
-              <ShieldCheckIcon className="h-7 w-7 text-indigo-600" />
-            </div>
-          </div>
-          <div className="mt-4 text-xs text-gray-500">
-            {Math.round((stats.ngo / Math.max(stats.total, 1)) * 100)}% of total
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-2xl shadow-sm border border-gray-200/80 hover:border-amber-200 transition-all duration-300 hover:shadow-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 font-medium mb-1">Corporate Partners</p>
-              <p className="text-3xl font-bold text-violet-600">{stats.corporate}</p>
-            </div>
-            <div className="p-3 bg-gradient-to-br from-violet-100 to-violet-50 rounded-xl shadow-inner">
-              <BriefcaseIcon className="h-7 w-7 text-violet-600" />
-            </div>
-          </div>
-          <div className="mt-4 text-xs text-gray-500">
-            Major business collaborations
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filter Bar */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-200/80">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search partners by name, description, or type..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-xl focus:ring-3 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-gray-50/50"
-              />
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            {/* Status Filter */}
-            <div className="relative">
-              <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-3 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none bg-gray-50/50"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-
-            {/* Type Filter */}
-            <div className="relative">
-              <BuildingOfficeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-3 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none bg-gray-50/50"
-              >
-                <option value="all">All Types</option>
-                <option value="ngo">NGO</option>
-                <option value="corporate">Corporate</option>
-                <option value="government">Government</option>
-                <option value="community">Community</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        
-        {/* Results Summary */}
-        <div className="mt-4 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            Showing <span className="font-semibold text-gray-900">{filteredPartners.length}</span> of{' '}
-            <span className="font-semibold text-gray-900">{partners.length}</span> partners
-            {searchTerm && (
-              <>
-                {' '}matching "<span className="font-semibold text-blue-600">{searchTerm}</span>"
-              </>
             )}
           </div>
-          <div className="text-xs text-gray-500">
-            Last updated: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          <div>
+            <div className="text-sm font-medium text-ink-800 font-sans">{row.name}</div>
+            <div className="text-xs text-ink-500">{row.type || 'N/A'}</div>
           </div>
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (row) => (
+        <StatusBadge
+          label={row.isActive !== false ? 'Active' : 'Inactive'}
+          variant={row.isActive !== false ? 'success' : 'neutral'}
+        />
+      ),
+    },
+    {
+      key: 'contact',
+      header: 'Contact',
+      render: (row) => (
+        <div className="text-xs space-y-0.5">
+          <div>{row.contactPerson?.name || row.contact || '—'}</div>
+          {row.email && <div className="text-ink-500">{row.email}</div>}
+          {row.contactPerson?.email && <div className="text-ink-500">{row.contactPerson.email}</div>}
+        </div>
+      ),
+    },
+    {
+      key: 'website',
+      header: 'Website',
+      render: (row) =>
+        row.website ? (
+          <a
+            href={row.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-laterite-500 underline"
+          >
+            {row.website.replace(/^https?:\/\//, '')}
+          </a>
+        ) : (
+          <span className="text-xs text-ink-500">—</span>
+        ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      className: 'w-1',
+      render: (row) => (
+        <div className="flex gap-1">
+          <Link to={`/partners/edit/${row._id || row.id}`} className="p-1.5 text-ink-500 hover:text-laterite-500" title="Edit">
+            <PencilIcon className="h-4 w-4" />
+          </Link>
+          <button
+            onClick={() => handleDelete(row._id || row.id, row.name)}
+            className="p-1.5 text-ink-500 hover:text-status-danger"
+            title="Delete"
+          >
+            <TrashIcon className="h-4 w-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="p-4 md:p-6 space-y-6 animate-fade-in">
+      <Toaster position="top-right" />
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-border pb-5">
+        <div>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-laterite-500">
+            Partners
+          </span>
+          <h1 className="font-display text-3xl font-medium text-ink-800 mt-1">Partner Organizations</h1>
+          <p className="text-ink-500 text-sm mt-1">Manage and collaborate with partner organizations</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchPartners}
+            className="p-2 border border-border bg-white hover:border-laterite-500 transition-colors"
+            title="Refresh"
+          >
+            <ArrowPathIcon className="h-4 w-4 text-ink-500" />
+          </button>
+          <Link
+            to="/partners/create"
+            className="inline-flex items-center gap-2 border border-laterite-500 text-laterite-600 px-4 py-2 text-sm hover:bg-laterite-50 transition-colors"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Add Partner
+          </Link>
         </div>
       </div>
 
-      {/* Content Area */}
-      {filteredPartners.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm p-12 border border-gray-200 text-center">
-          <div className="text-8xl mb-6 opacity-20">🤝</div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">No partners found</h3>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto">
-            {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
-              ? 'Try adjusting your search or filter criteria'
-              : 'Start by adding your first partner organization to build your network'}
-          </p>
-          <Link
-            to="/partners/create"
-            className="inline-flex items-center px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Add Your First Partner
-          </Link>
-        </div>
-      ) : (
-        /* Partners Grid */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPartners.map((partner) => {
-            const isActive = partner.isActive === true || partner.status === 'active';
-            const partnerType = partner.type || 'Unknown';
-            
-            return (
-              <div 
-                key={partner._id || partner.id} 
-                className="group bg-white rounded-2xl shadow-sm border border-gray-200/80 hover:border-blue-200 transition-all duration-300 hover:shadow-xl overflow-hidden"
-              >
-                {/* Partner Header */}
-                <div className="p-6 border-b border-gray-100">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      {partner.logo ? (
-                        <div className="h-16 w-16 rounded-xl overflow-hidden border border-gray-200">
-                          <img
-                            src={partner.logo}
-                            alt={partner.name}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center border border-blue-200">
-                          <span className="text-2xl font-bold text-blue-600">
-                            {getInitials(partner.name)}
-                          </span>
-                        </div>
-                      )}
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1">
-                          {partner.name || 'Unnamed Partner'}
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                          <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getTypeColor(partnerType)}`}>
-                            {partnerType}
-                          </span>
-                          <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(partner.status, partner.isActive)}`}>
-                            {isActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+      {/* Stats row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Total Partners" value={stats.total} icon={UsersIcon} loading={loading} tone="laterite" deltaLabel={`${stats.active} active`} />
+        <StatCard label="Active" value={stats.active} icon={CheckCircleIcon} loading={loading} tone="acacia" />
+        <StatCard label="NGOs" value={stats.ngo} icon={ShieldCheckIcon} loading={loading} tone="maize" />
+        <StatCard label="Corporate" value={stats.corporate} icon={BriefcaseIcon} loading={loading} tone="laterite" />
+      </div>
 
-                  {/* Partner Description */}
-                  {partner.description && (
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {truncateText(partner.description, 120)}
-                    </p>
+      {/* Filters */}
+      <FilterBar
+        searchPlaceholder="Search partners by name, description, or type..."
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        filters={[
+          {
+            key: 'status',
+            value: statusFilter,
+            onChange: setStatusFilter,
+            options: [
+              { value: 'all', label: 'All Status' },
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' },
+            ],
+          },
+          {
+            key: 'type',
+            value: typeFilter,
+            onChange: setTypeFilter,
+            options: [
+              { value: 'all', label: 'All Types' },
+              { value: 'ngo', label: 'NGO' },
+              { value: 'corporate', label: 'Corporate' },
+              { value: 'government', label: 'Government' },
+              { value: 'community', label: 'Community' },
+            ],
+          },
+        ]}
+        resultCount={filtered.length}
+        totalCount={partners.length}
+        resultLabel="partners"
+        rightSlot={
+          <div className="flex items-center bg-parchment-50 border border-border p-0.5">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-1.5 text-xs font-mono ${viewMode === 'grid' ? 'bg-white border border-border text-ink-800' : 'text-ink-500'}`}
+            >
+              Grid
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 text-xs font-mono ${viewMode === 'list' ? 'bg-white border border-border text-ink-800' : 'text-ink-500'}`}
+            >
+              List
+            </button>
+          </div>
+        }
+      />
+
+      {/* Content */}
+      {error ? (
+        <div className="bg-white border border-status-danger/30 p-8 text-center">
+          <p className="text-status-danger text-sm font-mono">{error}</p>
+          <button onClick={fetchPartners} className="mt-4 text-laterite-500 underline text-xs font-mono">
+            Retry
+          </button>
+        </div>
+      ) : viewMode === 'grid' ? (
+        <CardGrid
+          items={filtered}
+          loading={loading}
+          emptyState={
+            <div className="text-center py-16">
+              <p className="text-ink-500 text-sm font-mono">No partners found</p>
+              <Link to="/partners/create" className="text-laterite-500 text-xs mt-2 inline-block">
+                Add first partner →
+              </Link>
+            </div>
+          }
+          renderCard={(partner) => (
+            <div className="bg-white border border-border hover:border-laterite-500/30 transition-colors p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-sm bg-parchment-100 border border-border flex items-center justify-center overflow-hidden">
+                  {partner.logo ? (
+                    <img src={partner.logo} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="font-mono text-sm text-ink-800">
+                      {(partner.name || '?')[0]}
+                    </span>
                   )}
                 </div>
-
-                {/* Partner Details */}
-                <div className="p-6">
-                  <div className="space-y-3 mb-6">
-                    {/* Contact Person */}
-                    {(partner.contactPerson?.name || partner.contact) && (
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                          <UsersIcon className="h-4 w-4 text-gray-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-gray-900">
-                            {partner.contactPerson?.name || partner.contact}
-                          </div>
-                          {(partner.contactPerson?.title || partner.contactPerson?.role) && (
-                            <div className="text-xs text-gray-500">
-                              {partner.contactPerson.title || partner.contactPerson.role}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Email */}
-                    {(partner.contactPerson?.email || partner.email) && (
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                          <EnvelopeIcon className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-gray-900 truncate">
-                            {partner.contactPerson?.email || partner.email}
-                          </div>
-                          <div className="text-xs text-gray-500">Email</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Phone */}
-                    {(partner.contactPerson?.phone || partner.phone) && (
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
-                          <PhoneIcon className="h-4 w-4 text-green-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-gray-900">
-                            {partner.contactPerson?.phone || partner.phone}
-                          </div>
-                          <div className="text-xs text-gray-500">Phone</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Website */}
-                    {partner.website && (
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                          <GlobeAltIcon className="h-4 w-4 text-purple-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <a
-                            href={partner.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:text-blue-800 truncate block"
-                          >
-                            {partner.website.replace(/^https?:\/\//, '')}
-                          </a>
-                          <div className="text-xs text-gray-500">Website</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Partnership Start */}
-                    {partner.partnershipStart && (
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                          <CalendarIcon className="h-4 w-4 text-amber-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm text-gray-900">
-                            Since {formatDate(partner.partnershipStart)}
-                          </div>
-                          <div className="text-xs text-gray-500">Partnership started</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        to={`/partners/view/${partner._id || partner.id}`}
-                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="View details"
-                      >
-                        <ChevronRightIcon className="h-5 w-5" />
-                      </Link>
-                      <Link
-                        to={`/partners/edit/${partner._id || partner.id}`}
-                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit partner"
-                      >
-                        <PencilIcon className="h-5 w-5" />
-                      </Link>
-                    </div>
-                    <button
-                      onClick={() => handleDelete(partner._id || partner.id, partner.name)}
-                      className="px-4 py-2 text-red-600 hover:text-white hover:bg-red-600 rounded-xl transition-all border border-red-200 hover:border-red-600"
-                      title="Delete partner"
-                    >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
-                  </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-sans text-sm font-semibold text-ink-800 truncate">{partner.name}</h3>
+                  <p className="text-xs text-ink-500">{partner.type || 'N/A'}</p>
                 </div>
               </div>
-            );
-          })}
-        </div>
+              <StatusBadge
+                label={partner.isActive !== false ? 'Active' : 'Inactive'}
+                variant={partner.isActive !== false ? 'success' : 'neutral'}
+              />
+              {partner.description && (
+                <p className="text-xs text-ink-500 line-clamp-2">{partner.description}</p>
+              )}
+              <div className="space-y-1.5 text-xs">
+                {(partner.contactPerson?.name || partner.contact) && (
+                  <div className="flex items-center gap-2 text-ink-700">
+                    <UsersIcon className="h-3.5 w-3.5 text-ink-500" />
+                    {partner.contactPerson?.name || partner.contact}
+                  </div>
+                )}
+                {partner.email && (
+                  <div className="flex items-center gap-2 text-ink-700">
+                    <EnvelopeIcon className="h-3.5 w-3.5 text-ink-500" />
+                    {partner.email}
+                  </div>
+                )}
+                {partner.website && (
+                  <div className="flex items-center gap-2">
+                    <GlobeAltIcon className="h-3.5 w-3.5 text-ink-500" />
+                    <a href={partner.website} target="_blank" rel="noopener noreferrer" className="text-laterite-500 underline truncate">
+                      {partner.website.replace(/^https?:\/\//, '')}
+                    </a>
+                  </div>
+                )}
+                {partner.partnershipStart && (
+                  <div className="flex items-center gap-2 text-ink-500">
+                    <CalendarIcon className="h-3.5 w-3.5" />
+                    Since {formatDate(partner.partnershipStart)}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t border-border">
+                <Link to={`/partners/edit/${partner._id || partner.id}`} className="p-1.5 text-ink-500 hover:text-laterite-500">
+                  <PencilIcon className="h-4 w-4" />
+                </Link>
+                <button onClick={() => handleDelete(partner._id || partner.id, partner.name)} className="p-1.5 text-ink-500 hover:text-status-danger">
+                  <TrashIcon className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={filtered}
+          loading={loading}
+          emptyState={
+            <div className="text-center py-16">
+              <p className="text-ink-500 text-sm font-mono">No partners found</p>
+            </div>
+          }
+        />
       )}
     </div>
   );
 };
 
 export default Partners;
-
