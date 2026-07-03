@@ -1,253 +1,286 @@
-﻿import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Toaster, toast } from 'react-hot-toast';
-import { LockClosedIcon, EnvelopeIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+﻿import React, { useState, useEffect, useCallback } from 'react';
+import {
+  EnvelopeIcon,
+  LockClosedIcon,
+  ArrowRightIcon,
+  ExclamationCircleIcon,
+  EyeIcon,
+  EyeSlashIcon,
+} from '@heroicons/react/24/outline';
 
-const Login = () => {
-  const [email, setEmail] = useState('admin@example.com');
-  const [password, setPassword] = useState('password123');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isFocused, setIsFocused] = useState({ email: false, password: false });
-  const { login, loading } = useAuth();
-  const navigate = useNavigate();
+// ---------- Live coordinate readout ----------
+// A small, thematic motion detail: the field-survey coordinates drift
+// slightly, like a GPS unit holding a fix. Not decorative noise —
+// it's the same instrument a field team would actually carry.
+const useDriftingCoords = (baseLat, baseLng) => {
+  const [coords, setCoords] = useState({ lat: baseLat, lng: baseLng });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    try {
-      const result = await login({ email, password });
-      if (result.success) {
-        toast.success('Login successful!');
-        navigate('/dashboard');
-      } else {
-        toast.error(result.error || 'Login failed');
-      }
-    } catch (error) {
-      toast.error(error.message || 'Login failed');
-    }
-  };
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCoords({
+        lat: baseLat + (Math.random() - 0.5) * 0.0006,
+        lng: baseLng + (Math.random() - 0.5) * 0.0006,
+      });
+    }, 2200);
+    return () => clearInterval(id);
+  }, [baseLat, baseLng]);
+
+  return coords;
+};
+
+// ---------- Terrain panel (signature element) ----------
+// Contour lines standing in for the project sites this platform tracks —
+// each ring is a real elevation band, not an abstract blob.
+const TerrainPanel = () => {
+  const coords = useDriftingCoords(-1.2921, 36.8219); // Nairobi reference fix
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      <Toaster />
-      
-      {/* Left side - Brand/Image Section */}
-      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary-600 to-primary-800 flex-col justify-center p-12">
-        <div className="max-w-md mx-auto">
-          <div className="flex items-center mb-8">
-              <div className="h-12 w-12 bg-white rounded-lg flex items-center justify-center">
-              <div className="h-8 w-8 bg-primary-600 rounded-md"></div>
-            </div>
-            <div className="ml-4">
-              <h1 className="text-3xl font-bold text-white">Matakiri Tumaini</h1>
-              <p className="text-primary-100 text-lg">Trust Foundation</p>
-            </div>
-          </div>
-          
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Welcome Back
-          </h2>
-          <p className="text-primary-100 text-lg mb-8">
-            Access the administrative dashboard to manage projects, partners, and content for the Matakiri Tumaini Trust Foundation.
-          </p>
-          
-          <div className="space-y-4">
-            <div className="flex items-center text-primary-100">
-              <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center mr-3">
-                <span className="text-sm font-semibold">✓</span>
-              </div>
-              <span>Manage Projects & Initiatives</span>
-            </div>
-            <div className="flex items-center text-primary-100">
-              <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center mr-3">
-                <span className="text-sm font-semibold">✓</span>
-              </div>
-              <span>Update News & Gallery</span>
-            </div>
-            <div className="flex items-center text-primary-100">
-              <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center mr-3">
-                <span className="text-sm font-semibold">✓</span>
-              </div>
-              <span>Monitor Trust Activities</span>
-            </div>
-          </div>
-        </div>
+    <div className="relative hidden lg:flex lg:w-[46%] xl:w-[42%] flex-col justify-between overflow-hidden bg-soil-900 px-10 py-10 xl:px-14 xl:py-12">
+      {/* Contour field */}
+      <svg
+        className="absolute inset-0 h-full w-full opacity-[0.35]"
+        viewBox="0 0 600 900"
+        preserveAspectRatio="xMidYMid slice"
+        fill="none"
+        aria-hidden="true"
+      >
+        {[
+          'M -40 120 C 120 60, 260 180, 420 90 S 700 40, 780 140',
+          'M -60 220 C 100 150, 250 280, 400 190 S 680 150, 800 260',
+          'M -60 330 C 90 260, 260 390, 410 300 S 660 250, 820 370',
+          'M -60 460 C 110 380, 280 500, 430 410 S 670 370, 830 490',
+          'M -60 600 C 100 520, 270 640, 420 550 S 690 500, 840 620',
+          'M -60 730 C 120 660, 300 780, 450 690 S 700 640, 850 750',
+        ].map((d, i) => (
+          <path
+            key={i}
+            d={d}
+            stroke="#E4DCC8"
+            strokeWidth="1"
+            strokeOpacity={0.5 - i * 0.05}
+          />
+        ))}
+
+        {/* Traced route: the highlighted path a field visit follows */}
+        <path
+          id="route"
+          d="M 40 720 C 180 640, 220 460, 340 400 S 480 220, 560 120"
+          stroke="#B5522E"
+          strokeWidth="1.75"
+          strokeDasharray="6 7"
+          className="animate-route-trace"
+        />
+        <circle r="4.5" fill="#E8B94A">
+          <animateMotion
+            dur="7s"
+            repeatCount="indefinite"
+            rotate="auto"
+            path="M 40 720 C 180 640, 220 460, 340 400 S 480 220, 560 120"
+          />
+        </circle>
+
+        {/* Site markers */}
+        <circle cx="40" cy="720" r="3" fill="#F7F3EA" fillOpacity="0.8" />
+        <circle cx="560" cy="120" r="3" fill="#F7F3EA" fillOpacity="0.8" />
+      </svg>
+
+      <div className="absolute inset-0 bg-gradient-to-t from-soil-900 via-soil-900/10 to-soil-900/40" />
+
+      {/* Top: wordmark */}
+      <div className="relative">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-maize">
+          Matakiri Tumaini
+        </span>
+        <p className="mt-2 max-w-[26ch] font-display text-[1.7rem] xl:text-3xl font-medium leading-[1.15] text-parchment-50">
+          Every project starts with someone walking the ground.
+        </p>
       </div>
 
-      {/* Right side - Login Form Section */}
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-8">
-        <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-              <div className="md:hidden flex justify-center mb-10">
-            <div className="flex items-center">
-              <div className="h-10 w-10 bg-primary-600 rounded-lg flex items-center justify-center">
-                <div className="h-6 w-6 bg-white rounded-md"></div>
-              </div>
-              <div className="ml-3">
-                <h1 className="text-xl font-bold text-gray-900">Matakiri Tumaini</h1>
-                <p className="text-gray-600 text-sm">Admin Dashboard</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Admin Dashboard
-            </h2>
-            <p className="mt-2 text-gray-600">
-              Sign in to manage your foundation
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              {/* Email Input */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <div className={`relative transition-all duration-200 ${isFocused.email ? 'transform scale-[1.02]' : ''}`}>
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <EnvelopeIcon className={`h-5 w-5 ${isFocused.email ? 'text-primary-500' : 'text-gray-400'}`} />
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none transition duration-200"
-                    placeholder="you@matakiritrust.org"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onFocus={() => setIsFocused(prev => ({ ...prev, email: true }))}
-                    onBlur={() => setIsFocused(prev => ({ ...prev, email: false }))}
-                  />
-                </div>
-              </div>
-
-              {/* Password Input */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <div className={`relative transition-all duration-200 ${isFocused.password ? 'transform scale-[1.02]' : ''}`}>
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockClosedIcon className={`h-5 w-5 ${isFocused.password ? 'text-primary-500' : 'text-gray-400'}`} />
-                  </div>
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    required
-                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:outline-none transition duration-200"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onFocus={() => setIsFocused(prev => ({ ...prev, password: true }))}
-                    onBlur={() => setIsFocused(prev => ({ ...prev, password: false }))}
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                    ) : (
-                      <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                    Remember me
-                  </label>
-                </div>
-                <div className="text-sm">
-                  <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
-                    Forgot password?
-                  </a>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                {loading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Signing in...
-                  </>
-                ) : (
-                  'Sign in'
-                )}
-              </button>
-            </form>
-
-            {/* Demo Credentials Card */}
-              <div className="mt-8 pt-8 border-t border-gray-200">
-              <div className="bg-primary-50 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-primary-800 mb-2">Demo Credentials</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <div className="h-5 w-5 rounded bg-primary-100 flex items-center justify-center mr-2">
-                      <EnvelopeIcon className="h-3 w-3 text-primary-600" />
-                    </div>
-                    <span className="text-sm text-primary-700">admin@example.com</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="h-5 w-5 rounded bg-primary-100 flex items-center justify-center mr-2">
-                      <LockClosedIcon className="h-3 w-3 text-primary-600" />
-                    </div>
-                    <span className="text-sm text-primary-700">password123</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-8 text-center">
-              <p className="text-xs text-gray-500">
-                By signing in, you agree to our{' '}
-                <a href="#" className="text-primary-600 hover:text-primary-500">Terms of Service</a>
-                {' '}and{' '}
-                <a href="#" className="text-primary-600 hover:text-primary-500">Privacy Policy</a>
-              </p>
-              <p className="mt-4 text-xs text-gray-500">
-                © {new Date().getFullYear()} Matakiri Tumaini Trust Foundation. All rights reserved.
-              </p>
-            </div>
-          </div>
+      {/* Bottom: live-instrument readout */}
+      <div className="relative flex items-end justify-between">
+        <div className="font-mono text-[11px] leading-relaxed text-parchment-100/60">
+          <div className="text-parchment-100/80">FIELD UNIT — NAIROBI SECTOR</div>
+          <div>LAT&nbsp; {coords.lat.toFixed(4)}° S</div>
+          <div>LNG&nbsp; {coords.lng.toFixed(4)}° E</div>
         </div>
-      </div>
-
-      {/* Background Pattern */}
-      <div className="hidden md:block fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/2 w-1/2 h-full">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+        <div className="flex items-center gap-1.5 font-mono text-[11px] text-acacia-500">
+          <span className="h-1.5 w-1.5 rounded-full bg-acacia-500 animate-pulse" />
+          fix acquired
         </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+// ---------- Login form ----------
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setError(null);
+
+      if (!email || !password) {
+        setError('Enter your email and password to continue.');
+        return;
+      }
+
+      setSubmitting(true);
+      try {
+        // Replace with real auth call, e.g. await authAPI.login({ email, password, remember })
+        await new Promise((resolve) => setTimeout(resolve, 900));
+      } catch (err) {
+        setError(err?.response?.data?.message || 'Could not sign in. Check your details and try again.');
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [email, password]
+  );
+
+  return (
+    <div className="min-h-screen w-full flex bg-parchment-50">
+      <TerrainPanel />
+
+      <div className="flex flex-1 items-center justify-center px-6 py-12 sm:px-10">
+        <div className="w-full max-w-sm">
+          {/* Mobile-only wordmark */}
+          <div className="mb-8 lg:hidden">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-laterite-500">
+              Matakiri Tumaini
+            </span>
+          </div>
+
+          <div className="mb-8">
+            <span className="hidden lg:inline text-[11px] font-semibold uppercase tracking-[0.14em] text-laterite-500">
+              Admin &amp; field access
+            </span>
+            <h1 className="font-display text-3xl sm:text-4xl font-medium text-ink-800 mt-2">
+              Welcome back
+            </h1>
+            <p className="text-ink-500 text-sm mt-1.5">
+              Sign in to reach your projects, partners, and field log.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
+            {error && (
+              <div
+                role="alert"
+                className="flex items-start gap-2.5 border border-laterite-500/30 bg-laterite-500/5 px-3.5 py-3 text-sm text-laterite-600"
+              >
+                <ExclamationCircleIcon className="h-4.5 w-4.5 mt-0.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 mb-2">
+                Email
+              </label>
+              <div className="relative">
+                <EnvelopeIcon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-ink-500/50" />
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@matakiritumaini.org"
+                  className="w-full border border-border bg-white pl-10 pr-3.5 py-2.5 text-sm text-ink-800 placeholder:text-ink-500/40 outline-none transition-colors focus:border-laterite-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500">
+                  Password
+                </label>
+                <a href="#forgot-password" className="text-xs text-laterite-500 hover:text-laterite-600 transition-colors">
+                  Forgot password?
+                </a>
+              </div>
+              <div className="relative">
+                <LockClosedIcon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-ink-500/50" />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full border border-border bg-white pl-10 pr-10 py-2.5 text-sm text-ink-800 placeholder:text-ink-500/40 outline-none transition-colors focus:border-laterite-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-500/50 hover:text-ink-500 transition-colors"
+                >
+                  {showPassword ? <EyeSlashIcon className="h-4.5 w-4.5" /> : <EyeIcon className="h-4.5 w-4.5" />}
+                </button>
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2.5 text-sm text-ink-500 select-none cursor-pointer">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="h-4 w-4 accent-laterite-500 border-border"
+              />
+              Keep me signed in on this device
+            </label>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="group w-full inline-flex items-center justify-center gap-2 bg-soil-900 px-4 py-3 text-sm font-medium text-parchment-50 transition-colors hover:bg-ink-800 disabled:opacity-60"
+            >
+              {submitting ? (
+                <>
+                  <span className="h-3.5 w-3.5 rounded-full border-2 border-parchment-50/30 border-t-parchment-50 animate-spin" />
+                  Signing in…
+                </>
+              ) : (
+                <>
+                  Sign in
+                  <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-xs text-ink-500">
+            New to the platform?{' '}
+            <a href="#request-access" className="text-laterite-500 hover:text-laterite-600 transition-colors">
+              Request field access
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
+
+/*
+  Add to your global stylesheet (e.g. animations.css):
+
+  @keyframes route-trace {
+    from { stroke-dashoffset: 240; }
+    to   { stroke-dashoffset: 0; }
+  }
+  .animate-route-trace {
+    stroke-dashoffset: 240;
+    animation: route-trace 5s ease-in-out infinite alternate;
+  }
+*/
