@@ -1,337 +1,291 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
-// Group icons by category to reduce imports
 import {
-  FaGraduationCap, FaUserFriends, FaSeedling, FaLaptop, FaTint,
-  FaUserGraduate, FaSchool, FaBuilding, FaHandHoldingHeart,
-  FaLightbulb, FaShieldAlt, FaGlobe, FaHandsHelping, FaChartLine,
-  FaCode, FaDatabase, FaBusinessTime, FaArrowRight
-} from 'react-icons/fa';
+  AcademicCapIcon,
+  UserGroupIcon,
+  LightBulbIcon,
+  GlobeAltIcon,
+  ShieldCheckIcon,
+  ArrowRightIcon,
+  CodeBracketIcon,
+  CircleStackIcon,
+  BriefcaseIcon,
+  BuildingOfficeIcon,
+  HandRaisedIcon,
+  SunIcon,
+  SparklesIcon,
+  HeartIcon,
+  ChartBarIcon,
+  BeakerIcon,
+  ComputerDesktopIcon,
+  MapPinIcon,
+} from '@heroicons/react/24/outline';
 
 const About = () => {
   const [openAccordion, setOpenAccordion] = useState(null);
 
-  // Data organized into sections
-  const sections = {
-    impactStats: [
-      { number: "232", label: "Youths trained", icon: <FaUserGraduate />, color: "text-primary-600" },
-      { number: "29", label: "Tutors trained", icon: <FaSchool />, color: "text-accent-600" },
-      { number: "18", label: "Companies supported", icon: <FaBuilding />, color: "text-blue-600" },
-      { number: "80", label: "Elderly supported", icon: <FaHandHoldingHeart />, color: "text-purple-600" }
-    ],
-    
-    supportAreas: [
-      {
-        id: 1,
-        icon: <FaGraduationCap />,
-        title: "Youth Empowerment",
-        description: "Hands-on, practical courses with real-world projects and entrepreneurship focus.",
-        features: ["Hands-on projects", "Entrepreneurship focus", "Job-ready skills"]
-      },
-      {
-        id: 2,
-        icon: <FaUserFriends />,
-        title: "Engaging the elderly",
-        description: "Social events, health checks, and cultural activities to support wellbeing.",
-        features: ["Social events", "Health checks", "Cultural activities"]
-      },
-      {
-        id: 3,
-        icon: <FaSeedling />,
-        title: "Conservation agriculture",
-        description: "Practical farming training focused on sustainability and value addition.",
-        features: ["Practical training", "Soil management", "Value addition"]
-      },
-      {
-        id: 4,
-        icon: <FaLaptop />,
-        title: "Computer literacy",
-        description: "Digital skills training for students and community members.",
-        features: ["Basic digital skills", "Internet safety", "Community sessions"]
-      },
-      {
-        id: 5,
-        icon: <FaTint />,
-        title: "Access to clean water",
-        description: "Renewable-energy water system with community access point.",
-        features: ["Rainwater harvesting", "Solar-powered", "Community access"]
-      }
-    ],
-    
-    whyWorkWithUs: [
-      {
-        number: "01",
-        icon: <FaCode />,
-        title: "Problem Solving Approach",
-        description: "Project-based learning with hands-on experience in programming and development.",
-        benefits: ["Hands-on learning", "Real-world projects", "Multiple skill levels"]
-      },
-      {
-        number: "02",
-        icon: <FaDatabase />,
-        title: "Data Analytics Focus",
-        description: "Complete Python ecosystem training for data professionals.",
-        benefits: ["Python & SQL", "Data engineering", "Market-relevant skills"]
-      },
-      {
-        number: "03",
-        icon: <FaBusinessTime />,
-        title: "Business & Entrepreneurship",
-        description: "Skills to establish business enterprises and create economic impact.",
-        benefits: ["Business planning", "Entrepreneurship", "Community employment"]
-      }
-    ],
-    
-    specializedSupport: [
-      {
-        title: "Refugee Education",
-        description: "Tailored programs for refugee communities.",
-        icon: <FaGlobe />
-      },
-      {
-        title: "Inclusive Learning",
-        description: "Specialized support for diverse learning needs.",
-        icon: <FaHandsHelping />
-      },
-      {
-        title: "Community Integration",
-        description: "Programs promoting community cohesion.",
-        icon: <FaChartLine />
-      }
-    ]
-  };
+  const impactStats = [
+    { number: '232', label: 'Youths trained', icon: AcademicCapIcon },
+    { number: '29', label: 'Tutors trained', icon: UserGroupIcon },
+    { number: '18', label: 'Companies supported', icon: BuildingOfficeIcon },
+    { number: '80', label: 'Elderly supported', icon: HeartIcon },
+  ];
 
-  // Reusable components
-  const StatCard = ({ stat, index }) => (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.6 + index * 0.1 }}
-      whileHover={{ y: -5 }}
-      className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all"
-    >
-      <div className="flex items-center gap-4">
-        <div className={`p-3 rounded-lg bg-${stat.color.split('-')[1]}-50 ${stat.color}`}>
-          {stat.icon}
-        </div>
-        <div>
-          <div className="text-2xl font-bold text-gray-900">{stat.number}</div>
-          <div className="text-sm text-gray-500">{stat.label}</div>
-        </div>
-      </div>
-    </motion.div>
-  );
+  const supportAreas = [
+    {
+      id: 1,
+      icon: AcademicCapIcon,
+      title: 'Youth Empowerment',
+      description:
+        'Hands‑on, practical courses with real‑world projects and entrepreneurship focus.',
+      features: ['Hands‑on projects', 'Entrepreneurship focus', 'Job‑ready skills'],
+    },
+    {
+      id: 2,
+      icon: UserGroupIcon,
+      title: 'Engaging the elderly',
+      description:
+        'Social events, health checks, and cultural activities to support wellbeing.',
+      features: ['Social events', 'Health checks', 'Cultural activities'],
+    },
+    {
+      id: 3,
+      icon: BeakerIcon,
+      title: 'Conservation agriculture',
+      description:
+        'Practical farming training focused on sustainability and value addition.',
+      features: ['Practical training', 'Soil management', 'Value addition'],
+    },
+    {
+      id: 4,
+      icon: ComputerDesktopIcon,
+      title: 'Computer literacy',
+      description:
+        'Digital skills training for students and community members.',
+      features: ['Basic digital skills', 'Internet safety', 'Community sessions'],
+    },
+    {
+      id: 5,
+      icon: MapPinIcon,
+      title: 'Access to clean water',
+      description:
+        'Renewable‑energy water system with community access point.',
+      features: ['Rainwater harvesting', 'Solar‑powered', 'Community access'],
+    },
+  ];
 
-  const AccordionItem = ({ area, index }) => (
-    <div className="bg-white rounded-2xl border border-gray-200 p-1 mb-4">
-      <button
-        onClick={() => setOpenAccordion(openAccordion === index ? null : index)}
-        className="w-full flex items-center justify-between p-4"
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 text-white flex items-center justify-center font-bold">
-            {String(index + 1).padStart(2, '0')}
-          </div>
-          <div className="font-semibold text-gray-900">{area.title}</div>
-        </div>
-        <div className="text-gray-400">
-          {openAccordion === index ? '▲' : '▼'}
-        </div>
-      </button>
-      
-      {openAccordion === index && (
-        <div className="px-6 pb-6 pt-0">
-          <p className="text-gray-600 mb-4">{area.description}</p>
-          <div className="space-y-2">
-            {area.features.map((feature, idx) => (
-              <div key={idx} className="flex items-center gap-2 text-gray-500">
-                <div className="w-1.5 h-1.5 bg-primary-400 rounded-full"></div>
-                {feature}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const FeatureCard = ({ item, index, isWhyWork }) => (
-    <div className={`rounded-2xl border border-gray-200 p-8 ${isWhyWork ? 'pt-12' : ''}`}>
-      {isWhyWork && (
-        <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 text-white rounded-xl flex items-center justify-center font-bold">
-          {item.number}
-        </div>
-      )}
-      <div className={`${isWhyWork ? 'mb-6' : 'text-primary-500 mb-3'}`}>
-        {item.icon}
-      </div>
-      <h3 className="font-bold text-gray-900 mb-3">{item.title}</h3>
-      <p className="text-gray-600 mb-4">{item.description}</p>
-      {item.features && (
-        <div className="space-y-2">
-          {item.features.map((benefit, idx) => (
-            <div key={idx} className="flex items-center gap-2 text-sm text-gray-500">
-              <div className="w-2 h-2 bg-gradient-to-r from-primary-400 to-accent-400 rounded-full"></div>
-              {benefit}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  const specializedSupport = [
+    {
+      title: 'Refugee Education',
+      description: 'Tailored programs for refugee communities.',
+      icon: GlobeAltIcon,
+    },
+    {
+      title: 'Inclusive Learning',
+      description: 'Specialised support for diverse learning needs.',
+      icon: HandRaisedIcon,
+    },
+    {
+      title: 'Community Integration',
+      description: 'Programmes promoting community cohesion.',
+      icon: ChartBarIcon,
+    },
+  ];
 
   return (
-    <div id="about" className="bg-gray-50">
-      {/* Hero Section */}
-      <section className="py-16 px-4">
+    <div id="about" className="bg-parchment-50">
+      <section className="py-16 md:py-24 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 mb-6">
-              <span className="text-xs font-semibold text-primary-600 uppercase tracking-wider px-3 py-1.5 bg-primary-50 rounded-full">
-                Our Impact
-              </span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-laterite-500">
+              About Us
+            </span>
+            <h1 className="font-display text-4xl md:text-5xl font-medium text-ink-800 mt-3 mb-6">
               Empowering Youth
-              <span className="block mt-2 bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent">
-                Through Technology & Education
-              </span>
+              <span className="block text-laterite-500">Through Technology & Education</span>
             </h1>
-            <p className="text-gray-600 max-w-3xl mx-auto mb-12">
-              Empowering youth through technical skills training, 
-              entrepreneurship development, and inclusive learning environments.
+            <p className="text-ink-500 max-w-3xl mx-auto text-sm">
+              Empowering youth through technical skills training, entrepreneurship development,
+              and inclusive learning environments.
             </p>
+
+            {/* Impact stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-12 max-w-4xl mx-auto">
+              {impactStats.map((stat, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 * i }}
+                  className="bg-white border border-border p-5 text-center"
+                >
+                  <stat.icon className="h-6 w-6 text-laterite-500 mx-auto mb-2" />
+                  <div className="font-mono text-2xl text-ink-800 tabular-nums">{stat.number}</div>
+                  <div className="text-xs text-ink-500 mt-1">{stat.label}</div>
+                </motion.div>
+              ))}
+            </div>
           </div>
 
-          {/* Stats */}
-          {/* <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-20">
-            {sections.impactStats.map((stat, index) => (
-              <StatCard key={index} stat={stat} index={index} />
-            ))}
-          </div> */}
-
-          {/* Main Content */}
+          {/* Main content grid */}
           <div className="grid lg:grid-cols-3 gap-8 mb-20">
-            {/* Left Column */}
+            {/* Left column: What We Do */}
             <div className="lg:col-span-2 space-y-8">
-              {/* What We Do */}
-              <div className="bg-white rounded-2xl p-8 shadow-sm">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="p-3 bg-primary-50 rounded-xl">
-                    <FaLightbulb className="text-2xl text-primary-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">What We Do</h2>
-                    <div className="w-12 h-1 bg-gradient-to-r from-primary-400 to-accent-400 rounded-full mt-2"></div>
-                  </div>
+              <div className="bg-white border border-border p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <LightBulbIcon className="h-7 w-7 text-laterite-500" />
+                  <h2 className="font-display text-xl font-medium text-ink-800">What We Do</h2>
                 </div>
-                <p className="text-gray-600 mb-6">
-                  We work with organizations to fill gaps with our expertise in quality skill-based education 
-                  and capacity development in computing and technology subjects.
+                <p className="text-ink-500 text-sm mb-6">
+                  We work with organisations to fill gaps with our expertise in quality skill‑based
+                  education and capacity development in computing and technology subjects.
                 </p>
-                <div className="grid grid-cols-2 gap-4">
-                  {["Technical Skills Training", "Entrepreneurship Development", "Inclusive Education", "Community Cohesion"]
-                    .map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-500">
-                        <div className="w-1.5 h-1.5 bg-primary-400 rounded-full"></div>
-                        {item}
-                      </div>
-                    ))}
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    'Technical Skills Training',
+                    'Entrepreneurship Development',
+                    'Inclusive Education',
+                    'Community Cohesion',
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-xs text-ink-500">
+                      <span className="w-1.5 h-1.5 bg-laterite-500 flex-shrink-0" />
+                      {item}
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Specialized Support */}
+              {/* Specialised support */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {sections.specializedSupport.map((area, index) => (
-                  <div key={index} className="bg-white rounded-xl p-6 border border-gray-100">
-                    <div className="text-primary-500 mb-3">{area.icon}</div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{area.title}</h3>
-                    <p className="text-sm text-gray-500">{area.description}</p>
+                {specializedSupport.map((area, idx) => (
+                  <div key={idx} className="bg-white border border-border p-6">
+                    <area.icon className="h-5 w-5 text-laterite-500 mb-3" />
+                    <h3 className="font-sans font-semibold text-ink-800 text-sm">{area.title}</h3>
+                    <p className="text-xs text-ink-500 mt-1">{area.description}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Right Column - About Card */}
-            <div className="bg-gradient-to-br from-primary-500 to-accent-600 rounded-2xl p-8 text-white">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-white/20 rounded-xl">
-                  <FaShieldAlt className="text-2xl" />
+            {/* Right column: About card */}
+            <div className="bg-soil-900 text-parchment-50 p-8 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <ShieldCheckIcon className="h-7 w-7 text-laterite-400" />
+                  <h2 className="font-display text-xl font-medium">About Us</h2>
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold">About Us</h2>
-                  <div className="w-12 h-1 bg-white/40 rounded-full mt-2"></div>
-                </div>
+                <p className="text-parchment-100/80 text-sm mb-6">
+                  We are a Community & Learning Centre in Matakiri, Kenya, addressing urgent local
+                  needs including:
+                </p>
+                <ul className="space-y-2 text-sm text-parchment-100/70">
+                  <li className="flex items-start gap-2">
+                    <span className="text-laterite-400 mt-1 text-xs">▸</span>
+                    Technical skills training for youth
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-laterite-400 mt-1 text-xs">▸</span>
+                    Sustainable agriculture practices
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-laterite-400 mt-1 text-xs">▸</span>
+                    Elderly care and social services
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-laterite-400 mt-1 text-xs">▸</span>
+                    Community savings & credit cooperative
+                  </li>
+                </ul>
               </div>
-              <p className="mb-6">
-                We are a Community & Learning Centre in Matakiri, Kenya, addressing urgent local needs including:
-              </p>
-              <ul className="space-y-3 mb-6 text-sm">
-                <li>• Technical skills training for youth</li>
-                <li>• Sustainable agriculture practices</li>
-                <li>• Elderly care and social services</li>
-                <li>• Community savings & credit cooperative</li>
-              </ul>
-              <button className="w-full py-3 bg-white text-primary-600 font-semibold rounded-xl hover:bg-gray-50">
-                Learn More About Our Work
-              </button>
+              <div className="mt-8 pt-6 border-t border-parchment-100/20">
+                <p className="text-xs text-parchment-100/50 font-mono">
+                  UK Registered Charity · Youth Empowerment · Inclusive Education
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Support Areas */}
+          {/* Support Areas accordion */}
           <div className="mb-20">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Support Areas</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Comprehensive support for quality education and community development
+            <div className="text-center mb-10">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-laterite-500">
+                Our Support Areas
+              </span>
+              <h2 className="font-display text-3xl font-medium text-ink-800 mt-2 mb-3">
+                Comprehensive Support
+              </h2>
+              <p className="text-ink-500 text-sm max-w-xl mx-auto">
+                A full spectrum of services leading to quality education and community development.
               </p>
             </div>
-            <div className="max-w-3xl mx-auto">
-              {sections.supportAreas.map((area, index) => (
-                <AccordionItem key={area.id} area={area} index={index} />
+
+            <div className="max-w-3xl mx-auto space-y-3">
+              {supportAreas.map((area, idx) => (
+                <div key={area.id} className="border border-border bg-white">
+                  <button
+                    onClick={() => setOpenAccordion(openAccordion === idx ? null : idx)}
+                    className="w-full flex items-center justify-between p-4 text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className="font-mono text-xs text-ink-500 w-6">
+                        {String(idx + 1).padStart(2, '0')}
+                      </span>
+                      <area.icon className="h-5 w-5 text-laterite-500" />
+                      <span className="font-sans font-semibold text-ink-800 text-sm">
+                        {area.title}
+                      </span>
+                    </div>
+                    <span className="text-ink-400 text-xs font-mono">
+                      {openAccordion === idx ? '−' : '+'}
+                    </span>
+                  </button>
+
+                  {openAccordion === idx && (
+                    <div className="px-4 pb-6 pt-0 pl-16 text-sm text-ink-500 space-y-2">
+                      <p>{area.description}</p>
+                      <div className="space-y-1">
+                        {area.features.map((f, i) => (
+                          <div key={i} className="flex items-center gap-2 text-xs">
+                            <span className="w-1 h-1 bg-laterite-500" />
+                            {f}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
-
-          {/* Why Work With Us */}
-          {/* <div className="mb-20">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Work With Us</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Access to education is an international issue. We support disadvantaged communities with quality skills training.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {sections.whyWorkWithUs.map((reason, index) => (
-                <FeatureCard key={index} item={reason} index={index} isWhyWork={true} />
-              ))}
-            </div>
-          </div> */}
 
           {/* CTA */}
-          {/* <div className="bg-gradient-to-br from-primary-50 to-accent-50 rounded-2xl p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Ready to Make an Impact Together?
+          <div className="text-center border border-border bg-white p-10 md:p-14">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-laterite-500">
+              Get Involved
+            </span>
+            <h2 className="font-display text-2xl md:text-3xl font-medium text-ink-800 mt-2 mb-3">
+              Ready to make an impact together?
             </h2>
-            <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-ink-500 text-sm max-w-lg mx-auto mb-8">
               Partner with us to create opportunities and transform communities.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/contact">
-                <button className="px-8 py-3 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold rounded-xl hover:shadow-lg">
-                  Become a Partner
-                </button>
-              </Link>
-              <Link to="/contact">
-                <button className="px-8 py-3 bg-white text-primary-600 border-2 border-primary-200 font-semibold rounded-xl hover:bg-primary-50">
-                  Support Our Work
-                </button>
-              </Link>
+              <a
+                href="/contact"
+                className="inline-flex items-center gap-2 bg-laterite-500 hover:bg-laterite-600 text-white px-6 py-3 text-sm font-medium transition-colors"
+              >
+                Become a Partner <ArrowRightIcon className="h-4 w-4" />
+              </a>
+              <a
+                href="/contact"
+                className="inline-flex items-center gap-2 border border-laterite-500 text-laterite-600 hover:bg-laterite-50 px-6 py-3 text-sm font-medium transition-colors"
+              >
+                Support Our Work
+              </a>
             </div>
-          </div> */}
+          </div>
         </div>
       </section>
     </div>
@@ -339,5 +293,3 @@ const About = () => {
 };
 
 export default About;
-
-
