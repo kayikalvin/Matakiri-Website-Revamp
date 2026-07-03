@@ -109,7 +109,7 @@ const Home = () => {
         <HeroSection />
 
         {/* What we do */}
-        <section className="py-20 md:py-28 bg-parchment-50">
+        <section id='home' className="py-20 md:py-28 bg-parchment-50">
           <div className="container mx-auto px-4">
             <SectionHeader
               eyebrow="Our Focus"
@@ -128,7 +128,7 @@ const Home = () => {
         <StatsSection />
 
         {/* Featured Projects */}
-        <section className="py-20 md:py-28 bg-white">
+        <section id='projects' className="py-20 md:py-28 bg-white">
           <div className="container mx-auto px-4">
             <SectionHeader
               eyebrow="Field Work"
@@ -181,7 +181,7 @@ const Home = () => {
 
         {/* Partners strip */}
         {partners.length > 0 && (
-          <section className="py-16 bg-parchment-50 border-y border-border">
+          <section id='partners' className="py-16 bg-parchment-50 border-y border-border">
             <div className="container mx-auto px-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-500 text-center mb-8">
                 Trusted by
@@ -202,7 +202,7 @@ const Home = () => {
         )}
 
         {/* Latest News */}
-        <section className="py-20 md:py-28 bg-white">
+        <section id='news' className="py-20 md:py-28 bg-white">
           <div className="container mx-auto px-4">
             <SectionHeader
               eyebrow="Updates"

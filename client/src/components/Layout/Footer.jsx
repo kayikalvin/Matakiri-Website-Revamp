@@ -11,39 +11,19 @@ const Footer = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const scrollToSection = (sectionId) => {
-    if (location.pathname !== '/') {
-      navigate(`/#${sectionId}`);
-      return;
-    }
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const offset = element.getBoundingClientRect().top + window.pageYOffset - 80;
-      window.scrollTo({ top: offset, behavior: 'smooth' });
-    }
-  };
-
-  const handleHomeClick = (e) => {
-    e.preventDefault();
-    if (location.pathname === '/') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      navigate('/');
-    }
-  };
-
+  // Footer links with type: 'home', 'scroll', or 'route'
   const footerLinks = {
     'Quick Links': [
-      { id: 'home', label: 'Home' },
-      { id: 'about', label: 'About Us' },
-      { id: 'projects', label: 'Our Projects' },
-      { id: 'team', label: 'Our Team' },
+      { id: 'home', label: 'Home', type: 'home' },
+      { id: 'about', label: 'About Us', type: 'route', path: '/about' },
+      { id: 'projects', label: 'Our Projects', type: 'scroll' },
+      { id: 'team', label: 'Our Team', type: 'route', path: '/team' },
     ],
     Explore: [
-      { id: 'partners', label: 'Partners' },
-      { id: 'gallery', label: 'Gallery' },
-      { id: 'news', label: 'News & Updates' },
-      { id: 'contact', label: 'Contact Us' },
+      { id: 'partners', label: 'Partners', type: 'scroll' },
+      { id: 'gallery', label: 'Gallery', type: 'route', path: '/gallery' },
+      { id: 'news', label: 'News & Updates', type: 'scroll' },
+      { id: 'contact', label: 'Contact Us', type: 'route', path: '/contact' },
     ],
   };
 
@@ -53,21 +33,43 @@ const Footer = () => {
     { icon: MapPinIcon, text: 'Tharaka South Division, Tharaka, Kenya' },
   ];
 
+  // Universal click handler
+  const handleFooterClick = (link) => (e) => {
+    e?.preventDefault?.();
+    if (link.type === 'home') {
+      if (location.pathname === '/') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigate('/');
+      }
+    } else if (link.type === 'route') {
+      navigate(link.path);
+    } else if (link.type === 'scroll') {
+      if (location.pathname !== '/') {
+        navigate('/');
+        setTimeout(() => {
+          const el = document.getElementById(link.id);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      } else {
+        const el = document.getElementById(link.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
   return (
     <footer className="bg-soil-900 text-parchment-50 font-sans">
       <div className="container mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div className="space-y-5">
-            <a href="/" onClick={handleHomeClick} className="inline-block">
+            <a href="/" onClick={(e) => { e.preventDefault(); handleFooterClick({ type: 'home' })(); }} className="inline-block">
               <img
                 src="/matakiri-logo.png"
                 alt="Matakiri Tumaini Centre"
                 className="h-12 w-auto object-contain brightness-0 invert"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/assets/images/fallback-logo.png';
-                }}
+                onError={(e) => { e.target.onerror = null; e.target.src = '/assets/images/fallback-logo.png'; }}
               />
             </a>
             <p className="text-parchment-100/70 text-sm leading-relaxed">
@@ -79,7 +81,7 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Links */}
+          {/* Footer link columns */}
           {Object.entries(footerLinks).map(([category, links]) => (
             <div key={category}>
               <h4 className="font-display text-lg font-medium text-maize-400 mb-4 border-b border-maize-400/30 pb-2">
@@ -89,11 +91,7 @@ const Footer = () => {
                 {links.map((link) => (
                   <li key={link.id}>
                     <button
-                      onClick={() =>
-                        link.id === 'home'
-                          ? handleHomeClick({ preventDefault: () => {} })
-                          : scrollToSection(link.id)
-                      }
+                      onClick={handleFooterClick(link)}
                       className="text-parchment-100/70 hover:text-laterite-400 transition-colors text-sm text-left w-full"
                     >
                       {link.label}

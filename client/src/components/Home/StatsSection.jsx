@@ -84,7 +84,7 @@ const StatsSection = () => {
   }, []);
 
   return (
-    <section className="py-20 md:py-28 bg-parchment-50">
+    <section id='stats' className="py-20 md:py-28 bg-parchment-50">
       <div className="container mx-auto px-4">
         {/* Section header */}
         <motion.div

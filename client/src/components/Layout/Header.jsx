@@ -15,16 +15,17 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Define sections with navigation type
   const sections = [
-    { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About' },
-    { id: 'partners', label: 'Partners' },
-    { id: 'stats', label: 'Stats' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'gallery', label: 'Gallery' },
-    { id: 'team', label: 'Team' },
-    { id: 'news', label: 'News' },
-    { id: 'contact', label: 'Contact' },
+    { id: 'home', label: 'Home', type: 'home' },
+    { id: 'about', label: 'About', type: 'route', path: '/about' },
+    { id: 'partners', label: 'Partners', type: 'scroll' },
+    { id: 'stats', label: 'Stats', type: 'scroll' },
+    { id: 'projects', label: 'Projects', type: 'scroll' },
+    { id: 'gallery', label: 'Gallery', type: 'route', path: '/gallery' },
+    { id: 'team', label: 'Team', type: 'route', path: '/team' },
+    { id: 'news', label: 'News', type: 'scroll' },
+    { id: 'contact', label: 'Contact', type: 'route', path: '/contact' },
   ];
 
   const contactInfo = [
@@ -44,46 +45,43 @@ const Header = () => {
   }, [location]);
 
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
   }, [isMobileMenuOpen]);
 
-  const scrollToSection = (sectionId) => {
+  // Universal navigation handler
+  const handleNavClick = (section) => (e) => {
+    e?.preventDefault?.();
     setIsMobileMenuOpen(false);
-    if (location.pathname !== '/') {
-      navigate('/');
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-      return;
+
+    if (section.type === 'home') {
+      if (location.pathname === '/') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigate('/');
+      }
+    } else if (section.type === 'route') {
+      navigate(section.path);
+    } else if (section.type === 'scroll') {
+      if (location.pathname !== '/') {
+        navigate('/');
+        setTimeout(() => {
+          const el = document.getElementById(section.id);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      } else {
+        const el = document.getElementById(section.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
-    const element = document.getElementById(sectionId);
-    if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const handleHomeClick = (e) => {
-    e.preventDefault();
-    setIsMobileMenuOpen(false);
-    if (location.pathname === '/') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      navigate('/');
-    }
-  };
-
-  const isSectionActive = (sectionId) => {
-    if (location.pathname !== '/') return false;
-    if (sectionId === 'home' && window.scrollY < 100) return true;
-    const element = document.getElementById(sectionId);
-    if (!element) return false;
-    const rect = element.getBoundingClientRect();
+  // Determine if a scroll section is active (only relevant on homepage)
+  const isSectionActive = (section) => {
+    if (location.pathname !== '/' || section.type !== 'scroll') return false;
+    const el = document.getElementById(section.id);
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
     return rect.top <= 100 && rect.bottom >= 100;
   };
 
@@ -96,30 +94,25 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <a href="/" onClick={handleHomeClick} className="flex items-center flex-shrink-0">
+          <a href="/" onClick={handleNavClick({ type: 'home' })} className="flex items-center flex-shrink-0">
             <img
               src="/matakiri-logo.png"
               alt="Matakiri Tumaini"
               className="h-10 md:h-12 w-auto object-contain"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/assets/images/fallback-logo.png';
-              }}
+              onError={(e) => { e.target.onerror = null; e.target.src = '/assets/images/fallback-logo.png'; }}
             />
           </a>
 
-          {/* Desktop nav */}
+          {/* Desktop navigation */}
           <div className="hidden lg:flex items-center gap-1">
             {sections.map((section) => (
               <button
                 key={section.id}
-                onClick={() =>
-                  section.id === 'home'
-                    ? handleHomeClick({ preventDefault: () => {} })
-                    : scrollToSection(section.id)
-                }
+                onClick={handleNavClick(section)}
                 className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 ${
-                  isSectionActive(section.id)
+                  isSectionActive(section)
+                    ? 'text-laterite-500 border-laterite-500'
+                    : section.type === 'route' && location.pathname === section.path
                     ? 'text-laterite-500 border-laterite-500'
                     : 'text-ink-500 border-transparent hover:text-ink-800 hover:border-ink-500/20'
                 }`}
@@ -135,11 +128,7 @@ const Header = () => {
             className="lg:hidden p-2 text-ink-500 hover:text-laterite-500 transition-colors"
             aria-label="Toggle menu"
           >
-            {isMobileMenuOpen ? (
-              <XMarkIcon className="h-6 w-6" />
-            ) : (
-              <Bars3Icon className="h-6 w-6" />
-            )}
+            {isMobileMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
           </button>
         </div>
       </div>
@@ -165,13 +154,9 @@ const Header = () => {
                 {sections.map((section) => (
                   <button
                     key={section.id}
-                    onClick={() =>
-                      section.id === 'home'
-                        ? handleHomeClick({ preventDefault: () => {} })
-                        : scrollToSection(section.id)
-                    }
+                    onClick={handleNavClick(section)}
                     className={`w-full text-left px-4 py-3 text-sm font-medium border-l-2 transition-colors ${
-                      isSectionActive(section.id)
+                      isSectionActive(section) || (section.type === 'route' && location.pathname === section.path)
                         ? 'text-laterite-500 border-laterite-500 bg-laterite-50'
                         : 'text-ink-500 border-transparent hover:bg-parchment-50'
                     }`}
