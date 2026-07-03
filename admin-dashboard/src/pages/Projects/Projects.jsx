@@ -24,7 +24,7 @@ import FilterBar from '../../components/Common/FilterBar';
 import DataTable from '../../components/Common/DataTable';
 import CardGrid from '../../components/Common/CardGrid';
 import StatusBadge from '../../components/Common/StatusBadge';
-import StatCard from '../../components/Common/'; // now in Common
+import StatCard from '../../components/Common/StatCard'; // now in Common
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
