@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { 
-  ArrowLeftIcon, 
-  PhotoIcon, 
-  EyeIcon, 
-  CalendarIcon, 
+import {
+  ArrowLeftIcon,
+  PhotoIcon,
+  EyeIcon,
+  CalendarIcon,
   TagIcon,
   PencilIcon,
   TrashIcon,
@@ -14,7 +14,8 @@ import {
   ClockIcon,
   InformationCircleIcon,
   DocumentTextIcon,
-  ArrowTopRightOnSquareIcon
+  ArrowTopRightOnSquareIcon,
+  VideoCameraIcon,
 } from '@heroicons/react/24/outline';
 import { galleryAPI } from '../../services/api';
 import { Toaster, toast } from 'react-hot-toast';
@@ -32,30 +33,29 @@ const ViewMedia = () => {
       setLoading(true);
       setError(null);
       try {
-        // Try to use getById if available
         if (galleryAPI.getById) {
           const res = await galleryAPI.getById(id);
           const mediaData = res.data?.data || res.data;
           setMedia(mediaData);
-          
-          // Fetch related media
-          try {
-            const relatedRes = await galleryAPI.getAll({ 
-              category: mediaData.category,
-              limit: 4 
-            });
-            const relatedItems = relatedRes.data?.data || relatedRes.data?.gallery || relatedRes.data || [];
-            setRelatedMedia(relatedItems.filter(item => 
-              String(item._id || item.id) !== String(id)
-            ).slice(0, 3));
-          } catch (err) {
-            console.debug('Failed to fetch related media:', err.message);
+
+          // Related media
+          if (mediaData?.category) {
+            try {
+              const relatedRes = await galleryAPI.getAll({ category: mediaData.category, limit: 4 });
+              const items = relatedRes.data?.data || relatedRes.data?.gallery || relatedRes.data || [];
+              setRelatedMedia(
+                items
+                  .filter(item => String(item._id || item.id) !== String(id))
+                  .slice(0, 3)
+              );
+            } catch (err) {
+              // silently ignore
+            }
           }
         } else {
-          // Fallback to fetching all
           const res = await galleryAPI.getAll();
           const items = res.data?.data || res.data?.gallery || res.data || [];
-          const found = items.find((item) => String(item._id || item.id) === String(id));
+          const found = items.find(item => String(item._id || item.id) === String(id));
           if (!found) throw new Error('Media not found');
           setMedia(found);
         }
@@ -70,50 +70,26 @@ const ViewMedia = () => {
   }, [id]);
 
   const formatBytes = (bytes) => {
-    if (!bytes) return '-';
+    if (!bytes) return '—';
     const kb = bytes / 1024;
     if (kb < 1024) return `${Math.round(kb)} KB`;
-    if (kb < 1024 * 1024) return `${(kb / 1024).toFixed(1)} MB`;
-    return `${(kb / (1024 * 1024)).toFixed(1)} GB`;
+    return `${(kb / 1024).toFixed(1)} MB`;
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    if (!dateString) return '—';
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
-  const getCategoryColor = (category) => {
-    const colors = {
-      Events: 'bg-green-100 text-green-800',
-      Projects: 'bg-yellow-100 text-yellow-800',
-      Reports: 'bg-red-100 text-red-800',
-      Partners: 'bg-indigo-100 text-indigo-800',
-      Education: 'bg-pink-100 text-pink-800',
-      Team: 'bg-cyan-100 text-cyan-800',
-      Office: 'bg-gray-100 text-gray-800',
-      General: 'bg-blue-100 text-blue-800'
-    };
-    return colors[category] || 'bg-gray-100 text-gray-800';
-  };
-
-  const handleDownload = async () => {
-    try {
-      toast.loading('Preparing download...');
-      // Implement download logic here
-      // This would typically be a direct link to the file or a download endpoint
-      window.open(media.url || media.fileUrl, '_blank');
-      toast.dismiss();
-      toast.success('Download started');
-    } catch (err) {
-      toast.error('Failed to download file');
-    }
+  const handleDownload = () => {
+    window.open(media.url || media.fileUrl, '_blank');
+    toast.success('Download started');
   };
 
   const handleShare = () => {
@@ -125,432 +101,248 @@ const ViewMedia = () => {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copied to clipboard');
+      toast.success('Link copied');
     }
   };
 
   const handleDelete = () => {
-    toast((t) => (
-      <span>
-        Are you sure you want to delete <b>{media.title}</b>?<br/>
-        <button
-          onClick={async () => {
-            toast.dismiss(t.id);
-            try {
-              await galleryAPI.delete(id);
-              toast.success('Media deleted successfully');
-              navigate('/gallery');
-            } catch (err) {
-              toast.error(err.response?.data?.message || 'Failed to delete media');
-            }
-          }}
-          className="mt-2 mr-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-        >
-          Yes, Delete
-        </button>
-        <button
-          onClick={() => toast.dismiss(t.id)}
-          className="mt-2 px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-        >
-          Cancel
-        </button>
-      </span>
-    ), { duration: 8000 });
+    if (!window.confirm(`Delete "${media.title}"?`)) return;
+    toast.promise(
+      galleryAPI.delete(id).then(() => navigate('/gallery')),
+      {
+        loading: 'Deleting…',
+        success: 'Media deleted',
+        error: 'Failed to delete',
+      }
+    );
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="flex flex-col items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-primary-500 mb-4"></div>
-          <p className="text-gray-600">Loading media details...</p>
-        </div>
+      <div className="p-4 md:p-6 text-center py-16 text-ink-500 font-mono text-sm">
+        Loading media…
       </div>
     );
   }
 
   if (error || !media) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <button
-            onClick={() => navigate('/gallery')}
-            className="inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-6"
-          >
-            <ArrowLeftIcon className="h-5 w-5 mr-2" />
-            Back to Gallery
-          </button>
-          
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-            <div className="text-red-600 font-medium text-lg mb-2">
-              {error || 'Media not found'}
-            </div>
-            <p className="text-gray-600 mb-4">The requested media could not be loaded.</p>
-            <button
-              onClick={() => navigate('/gallery')}
-              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Return to Gallery
-            </button>
-          </div>
+      <div className="p-4 md:p-6 space-y-4">
+        <button onClick={() => navigate('/gallery')} className="inline-flex items-center gap-1.5 text-ink-500 hover:text-laterite-500 text-xs font-mono">
+          <ArrowLeftIcon className="h-4 w-4" /> Back to Gallery
+        </button>
+        <div className="border border-status-danger/30 p-8 text-center text-status-danger text-sm font-mono">
+          {error || 'Media not found'}
         </div>
       </div>
     );
   }
 
+  const isImage = media.type === 'image' || media.mimeType?.startsWith('image/');
+  const isVideo = media.type === 'video' || media.mimeType?.startsWith('video/');
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="p-4 md:p-6 space-y-6 animate-fade-in">
       <Toaster position="top-right" />
-      
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate('/gallery')}
-            className="inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-6 group"
-          >
-            <ArrowLeftIcon className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Back to Gallery
-          </button>
-          
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div className="flex items-start space-x-4">
-              <div className="h-12 w-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                <PhotoIcon className="h-6 w-6 text-primary-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{media.title}</h1>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(media.category)}`}>
-                    <FolderIcon className="h-4 w-4 mr-1" />
-                    {media.category || 'Uncategorized'}
-                  </span>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                    media.type === 'image' 
-                      ? 'bg-primary-100 text-primary-800' 
-                      : 'bg-purple-100 text-purple-800'
-                  }`}>
-                    {media.type?.toUpperCase()}
-                  </span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                    <EyeIcon className="h-4 w-4 mr-1" />
-                    {media.views?.toLocaleString() || '0'} views
-                  </span>
-                </div>
-              </div>
+
+      {/* Header */}
+      <div className="space-y-4">
+        <button
+          onClick={() => navigate('/gallery')}
+          className="inline-flex items-center gap-1.5 text-ink-500 hover:text-laterite-500 text-xs font-mono transition-colors"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          Back to Gallery
+        </button>
+
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 border-b border-border pb-5">
+          <div>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-laterite-500">Media</span>
+            <h1 className="font-display text-3xl font-medium text-ink-800 mt-1">{media.title}</h1>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              <span className="text-xs font-mono text-ink-500 flex items-center gap-1">
+                <FolderIcon className="h-3.5 w-3.5" />
+                {media.category || 'Uncategorized'}
+              </span>
+              <span className="text-xs font-mono text-ink-500 flex items-center gap-1">
+                <EyeIcon className="h-3.5 w-3.5" />
+                {(media.views || 0).toLocaleString()} views
+              </span>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={handleShare}
-                className="inline-flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                <ShareIcon className="h-5 w-5 mr-2" />
-                Share
-              </button>
-              <button
-                onClick={handleDownload}
-                className="inline-flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-                Download
-              </button>
-            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleShare}
+              className="px-3 py-2 border border-border text-ink-700 text-sm hover:bg-parchment-50 transition-colors"
+            >
+              <ShareIcon className="h-4 w-4 mr-1.5 inline" />
+              Share
+            </button>
+            <button
+              onClick={handleDownload}
+              className="px-3 py-2 border border-laterite-500 text-laterite-600 text-sm hover:bg-laterite-50 transition-colors"
+            >
+              <ArrowDownTrayIcon className="h-4 w-4 mr-1.5 inline" />
+              Download
+            </button>
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content (2/3 width) */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Media Preview */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Preview</h3>
-              </div>
-              
-              <div className="p-8">
-                <div className="aspect-video bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
-                  {media.type === 'image' ? (
-                    media.url || media.fileUrl ? (
-                      <img 
-                        src={media.url || media.fileUrl} 
-                        alt={media.title} 
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <PhotoIcon className="h-32 w-32 text-gray-300" />
-                    )
-                  ) : media.type === 'video' ? (
-                    media.url || media.fileUrl ? (
-                      <video 
-                        src={media.url || media.fileUrl} 
-                        controls 
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <div className="relative">
-                        <VideoCameraIcon className="h-32 w-32 text-gray-300" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="h-20 w-20 bg-purple-600 rounded-full flex items-center justify-center">
-                            <span className="text-white text-2xl">▶</span>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  ) : (
-                    <DocumentTextIcon className="h-32 w-32 text-gray-300" />
-                  )}
-                </div>
-              </div>
-              
-              <div className="px-8 pb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center text-sm text-gray-500 mb-1">
-                    <InformationCircleIcon className="h-4 w-4 mr-2" />
-                    File Type
-                  </div>
-                  <div className="font-medium text-gray-900">
-                    {media.mimeType || media.type || 'Unknown'}
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center text-sm text-gray-500 mb-1">
-                    <InformationCircleIcon className="h-4 w-4 mr-2" />
-                    File Size
-                  </div>
-                  <div className="font-medium text-gray-900">
-                    {formatBytes(media.size || media.fileSize)}
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center text-sm text-gray-500 mb-1">
-                    <CalendarIcon className="h-4 w-4 mr-2" />
-                    Uploaded
-                  </div>
-                  <div className="font-medium text-gray-900">
-                    {formatDate(media.createdAt || media.uploadedAt)}
-                  </div>
-                </div>
-              </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main column */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Preview */}
+          <div className="bg-white border border-border p-6">
+            <div className="aspect-video bg-parchment-50 border border-border flex items-center justify-center overflow-hidden">
+              {isImage && (media.url || media.fileUrl) ? (
+                <img src={media.url || media.fileUrl} alt={media.title} className="w-full h-full object-contain" />
+              ) : isVideo && (media.url || media.fileUrl) ? (
+                <video src={media.url || media.fileUrl} controls className="w-full h-full" />
+              ) : (
+                <PhotoIcon className="h-24 w-24 text-ink-300" />
+              )}
             </div>
 
-            {/* Description & Details */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Details</h3>
+            <div className="grid grid-cols-3 gap-4 mt-4 text-xs">
+              <div className="border border-border p-3">
+                <span className="text-ink-500">Type</span>
+                <p className="font-mono text-ink-800 mt-0.5">{media.mimeType || media.type || 'Unknown'}</p>
               </div>
-              
-              <div className="p-6 space-y-6">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Description</h4>
-                  <p className="text-gray-900 whitespace-pre-wrap">
-                    {media.description || 'No description provided.'}
-                  </p>
-                </div>
-                
-                {media.tags && media.tags.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                      <TagIcon className="h-4 w-4 mr-2" />
-                      Tags
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {(Array.isArray(media.tags) ? media.tags : media.tags.split(',')).map((tag, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors"
-                        >
-                          {tag.trim()}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Metadata</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Dimensions</span>
-                        <span className="font-medium text-gray-900">
-                          {media.dimensions || media.metadata?.dimensions || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Duration</span>
-                        <span className="font-medium text-gray-900">
-                          {media.duration || media.metadata?.duration || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Resolution</span>
-                        <span className="font-medium text-gray-900">
-                          {media.resolution || media.metadata?.resolution || 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Upload Information</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Uploaded By</span>
-                        <span className="font-medium text-gray-900">
-                          {media.uploadedBy || 'Unknown'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Last Modified</span>
-                        <span className="font-medium text-gray-900">
-                          {formatDate(media.updatedAt || media.modifiedAt)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">File ID</span>
-                        <span className="font-mono text-sm font-medium text-gray-900">
-                          {id}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className="border border-border p-3">
+                <span className="text-ink-500">Size</span>
+                <p className="font-mono text-ink-800 mt-0.5">{formatBytes(media.size || media.fileSize)}</p>
+              </div>
+              <div className="border border-border p-3">
+                <span className="text-ink-500">Uploaded</span>
+                <p className="font-mono text-ink-800 mt-0.5">{formatDate(media.createdAt)}</p>
               </div>
             </div>
           </div>
 
-          {/* Sidebar (1/3 width) */}
-          <div className="space-y-8">
-            {/* Quick Actions */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Actions</h3>
-              </div>
-              
-              <div className="p-6">
-                <div className="space-y-3">
-                  <Link
-                    to={`/gallery/edit/${id}`}
-                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
-                  >
-                    <div className="flex items-center">
-                      <PencilIcon className="h-5 w-5 text-gray-500 mr-3" />
-                      <span className="font-medium text-gray-900">Edit Details</span>
-                    </div>
-                    <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
-                  </Link>
-                  
-                  <button
-                    onClick={handleDownload}
-                    className="flex items-center justify-between w-full p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
-                  >
-                    <div className="flex items-center">
-                      <ArrowDownTrayIcon className="h-5 w-5 text-gray-500 mr-3" />
-                      <span className="font-medium text-gray-900">Download File</span>
-                    </div>
-                    <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
-                  </button>
-                  
-                  <button
-                    onClick={handleShare}
-                    className="flex items-center justify-between w-full p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
-                  >
-                    <div className="flex items-center">
-                      <ShareIcon className="h-5 w-5 text-gray-500 mr-3" />
-                      <span className="font-medium text-gray-900">Share</span>
-                    </div>
-                  </button>
-                  
-                  <button
-                    onClick={handleDelete}
-                    className="flex items-center justify-between w-full p-3 border border-red-200 rounded-lg hover:bg-red-50 transition-colors group"
-                  >
-                    <div className="flex items-center">
-                      <TrashIcon className="h-5 w-5 text-red-500 mr-3" />
-                      <span className="font-medium text-red-700">Delete Media</span>
-                    </div>
-                  </button>
-                </div>
-              </div>
+          {/* Details */}
+          <div className="bg-white border border-border p-6 space-y-5">
+            <h2 className="font-display text-lg font-medium text-ink-800">Details</h2>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 mb-2">Description</p>
+              <p className="text-sm text-ink-800 whitespace-pre-wrap">{media.description || 'No description.'}</p>
             </div>
 
-            {/* Related Media */}
-            {relatedMedia.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">Related Media</h3>
-                </div>
-                
-                <div className="p-6">
-                  <div className="space-y-4">
-                    {relatedMedia.map((item) => (
-                      <Link
-                        key={item._id || item.id}
-                        to={`/gallery/view/${item._id || item.id}`}
-                        className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
-                      >
-                        <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          {item.type === 'image' ? (
-                            <PhotoIcon className="h-6 w-6 text-gray-600" />
-                          ) : (
-                            <VideoCameraIcon className="h-6 w-6 text-purple-600" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 truncate group-hover:text-primary-600">
-                            {item.title}
-                          </p>
-                          <div className="flex items-center text-sm text-gray-500">
-                            <span className="capitalize">{item.type}</span>
-                            <span className="mx-2">•</span>
-                            <ClockIcon className="h-3 w-3 mr-1" />
-                            {formatDate(item.createdAt)}
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
+            {media.tags?.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 mb-2">Tags</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {(Array.isArray(media.tags) ? media.tags : media.tags.split(',')).map((tag, i) => (
+                    <span key={i} className="text-xs font-mono border border-border px-2 py-0.5 text-ink-600">
+                      {tag.trim()}
+                    </span>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* File Information */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">File Information</h3>
-              </div>
-              
-              <div className="p-6">
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-sm text-gray-500 mb-1">File Name</div>
-                    <div className="font-mono text-sm text-gray-900 truncate">
-                      {media.originalName || media.filename || 'unknown'}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="text-sm text-gray-500 mb-1">Storage Path</div>
-                    <div className="font-mono text-sm text-gray-900 truncate">
-                      {media.path || media.storagePath || '/'}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="text-sm text-gray-500 mb-1">URL</div>
-                    <a
-                      href={media.url || media.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-mono text-sm text-primary-600 hover:text-primary-700 truncate block"
-                    >
-                      {media.url || media.fileUrl}
-                    </a>
-                  </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 mb-2">Metadata</p>
+                <div className="space-y-1.5 text-xs font-mono">
+                  <div className="flex justify-between"><span className="text-ink-500">Dimensions</span><span className="text-ink-800">{media.dimensions || media.metadata?.dimensions || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-ink-500">Duration</span><span className="text-ink-800">{media.duration || media.metadata?.duration || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-ink-500">Resolution</span><span className="text-ink-800">{media.resolution || media.metadata?.resolution || '—'}</span></div>
                 </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 mb-2">Upload Info</p>
+                <div className="space-y-1.5 text-xs font-mono">
+                  <div className="flex justify-between"><span className="text-ink-500">Uploaded By</span><span className="text-ink-800">{media.uploadedBy || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-ink-500">Modified</span><span className="text-ink-800">{formatDate(media.updatedAt)}</span></div>
+                  <div className="flex justify-between"><span className="text-ink-500">ID</span><span className="text-ink-800 truncate max-w-[120px]">{id}</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Actions */}
+          <div className="bg-white border border-border p-5 space-y-3">
+            <h3 className="font-display text-lg font-medium text-ink-800">Actions</h3>
+            <Link
+              to={`/gallery/edit/${id}`}
+              className="flex items-center justify-between p-3 border border-border hover:border-laterite-500 transition-colors text-sm text-ink-800"
+            >
+              <span className="flex items-center gap-2"><PencilIcon className="h-4 w-4 text-ink-500" />Edit Details</span>
+              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-ink-400" />
+            </Link>
+            <button
+              onClick={handleDownload}
+              className="flex items-center justify-between w-full p-3 border border-border hover:border-laterite-500 transition-colors text-sm text-ink-800"
+            >
+              <span className="flex items-center gap-2"><ArrowDownTrayIcon className="h-4 w-4 text-ink-500" />Download</span>
+            </button>
+            <button
+              onClick={handleShare}
+              className="flex items-center justify-between w-full p-3 border border-border hover:border-laterite-500 transition-colors text-sm text-ink-800"
+            >
+              <span className="flex items-center gap-2"><ShareIcon className="h-4 w-4 text-ink-500" />Share</span>
+            </button>
+            <button
+              onClick={handleDelete}
+              className="flex items-center justify-between w-full p-3 border border-status-danger/30 hover:bg-status-danger/5 transition-colors text-sm text-status-danger"
+            >
+              <span className="flex items-center gap-2"><TrashIcon className="h-4 w-4" />Delete</span>
+            </button>
+          </div>
+
+          {/* Related Media */}
+          {relatedMedia.length > 0 && (
+            <div className="bg-white border border-border p-5 space-y-3">
+              <h3 className="font-display text-lg font-medium text-ink-800">Related Media</h3>
+              {relatedMedia.map(item => (
+                <Link
+                  key={item._id || item.id}
+                  to={`/gallery/view/${item._id || item.id}`}
+                  className="flex items-center gap-3 p-3 border border-border hover:border-laterite-500 transition-colors"
+                >
+                  <div className="h-10 w-10 bg-parchment-100 border border-border flex items-center justify-center">
+                    {item.type === 'image' ? <PhotoIcon className="h-5 w-5 text-ink-500" /> : <VideoCameraIcon className="h-5 w-5 text-ink-500" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-ink-800 truncate">{item.title}</p>
+                    <p className="text-xs text-ink-500 flex items-center gap-1">
+                      <ClockIcon className="h-3 w-3" />
+                      {formatDate(item.createdAt)}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* File Info */}
+          <div className="bg-white border border-border p-5 space-y-3">
+            <h3 className="font-display text-lg font-medium text-ink-800">File Information</h3>
+            <div className="text-xs space-y-2 font-mono">
+              <div>
+                <span className="text-ink-500">Name</span>
+                <p className="text-ink-800 truncate">{media.originalName || media.filename || '—'}</p>
+              </div>
+              <div>
+                <span className="text-ink-500">Path</span>
+                <p className="text-ink-800 truncate">{media.path || media.storagePath || '/'}</p>
+              </div>
+              <div>
+                <span className="text-ink-500">URL</span>
+                <a
+                  href={media.url || media.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-laterite-500 underline block truncate"
+                >
+                  {media.url || media.fileUrl}
+                </a>
               </div>
             </div>
           </div>
@@ -561,6 +353,3 @@ const ViewMedia = () => {
 };
 
 export default ViewMedia;
-
-
-
