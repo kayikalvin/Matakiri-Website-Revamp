@@ -39,31 +39,36 @@ function hslToHex(h, s, l) {
 }
 
 function generateShades(hex, steps = [95, 90, 85, 75, 65, 55, 45, 35, 25, 15]) {
-  // returns an array of hex shades from lightest to darkest
-  const { r, g, b } = hexToRgb(hex || '#10B981');
+  const { r, g, b } = hexToRgb(hex || '#B5522E');
   const { h, s, l } = rgbToHsl(r, g, b);
   return steps.map((targetL) => hslToHex(h, s, targetL));
 }
 
+// Field Instrument Panel / Ground & Signal default tokens
+export const DEFAULT_THEME = {
+  primaryColor: '#B5522E',   // laterite-500
+  secondaryColor: '#9A4526', // laterite-600
+  accentColor: '#4F7942',    // acacia-500
+  textColor: '#2B2620',      // ink-800
+  backgroundColor: '#F7F3EA' // parchment-50
+};
+
 export function applyThemeToRoot(theme) {
-  if (!theme) return;
+  const t = theme || DEFAULT_THEME;
   const root = document.documentElement;
   try {
-    const primary = theme.primaryColor || theme.primary || '#10B981';
-    const secondary = theme.secondaryColor || theme.secondary || primary;
-    const accent = theme.accentColor || '#059669';
-    const text = theme.textColor || '#0f172a';
-    const background = theme.backgroundColor || '#ffffff';
+    const primary = t.primaryColor || t.primary || DEFAULT_THEME.primaryColor;
+    const secondary = t.secondaryColor || t.secondary || DEFAULT_THEME.secondaryColor;
+    const accent = t.accentColor || DEFAULT_THEME.accentColor;
+    const text = t.textColor || DEFAULT_THEME.textColor;
+    const background = t.backgroundColor || DEFAULT_THEME.backgroundColor;
 
-    // generate basic primary shades
     const primaryShades = generateShades(primary, [95, 90, 80, 70, 60, 50, 40, 30, 20]);
-    // assign to --primary-50...--primary-900 like mapping
-    const mapping = [50,100,200,300,400,500,600,700,800,900];
+    const mapping = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
     mapping.forEach((key, idx) => {
       root.style.setProperty(`--primary-${key}`, primaryShades[idx]);
     });
 
-    // other vars (ensure fallbacks)
     root.style.setProperty('--primary-500', primaryShades[5] || primary);
     root.style.setProperty('--primary-600', primaryShades[6] || secondary);
     root.style.setProperty('--primary-900', primaryShades[9] || primaryShades[8] || primary);
@@ -77,4 +82,4 @@ export function applyThemeToRoot(theme) {
   }
 }
 
-export default { applyThemeToRoot, generateShades };
+export default { applyThemeToRoot, generateShades, DEFAULT_THEME };
