@@ -1,11 +1,10 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   ArrowPathIcon,
   ChartBarIcon,
   UserGroupIcon,
   CurrencyDollarIcon,
-  ExclamationTriangleIcon,
   DocumentTextIcon,
   PhotoIcon,
   ArrowTrendingUpIcon,
@@ -15,86 +14,19 @@ import {
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { projectsAPI, partnersAPI, usersAPI, galleryAPI, newsAPI, metricsAPI } from '../services/api';
 import QuickActions from '../components/Dashboard/QuickActions';
+import FieldLog from '../components/Dashboard/FieldLog';
+import StatCard from '../components/Dashboard/StatCard';
 
-// --- Field Log strip -------------------------------------------------
-// Signature element: a typewritten-style ticker of real recent actions.
-// Replaces the generic notification bell as the dashboard's "pulse".
-const FieldLog = ({ entries, loading }) => {
-  if (loading) {
-    return (
-      <div className="h-9 flex items-center px-4 bg-soil-900 text-parchment-100/60 font-mono text-xs tracking-wide">
-        reading log&hellip;
-      </div>
-    );
-  }
-  if (!entries || entries.length === 0) {
-    return (
-      <div className="h-9 flex items-center px-4 bg-soil-900 text-parchment-100/60 font-mono text-xs tracking-wide">
-        no recent entries
-      </div>
-    );
-  }
-  return (
-    <div className="h-9 overflow-hidden bg-soil-900 relative">
-      <div className="absolute inset-0 flex items-center whitespace-nowrap animate-ticker">
-        {[...entries, ...entries].map((e, i) => (
-          <span key={i} className="inline-flex items-center font-mono text-xs text-parchment-100/85 px-6 tracking-wide">
-            <span className="text-maize-400 mr-2">&#8250;</span>
-            {e}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// --- Stat card ---------------------------------------------------------
-// Ledger card: hairline laterite border, flat bg, mono numerals, rectangular tag delta.
-const StatCard = ({ label, value, icon: Icon, delta, deltaLabel, loading, tone = 'laterite' }) => {
-  const toneMap = {
-    laterite: { ring: 'border-laterite-500/30', icon: 'text-laterite-500', bg: 'bg-laterite-50' },
-    acacia:   { ring: 'border-acacia-500/30',   icon: 'text-acacia-500',   bg: 'bg-acacia-50' },
-    maize:    { ring: 'border-maize-400/40',    icon: 'text-maize-500',    bg: 'bg-maize-50' },
-  };
-  const t = toneMap[tone] || toneMap.laterite;
-  const positive = typeof delta === 'number' ? delta >= 0 : null;
-
-  return (
-    <div className={`bg-white border ${t.ring} p-5 flex flex-col gap-3`}>
-      <div className="flex items-start justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">
-          {label}
-        </span>
-        <Icon className={`h-4 w-4 ${t.icon}`} />
-      </div>
-      <div className="font-mono text-3xl text-ink-800 tabular-nums">
-        {loading ? '—' : value}
-      </div>
-      {deltaLabel && (
-        <div className={`inline-flex items-center gap-1 text-xs font-mono ${
-          positive === null ? 'text-ink-500' : positive ? 'text-acacia-600' : 'text-laterite-600'
-        }`}>
-          {positive !== null && (positive ? (
-            <ArrowTrendingUpIcon className="h-3 w-3" />
-          ) : (
-            <ArrowTrendingDownIcon className="h-3 w-3" />
-          ))}
-          {deltaLabel}
-        </div>
-      )}
-    </div>
-  );
-};
-
+// ---------- Dashboard ----------
 const Dashboard = () => {
   const { user } = useAuth();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Data states
   const [analytics, setAnalytics] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(null);
   const [fieldLog, setFieldLog] = useState([]);
   const [fieldLogLoading, setFieldLogLoading] = useState(true);
-
   const [quickStats, setQuickStats] = useState({
     users: 0, revenue: 0, pending: 0, projects: 0,
     partners: 0, news: 0, gallery: 0, featuredMedia: 0,
@@ -103,17 +35,10 @@ const Dashboard = () => {
   const [percentChanges, setPercentChanges] = useState({
     users: null, revenue: null, projectsDelta: null, partnersNew: null, newsThis: null,
   });
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1200);
-  };
-
-  // Quick stats fetch — unchanged logic from original, trimmed of placeholder score/tab state
-  useEffect(() => {
-    let mounted = true;
-    setStatsLoading(true);
-
+  // ---------- Data fetching functions (memoized to avoid dependency loops) ----------
+  const fetchStats = useCallback(async () => {
     const now = new Date();
     const usersThisStart = new Date(); usersThisStart.setDate(now.getDate() - 7);
     const usersPrevStart = new Date(); usersPrevStart.setDate(now.getDate() - 14);
@@ -142,211 +67,236 @@ const Dashboard = () => {
       galleryAPI.getAll({ isFeatured: true, limit: 1 }),
     ];
 
-    Promise.all(promises).then(([
+    const [
       projOverall, projThis, projPrev, metricsOverall, metricsThis, metricsPrev,
       partnersOverall, partnersThis, usersOverall, usersThisPeriod, usersPrevPeriod,
       newsOverall, newsThis, gallery, featured,
-    ]) => {
-      if (!mounted) return;
-      const safePeriodCount = (res) =>
-        res?.data?.data?.periodCount ?? res?.data?.data?.count ?? res?.data?.data?.total ?? res?.data?.total ?? 0;
-      const computePercent = (current, previous) => {
-        if (previous === 0) return current === 0 ? 0 : null;
-        return parseFloat((((current - previous) / previous) * 100).toFixed(1));
-      };
+    ] = await Promise.all(promises);
 
-      const currentUsers = safePeriodCount(usersThisPeriod);
-      const previousUsers = safePeriodCount(usersPrevPeriod);
-      const usersPercent = computePercent(currentUsers, previousUsers);
+    const safePeriodCount = (res) =>
+      res?.data?.data?.periodCount ?? res?.data?.data?.count ?? res?.data?.data?.total ?? res?.data?.total ?? 0;
+    const computePercent = (current, previous) => {
+      if (previous === 0) return current === 0 ? 0 : null;
+      return parseFloat((((current - previous) / previous) * 100).toFixed(1));
+    };
 
-      const projCountOverall = projOverall?.data?.data?.totalProjects ?? projOverall?.data?.total ?? 0;
-      const projThisCount = safePeriodCount(projThis);
-      const projPrevCount = safePeriodCount(projPrev);
-      const projDelta = projThisCount - projPrevCount;
+    const currentUsers = safePeriodCount(usersThisPeriod);
+    const previousUsers = safePeriodCount(usersPrevPeriod);
+    const usersPercent = computePercent(currentUsers, previousUsers);
 
-      const revThis = metricsThis?.data?.data?.totalSpent ?? metricsThis?.data?.totalSpent ?? 0;
-      const revPrev = metricsPrev?.data?.data?.totalSpent ?? metricsPrev?.data?.totalSpent ?? 0;
-      const revOverall = metricsOverall?.data?.data?.totalSpent ?? metricsOverall?.data?.totalSpent ?? 0;
-      const revenuePercent = computePercent(revThis, revPrev);
+    const projCountOverall = projOverall?.data?.data?.totalProjects ?? projOverall?.data?.total ?? 0;
+    const projThisCount = safePeriodCount(projThis);
+    const projPrevCount = safePeriodCount(projPrev);
+    const projDelta = projThisCount - projPrevCount;
 
-      const partnersCountOverall = partnersOverall?.data?.data?.totalPartners ?? partnersOverall?.data?.total ?? 0;
-      const partnersThisCount = safePeriodCount(partnersThis);
+    const revThis = metricsThis?.data?.data?.totalSpent ?? metricsThis?.data?.totalSpent ?? 0;
+    const revPrev = metricsPrev?.data?.data?.totalSpent ?? metricsPrev?.data?.totalSpent ?? 0;
+    const revOverall = metricsOverall?.data?.data?.totalSpent ?? metricsOverall?.data?.totalSpent ?? 0;
+    const revenuePercent = computePercent(revThis, revPrev);
 
-      const newsCountOverall = newsOverall?.data?.total ?? newsOverall?.data?.data?.total ?? 0;
-      const newsThisCount = safePeriodCount(newsThis);
+    const partnersCountOverall = partnersOverall?.data?.data?.totalPartners ?? partnersOverall?.data?.total ?? 0;
+    const partnersThisCount = safePeriodCount(partnersThis);
 
-      setQuickStats({
-        users: usersOverall?.data?.data?.totalUsers ?? usersOverall?.data?.totalUsers ?? usersOverall?.data?.total ?? 0,
-        revenue: revOverall,
-        pending: 0,
-        projects: projCountOverall,
-        partners: partnersCountOverall,
-        news: newsCountOverall,
-        gallery: gallery?.data?.total ?? gallery?.data?.data?.total ?? 0,
-        featuredMedia: featured?.data?.total ?? featured?.data?.data?.total ?? 0,
-      });
+    const newsCountOverall = newsOverall?.data?.total ?? newsOverall?.data?.data?.total ?? 0;
+    const newsThisCount = safePeriodCount(newsThis);
 
-      setPercentChanges({
-        users: usersPercent,
-        revenue: revenuePercent,
-        projectsDelta: projDelta,
-        partnersNew: partnersThisCount,
-        newsThis: newsThisCount,
-      });
-    }).catch(() => {
-      // stats stay at defaults; card shows em-dash via loading fallback
-    }).finally(() => {
-      if (mounted) setStatsLoading(false);
+    setQuickStats({
+      users: usersOverall?.data?.data?.totalUsers ?? usersOverall?.data?.totalUsers ?? usersOverall?.data?.total ?? 0,
+      revenue: revOverall,
+      pending: 0,
+      projects: projCountOverall,
+      partners: partnersCountOverall,
+      news: newsCountOverall,
+      gallery: gallery?.data?.total ?? gallery?.data?.data?.total ?? 0,
+      featuredMedia: featured?.data?.total ?? featured?.data?.data?.total ?? 0,
     });
+    setPercentChanges({
+      users: usersPercent,
+      revenue: revenuePercent,
+      projectsDelta: projDelta,
+      partnersNew: partnersThisCount,
+      newsThis: newsThisCount,
+    });
+  }, [user?.role]);
 
-    return () => { mounted = false; };
-  }, [user]);
+  const fetchAnalytics = useCallback(async () => {
+    setAnalyticsLoading(true);
+    setAnalyticsError(null);
+    try {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(end.getDate() - 30);
+      const res = await projectsAPI.getStats({ startDate: start.toISOString(), endDate: end.toISOString() });
+      setAnalytics(res?.data?.data ?? res?.data ?? null);
+    } catch (err) {
+      setAnalyticsError(err.response?.data?.message || err.message || 'Failed to load analytics');
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, []);
 
-  // Analytics (category distribution chart) — always loaded now, no tab gate
+  const fetchFieldLog = useCallback(async () => {
+    setFieldLogLoading(true);
+    try {
+      const [projRes, newsRes, partnersRes] = await Promise.all([
+        projectsAPI.getAll({ limit: 3, sort: '-createdAt' }),
+        newsAPI.getAll({ limit: 3, sort: '-createdAt' }),
+        partnersAPI.getAll({ limit: 2, sort: '-createdAt' }),
+      ]);
+      const entries = [
+        ...(projRes.data?.data || []).map(p => `Project logged — ${p.title || p.name}`),
+        ...(newsRes.data?.data || []).map(n => `News published — ${n.title}`),
+        ...(partnersRes.data?.data || []).map(p => `Partner added — ${p.name}`),
+      ];
+      setFieldLog(entries.length ? entries : ['No recent field entries']);
+    } catch {
+      setFieldLog([]);
+    } finally {
+      setFieldLogLoading(false);
+    }
+  }, []);
+
+  // Initial load
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      setAnalyticsLoading(true);
-      setAnalyticsError(null);
+    let cancelled = false;
+    const load = async () => {
+      setStatsLoading(true);
       try {
-        const end = new Date();
-        const start = new Date(); start.setDate(end.getDate() - 30);
-        const params = { startDate: start.toISOString(), endDate: end.toISOString() };
-        const res = await projectsAPI.getStats(params);
-        if (!mounted) return;
-        setAnalytics(res?.data?.data ?? res?.data ?? null);
+        await fetchStats();
       } catch (err) {
-        if (!mounted) return;
-        setAnalyticsError(err.response?.data?.message || err.message || 'Failed to load analytics');
+        // Silently fail; stats show fallback values
       } finally {
-        if (mounted) setAnalyticsLoading(false);
+        if (!cancelled) setStatsLoading(false);
       }
-    })();
-    return () => { mounted = false; };
-  }, []);
+    };
+    load();
+    fetchAnalytics();
+    fetchFieldLog();
+    return () => { cancelled = true; };
+  }, [fetchStats, fetchAnalytics, fetchFieldLog]);
 
-  // Field log — real recent actions, typewritten ticker
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      setFieldLogLoading(true);
-      try {
-        const [projRes, newsRes, partnersRes] = await Promise.all([
-          projectsAPI.getAll({ limit: 3, sort: '-createdAt' }),
-          newsAPI.getAll({ limit: 3, sort: '-createdAt' }),
-          partnersAPI.getAll({ limit: 2, sort: '-createdAt' }),
-        ]);
-        if (!mounted) return;
-        const entries = [
-          ...(projRes.data?.data || []).map(p => `Project logged — ${p.title || p.name}`),
-          ...(newsRes.data?.data || []).map(n => `News published — ${n.title}`),
-          ...(partnersRes.data?.data || []).map(p => `Partner added — ${p.name}`),
-        ];
-        setFieldLog(entries.length ? entries : ['No recent field entries']);
-      } catch {
-        if (mounted) setFieldLog([]);
-      } finally {
-        if (mounted) setFieldLogLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
+  // Refresh button – actually re-fetches everything
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchStats(), fetchAnalytics(), fetchFieldLog()]);
+    } catch (err) {
+      // Ignore errors; data may be partially updated
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchStats, fetchAnalytics, fetchFieldLog]);
 
-  const exportCSV = () => {
-    if (!analytics) return;
+  // CSV export
+  const exportCSV = useCallback(() => {
+    if (!analytics?.categoryDistribution?.length) return;
     const rows = [['Category', 'Count']];
-    (analytics.categoryDistribution || []).forEach(c => rows.push([c._id || 'Unknown', c.count]));
+    analytics.categoryDistribution.forEach(c => rows.push([c._id || 'Unknown', c.count]));
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'project-analytics.csv';
-    document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  }, [analytics]);
+
+  // ---------- Delta label helpers (avoids "null%") ----------
+  const formatDeltaLabel = (value, suffix) => {
+    if (value == null) return null;
+    const sign = value > 0 ? '+' : '';
+    return `${sign}${value.toFixed(1)}% ${suffix}`;
+  };
+
+  const formatProjectDeltaLabel = (delta) => {
+    if (delta == null) return null;
+    const sign = delta > 0 ? '+' : '';
+    return `${sign}${delta} from last month`;
   };
 
   return (
     <div className="bg-parchment-50 min-h-full -m-4 md:-m-6">
-      {/* Field Log strip — signature element, replaces notification-bell pattern */}
       <FieldLog entries={fieldLog} loading={fieldLogLoading} />
 
-      <div className="p-4 md:p-6 space-y-6 animate-fade-in">
+      <div className="p-6 md:p-8 space-y-8 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-border pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-border pb-6">
           <div>
             <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-laterite-500">
               Matakiri Tumaini — Admin
             </span>
-            <h1 className="font-display text-3xl md:text-4xl font-medium text-ink-800 mt-1">
+            <h1 className="font-display text-3xl md:text-4xl font-medium text-ink-800 mt-2">
               Dashboard
             </h1>
-            <p className="text-ink-500 text-sm mt-1">
-              {user?.name ? `Signed in as ${user.name}` : 'Overview of today\u2019s activity'}
+            <p className="text-ink-500 text-sm mt-1.5">
+              {user?.name ? `Signed in as ${user.name}` : 'Overview of today’s activity'}
             </p>
           </div>
           <button
             onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="inline-flex items-center gap-2 border border-border bg-white px-4 py-2 text-sm text-ink-800 hover:border-laterite-500 transition-colors disabled:opacity-50 self-start"
+            disabled={refreshing}
+            className="inline-flex items-center gap-2 border border-border bg-white px-4 py-2.5 text-sm text-ink-800 hover:border-laterite-500 transition-colors disabled:opacity-50 self-start"
           >
-            <ArrowPathIcon className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            <ArrowPathIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
 
         {/* Stat cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
           <StatCard
             label="Active Users"
-            value={quickStats.users.toLocaleString()}
+            value={statsLoading ? null : quickStats.users.toLocaleString()}
             icon={UserGroupIcon}
             loading={statsLoading}
             delta={percentChanges.users}
-            deltaLabel={percentChanges.users == null ? 'new this week' : `${percentChanges.users >= 0 ? '+' : ''}${percentChanges.users.toFixed(1)}% this week`}
+            deltaLabel={formatDeltaLabel(percentChanges.users, 'this week')}
             tone="laterite"
           />
           <StatCard
             label="Monthly Revenue"
-            value={`$${(quickStats.revenue / 1000).toFixed(1)}K`}
+            value={statsLoading ? null : `$${(quickStats.revenue / 1000).toFixed(1)}K`}
             icon={CurrencyDollarIcon}
             loading={statsLoading}
             delta={percentChanges.revenue}
-            deltaLabel={percentChanges.revenue == null ? 'new this month' : `${percentChanges.revenue >= 0 ? '+' : ''}${percentChanges.revenue.toFixed(1)}% this month`}
+            deltaLabel={formatDeltaLabel(percentChanges.revenue, 'this month')}
             tone="acacia"
           />
           <StatCard
             label="Total Projects"
-            value={quickStats.projects}
+            value={statsLoading ? null : quickStats.projects}
             icon={DocumentTextIcon}
             loading={statsLoading}
             delta={percentChanges.projectsDelta}
-            deltaLabel={percentChanges.projectsDelta == null ? 'new this month' : `${percentChanges.projectsDelta >= 0 ? '+' : ''}${percentChanges.projectsDelta} from last month`}
+            deltaLabel={formatProjectDeltaLabel(percentChanges.projectsDelta)}
             tone="laterite"
           />
           <StatCard
             label="Media Library"
-            value={quickStats.gallery}
+            value={statsLoading ? null : quickStats.gallery}
             icon={PhotoIcon}
             loading={statsLoading}
+            delta={null}
             deltaLabel={`${quickStats.featuredMedia} featured`}
             tone="maize"
           />
         </div>
 
         {/* Chart + Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-white border border-border p-6">
-            <div className="flex items-center justify-between mb-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Chart */}
+          <div className="lg:col-span-2 bg-white border border-border p-6 md:p-7">
+            <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="font-display text-lg font-medium text-ink-800">Project categories</h2>
-                <p className="text-ink-500 text-xs mt-0.5">Last 30 days</p>
+                <p className="text-ink-500 text-xs mt-1">Last 30 days</p>
               </div>
               <button
                 onClick={exportCSV}
                 className="inline-flex items-center gap-1.5 text-xs font-mono text-ink-500 hover:text-laterite-500 transition-colors"
+                disabled={!analytics?.categoryDistribution?.length}
               >
                 <ArrowDownTrayIcon className="h-3.5 w-3.5" />
                 export csv
@@ -374,22 +324,23 @@ const Dashboard = () => {
                 </ResponsiveContainer>
               ) : (
                 <div className="h-full flex flex-col items-center justify-center text-center">
-                  <ChartBarIcon className="h-8 w-8 text-ink-500/40 mb-2" />
+                  <ChartBarIcon className="h-8 w-8 text-ink-500/40 mb-3" />
                   <p className="text-ink-500 text-sm">No project data yet</p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="bg-soil-900 p-6">
-            <h2 className="font-display text-lg font-medium text-parchment-50 mb-1">Quick actions</h2>
-            <p className="text-parchment-100/60 text-xs mb-5">Frequently used tasks</p>
+          {/* Quick Actions */}
+          <div className="bg-soil-900 p-6 md:p-7">
+            <h2 className="font-display text-lg font-medium text-parchment-50 mb-1.5">Quick actions</h2>
+            <p className="text-parchment-100/60 text-xs mb-6">Frequently used tasks</p>
             <QuickActions />
           </div>
         </div>
 
         {/* Status footer */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-border pt-4 text-xs font-mono text-ink-500">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-border pt-5 text-xs font-mono text-ink-500">
           <div className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 bg-acacia-500 rounded-full" />
             all systems operational
@@ -397,7 +348,7 @@ const Dashboard = () => {
           <div className="flex items-center gap-4">
             {quickStats.pending > 0 && (
               <span className="inline-flex items-center gap-1 text-laterite-600">
-                <ExclamationTriangleIcon className="h-3.5 w-3.5" />
+                <ArrowTrendingUpIcon className="h-3.5 w-3.5" />
                 {quickStats.pending} pending
               </span>
             )}
