@@ -1,4 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Toaster, toast } from 'react-hot-toast';
 import {
   EnvelopeIcon,
   LockClosedIcon,
@@ -9,9 +12,6 @@ import {
 } from '@heroicons/react/24/outline';
 
 // ---------- Live coordinate readout ----------
-// A small, thematic motion detail: the field-survey coordinates drift
-// slightly, like a GPS unit holding a fix. Not decorative noise —
-// it's the same instrument a field team would actually carry.
 const useDriftingCoords = (baseLat, baseLng) => {
   const [coords, setCoords] = useState({ lat: baseLat, lng: baseLng });
 
@@ -28,9 +28,7 @@ const useDriftingCoords = (baseLat, baseLng) => {
   return coords;
 };
 
-// ---------- Terrain panel (signature element) ----------
-// Contour lines standing in for the project sites this platform tracks —
-// each ring is a real elevation band, not an abstract blob.
+// ---------- Terrain panel ----------
 const TerrainPanel = () => {
   const coords = useDriftingCoords(-1.2921, 36.8219); // Nairobi reference fix
 
@@ -61,7 +59,6 @@ const TerrainPanel = () => {
           />
         ))}
 
-        {/* Traced route: the highlighted path a field visit follows */}
         <path
           id="route"
           d="M 40 720 C 180 640, 220 460, 340 400 S 480 220, 560 120"
@@ -79,14 +76,12 @@ const TerrainPanel = () => {
           />
         </circle>
 
-        {/* Site markers */}
         <circle cx="40" cy="720" r="3" fill="#F7F3EA" fillOpacity="0.8" />
         <circle cx="560" cy="120" r="3" fill="#F7F3EA" fillOpacity="0.8" />
       </svg>
 
       <div className="absolute inset-0 bg-gradient-to-t from-soil-900 via-soil-900/10 to-soil-900/40" />
 
-      {/* Top: wordmark */}
       <div className="relative">
         <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-maize">
           Matakiri Tumaini
@@ -96,7 +91,6 @@ const TerrainPanel = () => {
         </p>
       </div>
 
-      {/* Bottom: live-instrument readout */}
       <div className="relative flex items-end justify-between">
         <div className="font-mono text-[11px] leading-relaxed text-parchment-100/60">
           <div className="text-parchment-100/80">FIELD UNIT — NAIROBI SECTOR</div>
@@ -114,12 +108,15 @@ const TerrainPanel = () => {
 
 // ---------- Login form ----------
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@example.com'); // pre‑fill demo values
+  const [password, setPassword] = useState('password123');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = useCallback(
     async (e) => {
@@ -133,19 +130,28 @@ const LoginPage = () => {
 
       setSubmitting(true);
       try {
-        // Replace with real auth call, e.g. await authAPI.login({ email, password, remember })
-        await new Promise((resolve) => setTimeout(resolve, 900));
+        const result = await login({ email, password, remember });
+        if (result.success) {
+          toast.success('Welcome back!');
+          navigate('/dashboard');
+        } else {
+          setError(result.error || 'Login failed. Check your credentials.');
+          toast.error(result.error || 'Login failed');
+        }
       } catch (err) {
-        setError(err?.response?.data?.message || 'Could not sign in. Check your details and try again.');
+        const msg = err?.response?.data?.message || err.message || 'Could not sign in. Please try again.';
+        setError(msg);
+        toast.error(msg);
       } finally {
         setSubmitting(false);
       }
     },
-    [email, password]
+    [email, password, remember, login, navigate]
   );
 
   return (
     <div className="min-h-screen w-full flex bg-parchment-50">
+      <Toaster position="top-right" />
       <TerrainPanel />
 
       <div className="flex flex-1 items-center justify-center px-6 py-12 sm:px-10">

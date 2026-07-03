@@ -1,73 +1,316 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Toaster, toast } from 'react-hot-toast';
+import {
+  UserIcon,
+  EnvelopeIcon,
+  LockClosedIcon,
+  ArrowRightIcon,
+  ExclamationCircleIcon,
+  EyeIcon,
+  EyeSlashIcon,
+} from '@heroicons/react/24/outline';
 
+// ---------- Live coordinate readout (same as Login) ----------
+const useDriftingCoords = (baseLat, baseLng) => {
+  const [coords, setCoords] = useState({ lat: baseLat, lng: baseLng });
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCoords({
+        lat: baseLat + (Math.random() - 0.5) * 0.0006,
+        lng: baseLng + (Math.random() - 0.5) * 0.0006,
+      });
+    }, 2200);
+    return () => clearInterval(id);
+  }, [baseLat, baseLng]);
+
+  return coords;
+};
+
+// ---------- Terrain panel (identical to Login) ----------
+const TerrainPanel = () => {
+  const coords = useDriftingCoords(-1.2921, 36.8219);
+
+  return (
+    <div className="relative hidden lg:flex lg:w-[46%] xl:w-[42%] flex-col justify-between overflow-hidden bg-soil-900 px-10 py-10 xl:px-14 xl:py-12">
+      {/* Contour field */}
+      <svg
+        className="absolute inset-0 h-full w-full opacity-[0.35]"
+        viewBox="0 0 600 900"
+        preserveAspectRatio="xMidYMid slice"
+        fill="none"
+        aria-hidden="true"
+      >
+        {[
+          'M -40 120 C 120 60, 260 180, 420 90 S 700 40, 780 140',
+          'M -60 220 C 100 150, 250 280, 400 190 S 680 150, 800 260',
+          'M -60 330 C 90 260, 260 390, 410 300 S 660 250, 820 370',
+          'M -60 460 C 110 380, 280 500, 430 410 S 670 370, 830 490',
+          'M -60 600 C 100 520, 270 640, 420 550 S 690 500, 840 620',
+          'M -60 730 C 120 660, 300 780, 450 690 S 700 640, 850 750',
+        ].map((d, i) => (
+          <path
+            key={i}
+            d={d}
+            stroke="#E4DCC8"
+            strokeWidth="1"
+            strokeOpacity={0.5 - i * 0.05}
+          />
+        ))}
+
+        <path
+          id="route"
+          d="M 40 720 C 180 640, 220 460, 340 400 S 480 220, 560 120"
+          stroke="#B5522E"
+          strokeWidth="1.75"
+          strokeDasharray="6 7"
+          className="animate-route-trace"
+        />
+        <circle r="4.5" fill="#E8B94A">
+          <animateMotion
+            dur="7s"
+            repeatCount="indefinite"
+            rotate="auto"
+            path="M 40 720 C 180 640, 220 460, 340 400 S 480 220, 560 120"
+          />
+        </circle>
+
+        <circle cx="40" cy="720" r="3" fill="#F7F3EA" fillOpacity="0.8" />
+        <circle cx="560" cy="120" r="3" fill="#F7F3EA" fillOpacity="0.8" />
+      </svg>
+
+      <div className="absolute inset-0 bg-gradient-to-t from-soil-900 via-soil-900/10 to-soil-900/40" />
+
+      {/* Top: wordmark */}
+      <div className="relative">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-maize">
+          Matakiri Tumaini
+        </span>
+        <p className="mt-2 max-w-[26ch] font-display text-[1.7rem] xl:text-3xl font-medium leading-[1.15] text-parchment-50">
+          Every project starts with someone walking the ground.
+        </p>
+      </div>
+
+      {/* Bottom: live-instrument readout */}
+      <div className="relative flex items-end justify-between">
+        <div className="font-mono text-[11px] leading-relaxed text-parchment-100/60">
+          <div className="text-parchment-100/80">FIELD UNIT — NAIROBI SECTOR</div>
+          <div>LAT&nbsp; {coords.lat.toFixed(4)}° S</div>
+          <div>LNG&nbsp; {coords.lng.toFixed(4)}° E</div>
+        </div>
+        <div className="flex items-center gap-1.5 font-mono text-[11px] text-acacia-500">
+          <span className="h-1.5 w-1.5 rounded-full bg-acacia-500 animate-pulse" />
+          fix acquired
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------- Register form ----------
 const Register = () => {
-	const [name, setName] = useState('');
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [confirmPassword, setConfirmPassword] = useState('');
-	const { register, loading } = useAuth();
-	const navigate = useNavigate();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		if (password !== confirmPassword) {
-			toast.error('Passwords do not match');
-			return;
-		}
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
 
-		try {
-			const result = await register({ name, email, password });
-			if (result.success) {
-				toast.success('Registration successful');
-				navigate('/dashboard');
-			} else {
-				toast.error(result.error || 'Registration failed');
-			}
-		} catch (err) {
-			toast.error(err.message || 'Registration failed');
-		}
-	};
+    if (!name || !email || !password || !confirmPassword) {
+      setError('All fields are required.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
 
-	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-			<Toaster />
-			<div className="max-w-md w-full space-y-8">
-				<div>
-					<h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create an account</h2>
-					<p className="mt-2 text-center text-sm text-gray-600">Register to access the admin dashboard</p>
-				</div>
-				<form className="mt-8 space-y-6 bg-white p-8 rounded-lg shadow" onSubmit={handleSubmit}>
-					<div className="rounded-md shadow-sm -space-y-px">
-						<div className="mb-4">
-							<label htmlFor="name" className="sr-only">Full name</label>
-							<input id="name" name="name" type="text" required placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm" />
-						</div>
-						<div className="mb-4">
-							<label htmlFor="email-address" className="sr-only">Email address</label>
-							<input id="email-address" name="email" type="email" autoComplete="email" required placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
-						</div>
-						<div className="mb-4">
-							<label htmlFor="password" className="sr-only">Password</label>
-							<input id="password" name="password" type="password" autoComplete="new-password" required placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
-						</div>
-						<div>
-							<label htmlFor="confirm-password" className="sr-only">Confirm password</label>
-							<input id="confirm-password" name="confirmPassword" type="password" required placeholder="Confirm password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm" />
-						</div>
-					</div>
+    setSubmitting(true);
+    try {
+      const result = await register({ name, email, password });
+      if (result.success) {
+        toast.success('Registration successful');
+        navigate('/dashboard');
+      } else {
+        setError(result.error || 'Registration failed');
+        toast.error(result.error || 'Registration failed');
+      }
+    } catch (err) {
+      setError(err.message || 'Registration failed');
+      toast.error(err.message || 'Registration failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-					<div>
-						<button type="submit" disabled={loading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50">
-							{loading ? 'Creating...' : 'Create account'}
-						</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	);
+  return (
+    <div className="min-h-screen w-full flex bg-parchment-50">
+      <Toaster position="top-right" />
+      <TerrainPanel />
+
+      <div className="flex flex-1 items-center justify-center px-6 py-12 sm:px-10">
+        <div className="w-full max-w-sm">
+          {/* Mobile-only wordmark */}
+          <div className="mb-8 lg:hidden">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-laterite-500">
+              Matakiri Tumaini
+            </span>
+          </div>
+
+          <div className="mb-8">
+            <span className="hidden lg:inline text-[11px] font-semibold uppercase tracking-[0.14em] text-laterite-500">
+              Admin &amp; field access
+            </span>
+            <h1 className="font-display text-3xl sm:text-4xl font-medium text-ink-800 mt-2">
+              Create an account
+            </h1>
+            <p className="text-ink-500 text-sm mt-1.5">
+              Register to access the field dashboard.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
+            {error && (
+              <div
+                role="alert"
+                className="flex items-start gap-2.5 border border-laterite-500/30 bg-laterite-500/5 px-3.5 py-3 text-sm text-laterite-600"
+              >
+                <ExclamationCircleIcon className="h-4.5 w-4.5 mt-0.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Full name */}
+            <div>
+              <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 mb-2">
+                Full name
+              </label>
+              <div className="relative">
+                <UserIcon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-ink-500/50" />
+                <input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full border border-border bg-white pl-10 pr-3.5 py-2.5 text-sm text-ink-800 placeholder:text-ink-500/40 outline-none transition-colors focus:border-laterite-500"
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 mb-2">
+                Email
+              </label>
+              <div className="relative">
+                <EnvelopeIcon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-ink-500/50" />
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@matakiritumaini.org"
+                  className="w-full border border-border bg-white pl-10 pr-3.5 py-2.5 text-sm text-ink-800 placeholder:text-ink-500/40 outline-none transition-colors focus:border-laterite-500"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <LockClosedIcon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-ink-500/50" />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full border border-border bg-white pl-10 pr-10 py-2.5 text-sm text-ink-800 placeholder:text-ink-500/40 outline-none transition-colors focus:border-laterite-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-500/50 hover:text-ink-500 transition-colors"
+                >
+                  {showPassword ? <EyeSlashIcon className="h-4.5 w-4.5" /> : <EyeIcon className="h-4.5 w-4.5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirm password */}
+            <div>
+              <label htmlFor="confirm-password" className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 mb-2">
+                Confirm password
+              </label>
+              <div className="relative">
+                <LockClosedIcon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-ink-500/50" />
+                <input
+                  id="confirm-password"
+                  type={showConfirm ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full border border-border bg-white pl-10 pr-10 py-2.5 text-sm text-ink-800 placeholder:text-ink-500/40 outline-none transition-colors focus:border-laterite-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-500/50 hover:text-ink-500 transition-colors"
+                >
+                  {showConfirm ? <EyeSlashIcon className="h-4.5 w-4.5" /> : <EyeIcon className="h-4.5 w-4.5" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="group w-full inline-flex items-center justify-center gap-2 bg-soil-900 px-4 py-3 text-sm font-medium text-parchment-50 transition-colors hover:bg-ink-800 disabled:opacity-60"
+            >
+              {submitting ? (
+                <>
+                  <span className="h-3.5 w-3.5 rounded-full border-2 border-parchment-50/30 border-t-parchment-50 animate-spin" />
+                  Creating account…
+                </>
+              ) : (
+                <>
+                  Create account
+                  <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-xs text-ink-500">
+            Already have an account?{' '}
+            <Link to="/login" className="text-laterite-500 hover:text-laterite-600 transition-colors">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Register;
