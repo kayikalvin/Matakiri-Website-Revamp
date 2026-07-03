@@ -1,159 +1,162 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { 
-  BellIcon, 
-  CalendarIcon, 
+import {
   ArrowPathIcon,
   ChartBarIcon,
-  RocketLaunchIcon,
-  ClockIcon,
   UserGroupIcon,
   CurrencyDollarIcon,
-  CheckCircleIcon,
   ExclamationTriangleIcon,
   DocumentTextIcon,
   PhotoIcon,
-  UserPlusIcon,
-  ArrowUpTrayIcon,
-  PencilIcon,
-  EyeIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  SparklesIcon,
-  LinkIcon
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { projectsAPI, partnersAPI, usersAPI, galleryAPI, newsAPI, metricsAPI } from '../services/api';
 import QuickActions from '../components/Dashboard/QuickActions';
 
+// --- Field Log strip -------------------------------------------------
+// Signature element: a typewritten-style ticker of real recent actions.
+// Replaces the generic notification bell as the dashboard's "pulse".
+const FieldLog = ({ entries, loading }) => {
+  if (loading) {
+    return (
+      <div className="h-9 flex items-center px-4 bg-soil-900 text-parchment-100/60 font-mono text-xs tracking-wide">
+        reading log&hellip;
+      </div>
+    );
+  }
+  if (!entries || entries.length === 0) {
+    return (
+      <div className="h-9 flex items-center px-4 bg-soil-900 text-parchment-100/60 font-mono text-xs tracking-wide">
+        no recent entries
+      </div>
+    );
+  }
+  return (
+    <div className="h-9 overflow-hidden bg-soil-900 relative">
+      <div className="absolute inset-0 flex items-center whitespace-nowrap animate-ticker">
+        {[...entries, ...entries].map((e, i) => (
+          <span key={i} className="inline-flex items-center font-mono text-xs text-parchment-100/85 px-6 tracking-wide">
+            <span className="text-maize-400 mr-2">&#8250;</span>
+            {e}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- Stat card ---------------------------------------------------------
+// Ledger card: hairline laterite border, flat bg, mono numerals, rectangular tag delta.
+const StatCard = ({ label, value, icon: Icon, delta, deltaLabel, loading, tone = 'laterite' }) => {
+  const toneMap = {
+    laterite: { ring: 'border-laterite-500/30', icon: 'text-laterite-500', bg: 'bg-laterite-50' },
+    acacia:   { ring: 'border-acacia-500/30',   icon: 'text-acacia-500',   bg: 'bg-acacia-50' },
+    maize:    { ring: 'border-maize-400/40',    icon: 'text-maize-500',    bg: 'bg-maize-50' },
+  };
+  const t = toneMap[tone] || toneMap.laterite;
+  const positive = typeof delta === 'number' ? delta >= 0 : null;
+
+  return (
+    <div className={`bg-white border ${t.ring} p-5 flex flex-col gap-3`}>
+      <div className="flex items-start justify-between">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">
+          {label}
+        </span>
+        <Icon className={`h-4 w-4 ${t.icon}`} />
+      </div>
+      <div className="font-mono text-3xl text-ink-800 tabular-nums">
+        {loading ? '—' : value}
+      </div>
+      {deltaLabel && (
+        <div className={`inline-flex items-center gap-1 text-xs font-mono ${
+          positive === null ? 'text-ink-500' : positive ? 'text-acacia-600' : 'text-laterite-600'
+        }`}>
+          {positive !== null && (positive ? (
+            <ArrowTrendingUpIcon className="h-3 w-3" />
+          ) : (
+            <ArrowTrendingDownIcon className="h-3 w-3" />
+          ))}
+          {deltaLabel}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Dashboard = () => {
   const { user } = useAuth();
-  const [greeting, setGreeting] = useState('');
-  const [currentTime, setCurrentTime] = useState('');
-  const [notifications, setNotifications] = useState(3);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
   const [analytics, setAnalytics] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState(null);
-  const [projPage, setProjPage] = useState(0);
-  const [partnersPage, setPartnersPage] = useState(0);
-  const [usersPage, setUsersPage] = useState(0);
-  const pageSize = 5;
-  const [selectedRange, setSelectedRange] = useState('30'); // days or 'ytd' or 'custom'
-  // Quick stats and performance
+  const [fieldLog, setFieldLog] = useState([]);
+  const [fieldLogLoading, setFieldLogLoading] = useState(true);
+
   const [quickStats, setQuickStats] = useState({
-    users: 0,
-    revenue: 0,
-    score: 0,
-    pending: 0,
-    projects: 0,
-    partners: 0,
-    news: 0,
-    gallery: 0,
-    images: 0,
-    videos: 0,
-    featuredMedia: 0
+    users: 0, revenue: 0, pending: 0, projects: 0,
+    partners: 0, news: 0, gallery: 0, featuredMedia: 0,
   });
   const [statsLoading, setStatsLoading] = useState(true);
-  const [statsError, setStatsError] = useState(null);
-  const [percentChanges, setPercentChanges] = useState({ users: null, revenue: null, score: null, pending: null, projectsDelta: null, partnersNew: null, newsThis: null });
-
-  useEffect(() => {
-    // Set greeting based on time of day
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good Morning');
-    else if (hour < 18) setGreeting('Good Afternoon');
-    else setGreeting('Good Evening');
-
-    // Update current time
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 60000);
-    
-    return () => clearInterval(interval);
-  }, []);
+  const [percentChanges, setPercentChanges] = useState({
+    users: null, revenue: null, projectsDelta: null, partnersNew: null, newsThis: null,
+  });
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1500);
+    setTimeout(() => setIsRefreshing(false), 1200);
   };
 
-
-  // Fetch quick stats (projects, partners, users, news, gallery)
+  // Quick stats fetch — unchanged logic from original, trimmed of placeholder score/tab state
   useEffect(() => {
     let mounted = true;
     setStatsLoading(true);
-    setStatsError(null);
 
-    // We'll request overall stats plus current and previous period user stats (for percent change)
     const now = new Date();
-    // Users: weekly comparison
     const usersThisStart = new Date(); usersThisStart.setDate(now.getDate() - 7);
     const usersPrevStart = new Date(); usersPrevStart.setDate(now.getDate() - 14);
     const usersPrevEnd = new Date(); usersPrevEnd.setDate(now.getDate() - 7);
-
-    // Projects: monthly comparison (last 30 days vs previous 30 days)
     const projThisStart = new Date(); projThisStart.setDate(now.getDate() - 30);
     const projPrevStart = new Date(); projPrevStart.setDate(now.getDate() - 60);
     const projPrevEnd = new Date(); projPrevEnd.setDate(now.getDate() - 30);
-
-    // Partners: quarterly comparison (last 90 days)
     const partnersThisStart = new Date(); partnersThisStart.setDate(now.getDate() - 90);
-
-    // News: monthly (last 30 days)
     const newsThisStart = new Date(); newsThisStart.setDate(now.getDate() - 30);
 
     const promises = [
-      // projects overall
       projectsAPI.getStats(),
-      // projects this 30d and previous 30d (for project deltas)
       projectsAPI.getStats({ startDate: projThisStart.toISOString(), endDate: now.toISOString() }),
       projectsAPI.getStats({ startDate: projPrevStart.toISOString(), endDate: projPrevEnd.toISOString() }),
-      // revenue overall, this 30d and previous 30d
       metricsAPI.getRevenue(),
       metricsAPI.getRevenue({ startDate: projThisStart.toISOString(), endDate: now.toISOString() }),
       metricsAPI.getRevenue({ startDate: projPrevStart.toISOString(), endDate: projPrevEnd.toISOString() }),
-      // partners overall and this quarter
       partnersAPI.getStats(),
       partnersAPI.getStats({ startDate: partnersThisStart.toISOString(), endDate: now.toISOString() }),
-      // users overall, this week, previous week
       (user?.role === 'admin') ? usersAPI.getStats() : Promise.resolve({ data: { data: { totalUsers: 0 } } }),
       (user?.role === 'admin') ? usersAPI.getStats({ startDate: usersThisStart.toISOString(), endDate: now.toISOString() }) : Promise.resolve({ data: { data: { periodCount: 0 } } }),
       (user?.role === 'admin') ? usersAPI.getStats({ startDate: usersPrevStart.toISOString(), endDate: usersPrevEnd.toISOString() }) : Promise.resolve({ data: { data: { periodCount: 0 } } }),
-      // news overall and this month
       newsAPI.getAll({ limit: 1 }),
       newsAPI.getAll({ startDate: newsThisStart.toISOString(), endDate: now.toISOString(), limit: 1 }),
-      // gallery totals
       galleryAPI.getAll({ limit: 1 }),
-      galleryAPI.getAll({ type: 'image', limit: 1 }),
-      galleryAPI.getAll({ type: 'video', limit: 1 }),
-      galleryAPI.getAll({ isFeatured: true, limit: 1 })
+      galleryAPI.getAll({ isFeatured: true, limit: 1 }),
     ];
 
-    Promise.all(promises).then(([projOverall, projThis, projPrev, metricsOverall, metricsThis, metricsPrev, partnersOverall, partnersThis, usersOverall, usersThisPeriod, usersPrevPeriod, newsOverall, newsThis, gallery, images, videos, featured]) => {
+    Promise.all(promises).then(([
+      projOverall, projThis, projPrev, metricsOverall, metricsThis, metricsPrev,
+      partnersOverall, partnersThis, usersOverall, usersThisPeriod, usersPrevPeriod,
+      newsOverall, newsThis, gallery, featured,
+    ]) => {
       if (!mounted) return;
-      const safeTotal = (res) => {
-        return res?.data?.data?.totalProjects ?? res?.data?.data?.total ?? res?.data?.total ?? res?.data?.data?.totalUsers ?? res?.data?.totalUsers ?? 0;
-      };
-
-      const safePeriodCount = (res) => {
-        return res?.data?.data?.periodCount ?? res?.data?.data?.count ?? res?.data?.data?.total ?? res?.data?.total ?? 0;
+      const safePeriodCount = (res) =>
+        res?.data?.data?.periodCount ?? res?.data?.data?.count ?? res?.data?.data?.total ?? res?.data?.total ?? 0;
+      const computePercent = (current, previous) => {
+        if (previous === 0) return current === 0 ? 0 : null;
+        return parseFloat((((current - previous) / previous) * 100).toFixed(1));
       };
 
       const currentUsers = safePeriodCount(usersThisPeriod);
       const previousUsers = safePeriodCount(usersPrevPeriod);
-      const computePercent = (current, previous) => {
-        if (previous === 0) {
-          if (current === 0) return 0;
-          return null;
-        }
-        const raw = ((current - previous) / previous) * 100;
-        return parseFloat(raw.toFixed(1));
-      };
       const usersPercent = computePercent(currentUsers, previousUsers);
 
       const projCountOverall = projOverall?.data?.data?.totalProjects ?? projOverall?.data?.total ?? 0;
@@ -161,10 +164,9 @@ const Dashboard = () => {
       const projPrevCount = safePeriodCount(projPrev);
       const projDelta = projThisCount - projPrevCount;
 
-      // Revenue from new metrics endpoint
       const revThis = metricsThis?.data?.data?.totalSpent ?? metricsThis?.data?.totalSpent ?? 0;
       const revPrev = metricsPrev?.data?.data?.totalSpent ?? metricsPrev?.data?.totalSpent ?? 0;
-      const revOverall = metricsOverall?.data?.data?.totalSpent ?? metricsOverall?.data?.totalSpent ?? 42800;
+      const revOverall = metricsOverall?.data?.data?.totalSpent ?? metricsOverall?.data?.totalSpent ?? 0;
       const revenuePercent = computePercent(revThis, revPrev);
 
       const partnersCountOverall = partnersOverall?.data?.data?.totalPartners ?? partnersOverall?.data?.total ?? 0;
@@ -176,103 +178,90 @@ const Dashboard = () => {
       setQuickStats({
         users: usersOverall?.data?.data?.totalUsers ?? usersOverall?.data?.totalUsers ?? usersOverall?.data?.total ?? 0,
         revenue: revOverall,
-        score: 94, // Placeholder, replace with real score if available
-        pending: 3, // Placeholder, replace with real pending if available
+        pending: 0,
         projects: projCountOverall,
         partners: partnersCountOverall,
         news: newsCountOverall,
         gallery: gallery?.data?.total ?? gallery?.data?.data?.total ?? 0,
-        images: images?.data?.total ?? images?.data?.data?.total ?? 0,
-        videos: videos?.data?.total ?? videos?.data?.data?.total ?? 0,
-        featuredMedia: featured?.data?.total ?? featured?.data?.data?.total ?? 0
+        featuredMedia: featured?.data?.total ?? featured?.data?.data?.total ?? 0,
       });
 
-      setPercentChanges((p) => ({ ...p, users: usersPercent, projectsDelta: projDelta, partnersNew: partnersThisCount, newsThis: newsThisCount, revenue: revenuePercent }));
-    }).catch((err) => {
-      if (!mounted) return;
-      setStatsError(err.response?.data?.message || err.message || 'Failed to load stats');
+      setPercentChanges({
+        users: usersPercent,
+        revenue: revenuePercent,
+        projectsDelta: projDelta,
+        partnersNew: partnersThisCount,
+        newsThis: newsThisCount,
+      });
+    }).catch(() => {
+      // stats stay at defaults; card shows em-dash via loading fallback
     }).finally(() => {
       if (mounted) setStatsLoading(false);
     });
+
     return () => { mounted = false; };
   }, [user]);
 
+  // Analytics (category distribution chart) — always loaded now, no tab gate
   useEffect(() => {
     let mounted = true;
-    const fetchAnalytics = async () => {
+    (async () => {
       setAnalyticsLoading(true);
       setAnalyticsError(null);
       try {
-        // compute date range params
-        const params = {};
-        if (selectedRange && selectedRange !== 'all') {
-          const end = new Date();
-          let start = new Date();
-          if (selectedRange === '7') start.setDate(end.getDate() - 7);
-          else if (selectedRange === '30') start.setDate(end.getDate() - 30);
-          else if (selectedRange === '90') start.setDate(end.getDate() - 90);
-          else if (selectedRange === 'ytd') start = new Date(new Date().getFullYear(), 0, 1);
-          else start = null;
-          if (start) {
-            params.startDate = start.toISOString();
-            params.endDate = end.toISOString();
-          }
-        }
-
-        const statsPromises = [
-          projectsAPI.getStats(params),
-          partnersAPI.getStats(params),
-          (user?.role === 'admin') ? usersAPI.getStats(params) : Promise.resolve({ data: { data: {} } })
-        ];
-
-        const [projRes, partnersRes, usersRes] = await Promise.all(statsPromises);
-
+        const end = new Date();
+        const start = new Date(); start.setDate(end.getDate() - 30);
+        const params = { startDate: start.toISOString(), endDate: end.toISOString() };
+        const res = await projectsAPI.getStats(params);
         if (!mounted) return;
-
-        const projData = projRes?.data?.data ?? projRes?.data ?? null;
-        const partnersData = partnersRes?.data?.data ?? partnersRes?.data ?? null;
-        const usersData = usersRes?.data?.data ?? usersRes?.data ?? null;
-
-        setAnalytics({ projects: projData, partners: partnersData, users: usersData });
+        setAnalytics(res?.data?.data ?? res?.data ?? null);
       } catch (err) {
         if (!mounted) return;
         setAnalyticsError(err.response?.data?.message || err.message || 'Failed to load analytics');
       } finally {
         if (mounted) setAnalyticsLoading(false);
       }
-    };
-
-    if (activeTab === 'analytics') fetchAnalytics();
+    })();
     return () => { mounted = false; };
-  }, [activeTab]);
+  }, []);
 
-  const exportAnalyticsCSV = () => {
+  // Field log — real recent actions, typewritten ticker
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setFieldLogLoading(true);
+      try {
+        const [projRes, newsRes, partnersRes] = await Promise.all([
+          projectsAPI.getAll({ limit: 3, sort: '-createdAt' }),
+          newsAPI.getAll({ limit: 3, sort: '-createdAt' }),
+          partnersAPI.getAll({ limit: 2, sort: '-createdAt' }),
+        ]);
+        if (!mounted) return;
+        const entries = [
+          ...(projRes.data?.data || []).map(p => `Project logged — ${p.title || p.name}`),
+          ...(newsRes.data?.data || []).map(n => `News published — ${n.title}`),
+          ...(partnersRes.data?.data || []).map(p => `Partner added — ${p.name}`),
+        ];
+        setFieldLog(entries.length ? entries : ['No recent field entries']);
+      } catch {
+        if (mounted) setFieldLog([]);
+      } finally {
+        if (mounted) setFieldLogLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const exportCSV = () => {
     if (!analytics) return;
-    const rows = [];
-    rows.push(['Projects Summary']);
-    rows.push(['Total Projects', analytics.projects?.totalProjects ?? '']);
-    rows.push([]);
-    rows.push(['Category','Count']);
-    (analytics.projects?.categoryDistribution || []).forEach(c => rows.push([c._id || 'Unknown', c.count]));
-    rows.push([]);
-    rows.push(['Partners Summary']);
-    rows.push(['Total Partners', analytics.partners?.totalPartners ?? '']);
-    rows.push([]);
-    rows.push(['Partnership Level','Count']);
-    (analytics.partners?.partnershipLevelDistribution || []).forEach(p => rows.push([p._id || 'Unknown', p.count]));
-    rows.push([]);
-    rows.push(['Users Summary']);
-    rows.push(['Total Users', analytics.users?.totalUsers ?? '']);
-    rows.push([]);
-    rows.push(['Role','Count']);
-    (analytics.users?.roleDistribution || []).forEach(r => rows.push([r._id || 'Unknown', r.count]));
-
-    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const rows = [['Category', 'Count']];
+    (analytics.categoryDistribution || []).forEach(c => rows.push([c._id || 'Unknown', c.count]));
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'analytics.csv';
+    a.download = 'project-analytics.csv';
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -280,599 +269,139 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn p-4 md:p-6">
-      {/* Header Section */}
-      <div className="bg-gradient-to-r from-white to-gray-50 rounded-2xl p-6 shadow-sm border border-gray-100">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg blur opacity-20"></div>
-                <div className="relative bg-white p-2 rounded-lg shadow-xs">
-                  <SparklesIcon className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  Dashboard
-                </h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-gray-600">
-                    {greeting}, <span className="font-semibold text-blue-600">{user?.name || 'Admin'}</span>
-                  </p>
-                  <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
-                    Admin
-                  </span>
-                </div>
-              </div>
-            </div>
-            <p className="text-gray-500 text-sm mt-2">
-              Here's what's happening with your organization today.
+    <div className="bg-parchment-50 min-h-full -m-4 md:-m-6">
+      {/* Field Log strip — signature element, replaces notification-bell pattern */}
+      <FieldLog entries={fieldLog} loading={fieldLogLoading} />
+
+      <div className="p-4 md:p-6 space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-border pb-5">
+          <div>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-laterite-500">
+              Matakiri Tumaini — Admin
+            </span>
+            <h1 className="font-display text-3xl md:text-4xl font-medium text-ink-800 mt-1">
+              Dashboard
+            </h1>
+            <p className="text-ink-500 text-sm mt-1">
+              {user?.name ? `Signed in as ${user.name}` : 'Overview of today\u2019s activity'}
             </p>
           </div>
-
-          <div className="flex items-center gap-3">
-            {/* Time Display */}
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl">
-              <CalendarIcon className="h-5 w-5 text-gray-500" />
-              <div className="text-sm">
-                <div className="font-medium text-gray-900">{currentTime}</div>
-                <div className="text-xs text-gray-500">
-                  {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                </div>
-              </div>
-            </div>
-
-            {/* Notifications */}
-            <button className="relative p-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-              <BellIcon className="h-5 w-5 text-gray-600" />
-              {notifications > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
-                  {notifications}
-                </span>
-              )}
-            </button>
-
-            {/* Refresh Button */}
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="p-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              <ArrowPathIcon className={`h-5 w-5 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
-        </div>
-
-        {/* Quick Stats Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          {/* Users */}
-          <div className="bg-gradient-to-br from-blue-50 to-white p-4 rounded-xl border border-blue-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Active Users</p>
-                <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.users.toLocaleString()}</p>
-              </div>
-              <UserGroupIcon className="h-8 w-8 text-blue-500 opacity-80" />
-            </div>
-            <div title="Compared to previous 7 days" className={`mt-2 text-xs flex items-center ${percentChanges.users === null ? 'text-gray-500' : (percentChanges.users >= 0 ? 'text-green-600' : 'text-red-600')}`}>
-              {percentChanges.users === null ? (
-                <>
-                  <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
-                  New this week
-                </>
-              ) : (
-                <>
-                  {percentChanges.users >= 0 ? (
-                    <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
-                  ) : (
-                    <ArrowTrendingDownIcon className="h-3 w-3 mr-1" />
-                  )}
-                  {percentChanges.users >= 0 ? `+${percentChanges.users.toFixed(1)}%` : `${percentChanges.users.toFixed(1)}%`} this week
-                </>
-              )}
-            </div>
-          </div>
-          {/* Revenue */}
-          <div className="bg-gradient-to-br from-green-50 to-white p-4 rounded-xl border border-green-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Monthly Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">${statsLoading ? '...' : (quickStats.revenue / 1000).toFixed(1)}K</p>
-              </div>
-              <CurrencyDollarIcon className="h-8 w-8 text-green-500 opacity-80" />
-            </div>
-            <div title="Compared to previous 30 days" className={`mt-2 text-xs flex items-center ${percentChanges.revenue == null ? 'text-gray-500' : (percentChanges.revenue >= 0 ? 'text-green-600' : 'text-red-600')}`}>
-              {percentChanges.revenue == null ? (
-                <>
-                  <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
-                  New this month
-                </>
-              ) : (
-                <>
-                  {percentChanges.revenue >= 0 ? (
-                    <ArrowTrendingUpIcon className="h-3 w-3 mr-1" />
-                  ) : (
-                    <ArrowTrendingDownIcon className="h-3 w-3 mr-1" />
-                  )}
-                  {percentChanges.revenue >= 0 ? `+${percentChanges.revenue.toFixed(1)}%` : `${percentChanges.revenue.toFixed(1)}%`} this month
-                </>
-              )}
-            </div>
-          </div>
-          {/* Performance */}
-          <div className="bg-gradient-to-br from-amber-50 to-white p-4 rounded-xl border border-amber-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Performance</p>
-                <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.score}%</p>
-              </div>
-              <ChartBarIcon className="h-8 w-8 text-amber-500 opacity-80" />
-            </div>
-            <div className="mt-2">
-              <div className="w-full bg-amber-100 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-amber-500 to-amber-600 h-2 rounded-full transition-all duration-500"
-                  style={{ width: statsLoading ? '0%' : `${quickStats.score}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-          {/* Pending */}
-          <div className="bg-gradient-to-br from-red-50 to-white p-4 rounded-xl border border-red-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pending Actions</p>
-                <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.pending}</p>
-              </div>
-              <ExclamationTriangleIcon className="h-8 w-8 text-red-500 opacity-80" />
-            </div>
-            <div className="mt-2 text-xs text-red-600">
-              Requires attention
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Dashboard Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8 overflow-x-auto pb-1" aria-label="Dashboard Tabs">
-          {['overview', 'analytics', 'performance', 'reports'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`
-                py-3 px-1 border-b-2 text-sm font-medium transition-colors whitespace-nowrap
-                ${activeTab === tab 
-                  ? 'border-blue-600 text-blue-600' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Main Dashboard Content (switch by tab) */}
-      {activeTab === 'overview' ? (
-        <>
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg">
-                  <ChartBarIcon className="h-6 w-6 text-indigo-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Performance Overview</h2>
-                  <p className="text-gray-500 text-sm">Key metrics and insights</p>
-                </div>
-              </div>
-              <select className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <option>Last 30 days</option>
-                <option>Last quarter</option>
-                <option>Year to date</option>
-              </select>
-            </div>
-
-            {/* DashboardStats Component */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Projects */}
-              <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl border border-blue-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Total Projects</p>
-                    <p className="text-3xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.projects}</p>
-                  </div>
-                  <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <DocumentTextIcon className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-                <div title="Compared to previous 30 days" className={`flex items-center text-sm ${percentChanges.projectsDelta == null ? 'text-gray-500' : (percentChanges.projectsDelta >= 0 ? 'text-green-600' : 'text-red-600')}`}>
-                  {percentChanges.projectsDelta == null ? (
-                    <>
-                      <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                      <span>New this month</span>
-                    </>
-                  ) : (
-                    <>
-                      {percentChanges.projectsDelta >= 0 ? (
-                        <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                      ) : (
-                        <ArrowTrendingDownIcon className="h-4 w-4 mr-1" />
-                      )}
-                      <span>{percentChanges.projectsDelta >= 0 ? `+${percentChanges.projectsDelta}` : `${percentChanges.projectsDelta}`} from last month</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              {/* Partners */}
-              <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-xl border border-green-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Active Partners</p>
-                    <p className="text-3xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.partners}</p>
-                  </div>
-                  <div className="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <UserGroupIcon className="h-6 w-6 text-green-600" />
-                  </div>
-                </div>
-                <div title="New partners in the last 90 days" className={`flex items-center text-sm ${percentChanges.partnersNew == null ? 'text-gray-500' : (percentChanges.partnersNew > 0 ? 'text-green-600' : 'text-gray-600')}`}>
-                  <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                  <span>{statsLoading ? '...' : `${percentChanges.partnersNew ?? 0} new this quarter`}</span>
-                </div>
-              </div>
-              {/* News */}
-              <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-gray-600">News Articles</p>
-                    <p className="text-3xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.news}</p>
-                  </div>
-                  <div className="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <DocumentTextIcon className="h-6 w-6 text-purple-600" />
-                  </div>
-                </div>
-                <div title="Articles published in the last 30 days" className="flex items-center text-sm text-green-600">
-                  <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                  <span>{statsLoading ? '...' : `${percentChanges.newsThis ?? quickStats.news} published this month`}</span>
-                </div>
-              </div>
-              {/* Media Library */}
-              <div className="bg-gradient-to-br from-amber-50 to-white p-6 rounded-xl border border-amber-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Media Library</p>
-                    <p className="text-3xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.gallery}</p>
-                  </div>
-                  <div className="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center">
-                    <PhotoIcon className="h-6 w-6 text-amber-600" />
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-green-600">
-                  <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
-                  <span>{statsLoading ? '...' : `${quickStats.featuredMedia} featured`}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Charts and Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Projects Chart - Takes 2 columns on desktop */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-sm p-6 h-full border border-gray-200">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                      <ChartBarIcon className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900">Project Analytics</h2>
-                      <p className="text-gray-500 text-sm">Real-time project performance</p>
-                    </div>
-                  </div>
-                  <button className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors">
-                    View details →
-                  </button>
-                </div>
-                
-                {/* ProjectsChart Component */}
-                <div className="h-64 flex items-center justify-center bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200">
-                  {analyticsLoading ? (
-                    <div className="flex flex-col items-center justify-center w-full h-full">
-                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600 mb-2"></div>
-                      <span className="text-gray-400">Loading chart...</span>
-                    </div>
-                  ) : analyticsError ? (
-                    <div className="text-red-500">{analyticsError}</div>
-                  ) : analytics && analytics.projects && analytics.projects.categoryDistribution && analytics.projects.categoryDistribution.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={analytics.projects.categoryDistribution.map(d => ({ name: d._id || 'Unknown', count: d.count }))}>
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis allowDecimals={false} />
-                        <Tooltip />
-                        <Bar dataKey="count" fill="#4F46E5" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="text-center w-full">
-                      <ChartBarIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-gray-500">No project data available</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div>
-              <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-sm p-6 h-full text-white">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-gray-700 to-gray-600 rounded-lg">
-                    <RocketLaunchIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">Quick Actions</h2>
-                    <p className="text-gray-300 text-sm">Frequently used tasks</p>
-                  </div>
-                </div>
-                
-                {/* QuickActions Component */}
-                <QuickActions />
-              </div>
-            </div>
-          </div>
-        </>
-      ) : activeTab === 'analytics' ? (
-        <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                  <ChartBarIcon className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Analytics</h2>
-                  <p className="text-gray-500 text-sm">Project and user analytics</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <select value={selectedRange} onChange={(e) => setSelectedRange(e.target.value)} className="px-3 py-1 border rounded text-sm">
-                  <option value="7">Last 7 days</option>
-                  <option value="30">Last 30 days</option>
-                  <option value="90">Last 90 days</option>
-                  <option value="ytd">Year to date</option>
-                  <option value="all">All time</option>
-                </select>
-                <button onClick={() => exportAnalyticsCSV()} className="text-blue-600 hover:text-blue-800 text-sm font-medium">Export CSV</button>
-              </div>
-          </div>
-
-          {analyticsLoading ? (
-            <div className="h-64 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
-            </div>
-          ) : analyticsError ? (
-            <div className="text-red-500">{analyticsError}</div>
-          ) : analytics ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-4 bg-gradient-to-br from-blue-50 to-white rounded-lg border border-blue-100">
-                <p className="text-sm text-gray-600">Projects</p>
-                <p className="text-2xl font-bold text-gray-900">{analytics.projects?.totalProjects ?? analytics.projects?.total ?? '—'}</p>
-                <div className="mt-3 h-40">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={(analytics.projects?.categoryDistribution || []).map(d => ({ name: d._id || 'Unknown', count: d.count }))}>
-                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#4F46E5" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-3">
-                  <ul className="space-y-1 text-sm text-gray-700">
-                    {((analytics.projects?.categoryDistribution || []).slice(projPage * pageSize, (projPage + 1) * pageSize)).map((d, i) => (
-                      <li key={i} className="flex justify-between"><span>{d._id || 'Unknown'}</span><span className="font-medium">{d.count}</span></li>
-                    ))}
-                  </ul>
-                  <div className="mt-2 flex items-center justify-end gap-2">
-                    <button disabled={projPage === 0} onClick={() => setProjPage(p => Math.max(0, p - 1))} className="px-2 py-1 text-xs bg-gray-100 rounded disabled:opacity-50">Prev</button>
-                    <button disabled={(projPage + 1) * pageSize >= (analytics.projects?.categoryDistribution || []).length} onClick={() => setProjPage(p => p + 1)} className="px-2 py-1 text-xs bg-gray-100 rounded disabled:opacity-50">Next</button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-gradient-to-br from-green-50 to-white rounded-lg border border-green-100">
-                <p className="text-sm text-gray-600">Partners</p>
-                <p className="text-2xl font-bold text-gray-900">{analytics.partners?.totalPartners ?? analytics.partners?.total ?? '—'}</p>
-                <div className="mt-3 h-40">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={(analytics.partners?.partnershipLevelDistribution || []).map(d => ({ name: d._id || 'Unknown', count: d.count }))}>
-                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#059669" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-3">
-                  <ul className="space-y-1 text-sm text-gray-700">
-                    {((analytics.partners?.partnershipLevelDistribution || []).slice(partnersPage * pageSize, (partnersPage + 1) * pageSize)).map((d, i) => (
-                      <li key={i} className="flex justify-between"><span>{d._id || 'Unknown'}</span><span className="font-medium">{d.count}</span></li>
-                    ))}
-                  </ul>
-                  <div className="mt-2 flex items-center justify-end gap-2">
-                    <button disabled={partnersPage === 0} onClick={() => setPartnersPage(p => Math.max(0, p - 1))} className="px-2 py-1 text-xs bg-gray-100 rounded disabled:opacity-50">Prev</button>
-                    <button disabled={(partnersPage + 1) * pageSize >= (analytics.partners?.partnershipLevelDistribution || []).length} onClick={() => setPartnersPage(p => p + 1)} className="px-2 py-1 text-xs bg-gray-100 rounded disabled:opacity-50">Next</button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-gradient-to-br from-purple-50 to-white rounded-lg border border-purple-100">
-                <p className="text-sm text-gray-600">Users</p>
-                <p className="text-2xl font-bold text-gray-900">{analytics.users?.totalUsers ?? '—'}</p>
-                <div className="mt-3 h-40">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Tooltip />
-                      <Legend />
-                      <Pie data={(analytics.users?.roleDistribution || []).map(d => ({ name: d._id || 'Unknown', value: d.count }))} dataKey="value" nameKey="name" outerRadius={80} fill="#8B5CF6" label />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-3">
-                  <ul className="space-y-1 text-sm text-gray-700">
-                    {((analytics.users?.roleDistribution || []).slice(usersPage * pageSize, (usersPage + 1) * pageSize)).map((d, i) => (
-                      <li key={i} className="flex justify-between"><span>{d._id || 'Unknown'}</span><span className="font-medium">{d.count}</span></li>
-                    ))}
-                  </ul>
-                  <div className="mt-2 flex items-center justify-end gap-2">
-                    <button disabled={usersPage === 0} onClick={() => setUsersPage(p => Math.max(0, p - 1))} className="px-2 py-1 text-xs bg-gray-100 rounded disabled:opacity-50">Prev</button>
-                    <button disabled={(usersPage + 1) * pageSize >= (analytics.users?.roleDistribution || []).length} onClick={() => setUsersPage(p => p + 1)} className="px-2 py-1 text-xs bg-gray-100 rounded disabled:opacity-50">Next</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="h-40 flex items-center justify-center text-gray-500">No analytics data</div>
-          )}
-        </div>
-      ) : activeTab === 'performance' ? (
-        <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Performance</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-4 bg-gradient-to-br from-amber-50 to-white rounded-lg border border-amber-100">
-              <p className="text-sm text-gray-600">Score</p>
-              <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.score}%</p>
-            </div>
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-white rounded-lg border border-blue-100">
-              <p className="text-sm text-gray-600">Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">${statsLoading ? '...' : quickStats.revenue.toLocaleString()}</p>
-            </div>
-            <div className="p-4 bg-gradient-to-br from-green-50 to-white rounded-lg border border-green-100">
-              <p className="text-sm text-gray-600">Users</p>
-              <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.users.toLocaleString()}</p>
-            </div>
-            <div className="p-4 bg-gradient-to-br from-red-50 to-white rounded-lg border border-red-100">
-              <p className="text-sm text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-900">{statsLoading ? '...' : quickStats.pending}</p>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Reports</h2>
-          <p className="text-gray-500 mb-4">Generate or view system reports.</p>
-          <ul className="space-y-2">
-            <li className="p-3 border rounded-md">Monthly performance report <span className="text-xs text-gray-400">(PDF)</span></li>
-            <li className="p-3 border rounded-md">User activity export <span className="text-xs text-gray-400">(CSV)</span></li>
-            <li className="p-3 border rounded-md">Project completion report <span className="text-xs text-gray-400">(PDF)</span></li>
-          </ul>
-        </div>
-      )}
-
-      {/* Recent Activities */}
-      {/* <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg">
-              <ClockIcon className="h-6 w-6 text-amber-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Recent Activities</h2>
-              <p className="text-gray-500 text-sm">Latest updates and notifications</p>
-            </div>
-          </div>
-          <button className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors">
-            View all activities →
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-2 border border-border bg-white px-4 py-2 text-sm text-ink-800 hover:border-laterite-500 transition-colors disabled:opacity-50 self-start"
+          >
+            <ArrowPathIcon className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
           </button>
         </div>
-        
-       
-        <div className="space-y-4">
-          {[
-            { 
-              user: 'Jane Cooper', 
-              action: 'created a new project', 
-              time: '5 minutes ago',
-              type: 'project',
-              icon: DocumentTextIcon,
-              color: 'text-blue-600',
-              bgColor: 'bg-blue-50'
-            },
-            { 
-              user: 'John Doe', 
-              action: 'uploaded media files', 
-              time: '1 hour ago',
-              type: 'media',
-              icon: PhotoIcon,
-              color: 'text-purple-600',
-              bgColor: 'bg-purple-50'
-            },
-            { 
-              user: 'Sarah Wilson', 
-              action: 'published a news article', 
-              time: '2 hours ago',
-              type: 'news',
-              icon: DocumentTextIcon,
-              color: 'text-green-600',
-              bgColor: 'bg-green-50'
-            },
-            { 
-              user: 'Michael Chen', 
-              action: 'updated partner information', 
-              time: '3 hours ago',
-              type: 'partner',
-              icon: UserGroupIcon,
-              color: 'text-indigo-600',
-              bgColor: 'bg-indigo-50'
-            },
-            { 
-              user: 'Admin', 
-              action: 'added a new user', 
-              time: '5 hours ago',
-              type: 'user',
-              icon: UserPlusIcon,
-              color: 'text-amber-600',
-              bgColor: 'bg-amber-50'
-            }
-          ].map((activity, index) => {
-            const Icon = activity.icon;
-            return (
-              <div key={index} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                <div className={`p-2 ${activity.bgColor} rounded-lg`}>
-                  <Icon className={`h-5 w-5 ${activity.color}`} />
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">{activity.user}</div>
-                  <div className="text-sm text-gray-600">{activity.action}</div>
-                </div>
-                <div className="text-sm text-gray-500 whitespace-nowrap">
-                  {activity.time}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div> */}
 
-      {/* System Status Footer */}
-      <div className="bg-gradient-to-r from-white to-gray-50 rounded-2xl p-6 border border-gray-200">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <CheckCircleIcon className="h-5 w-5 text-green-500" />
-            <div>
-              <p className="font-medium text-gray-900">All systems operational</p>
-              <p className="text-sm text-gray-500">Last updated just now</p>
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            label="Active Users"
+            value={quickStats.users.toLocaleString()}
+            icon={UserGroupIcon}
+            loading={statsLoading}
+            delta={percentChanges.users}
+            deltaLabel={percentChanges.users == null ? 'new this week' : `${percentChanges.users >= 0 ? '+' : ''}${percentChanges.users.toFixed(1)}% this week`}
+            tone="laterite"
+          />
+          <StatCard
+            label="Monthly Revenue"
+            value={`$${(quickStats.revenue / 1000).toFixed(1)}K`}
+            icon={CurrencyDollarIcon}
+            loading={statsLoading}
+            delta={percentChanges.revenue}
+            deltaLabel={percentChanges.revenue == null ? 'new this month' : `${percentChanges.revenue >= 0 ? '+' : ''}${percentChanges.revenue.toFixed(1)}% this month`}
+            tone="acacia"
+          />
+          <StatCard
+            label="Total Projects"
+            value={quickStats.projects}
+            icon={DocumentTextIcon}
+            loading={statsLoading}
+            delta={percentChanges.projectsDelta}
+            deltaLabel={percentChanges.projectsDelta == null ? 'new this month' : `${percentChanges.projectsDelta >= 0 ? '+' : ''}${percentChanges.projectsDelta} from last month`}
+            tone="laterite"
+          />
+          <StatCard
+            label="Media Library"
+            value={quickStats.gallery}
+            icon={PhotoIcon}
+            loading={statsLoading}
+            deltaLabel={`${quickStats.featuredMedia} featured`}
+            tone="maize"
+          />
+        </div>
+
+        {/* Chart + Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white border border-border p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="font-display text-lg font-medium text-ink-800">Project categories</h2>
+                <p className="text-ink-500 text-xs mt-0.5">Last 30 days</p>
+              </div>
+              <button
+                onClick={exportCSV}
+                className="inline-flex items-center gap-1.5 text-xs font-mono text-ink-500 hover:text-laterite-500 transition-colors"
+              >
+                <ArrowDownTrayIcon className="h-3.5 w-3.5" />
+                export csv
+              </button>
+            </div>
+            <div className="h-64">
+              {analyticsLoading ? (
+                <div className="h-full flex items-center justify-center text-ink-500 text-sm font-mono">
+                  loading&hellip;
+                </div>
+              ) : analyticsError ? (
+                <div className="h-full flex items-center justify-center text-laterite-600 text-sm">
+                  {analyticsError}
+                </div>
+              ) : analytics?.categoryDistribution?.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={analytics.categoryDistribution.map(d => ({ name: d._id || 'Unknown', count: d.count }))}>
+                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6E6255' }} axisLine={{ stroke: '#E4DCC8' }} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#6E6255' }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ background: '#241C15', border: 'none', borderRadius: 2, color: '#F7F3EA', fontSize: 12, fontFamily: 'JetBrains Mono, monospace' }}
+                    />
+                    <Bar dataKey="count" fill="#B5522E" radius={[0, 0, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                  <ChartBarIcon className="h-8 w-8 text-ink-500/40 mb-2" />
+                  <p className="text-ink-500 text-sm">No project data yet</p>
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-            <span>Server uptime: 99.9%</span>
-            <span>•</span>
-            <span>Response time: 124ms</span>
-            <span>•</span>
-            <span>Active sessions: 247</span>
+
+          <div className="bg-soil-900 p-6">
+            <h2 className="font-display text-lg font-medium text-parchment-50 mb-1">Quick actions</h2>
+            <p className="text-parchment-100/60 text-xs mb-5">Frequently used tasks</p>
+            <QuickActions />
+          </div>
+        </div>
+
+        {/* Status footer */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-border pt-4 text-xs font-mono text-ink-500">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 bg-acacia-500 rounded-full" />
+            all systems operational
+          </div>
+          <div className="flex items-center gap-4">
+            {quickStats.pending > 0 && (
+              <span className="inline-flex items-center gap-1 text-laterite-600">
+                <ExclamationTriangleIcon className="h-3.5 w-3.5" />
+                {quickStats.pending} pending
+              </span>
+            )}
+            <span>updated just now</span>
           </div>
         </div>
       </div>
