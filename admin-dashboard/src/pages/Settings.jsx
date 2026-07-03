@@ -1,20 +1,19 @@
-﻿
-
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Toaster, toast } from 'react-hot-toast';
 import { themesAPI } from '../services/api';
-import { 
-  UserCircleIcon, 
-  BellIcon, 
+import {
+  UserCircleIcon,
+  BellIcon,
   PaintBrushIcon,
   CheckCircleIcon,
   PlusIcon,
   PencilIcon,
   TrashIcon,
   ArrowPathIcon,
-  XMarkIcon
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { applyThemeToRoot } from '../utils/theme';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -28,33 +27,25 @@ const Settings = () => {
   const [activeTheme, setActiveTheme] = useState(null);
   const [loadingThemes, setLoadingThemes] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ 
-    name: '', 
-    primaryColor: '#10B981', 
-    secondaryColor: '#065F46', 
-    accentColor: '#059669', 
-    textColor: '#111827', 
-    backgroundColor: '#ffffff' 
+  const [form, setForm] = useState({
+    name: '',
+    primaryColor: '#B5522E',       // laterite
+    secondaryColor: '#9A4526',     // laterite-600
+    accentColor: '#4F7942',        // acacia
+    textColor: '#2B2620',          // ink-800
+    backgroundColor: '#F7F3EA'     // parchment-50
   });
   const [editingId, setEditingId] = useState(null);
 
   const handleToggle = (key) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleSave = () => {
-    toast.success('Settings saved successfully!', {
-      icon: '✅'
-    });
+    toast.success('Settings saved successfully!');
   };
 
-  useEffect(() => {
-    fetchThemes();
-    fetchActiveTheme();
-  }, []);
+  useEffect(() => { fetchThemes(); fetchActiveTheme(); }, []);
 
   const fetchThemes = async () => {
     setLoadingThemes(true);
@@ -63,7 +54,6 @@ const Settings = () => {
       const payload = res?.data?.data ?? res?.data ?? res;
       setThemes(payload);
     } catch (err) {
-      console.error(err);
       toast.error('Failed to load themes');
     } finally {
       setLoadingThemes(false);
@@ -75,9 +65,7 @@ const Settings = () => {
       const res = await themesAPI.getActive();
       const payload = res?.data?.data ?? res?.data ?? res;
       setActiveTheme(payload);
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { /* ignore */ }
   };
 
   const handleFormChange = (e) => {
@@ -91,47 +79,29 @@ const Settings = () => {
       let res;
       if (editingId) {
         res = await themesAPI.update(editingId, form);
-        toast.success('Theme updated successfully', {
-          icon: '🔄'
-        });
+        toast.success('Theme updated');
       } else {
         res = await themesAPI.create(form);
-        toast.success('Theme created successfully', {
-          icon: '🎨'
-        });
+        toast.success('Theme created');
       }
-
-      // Reset form
-      setForm({ 
-        name: '', 
-        primaryColor: '#10B981', 
-        secondaryColor: '#065F46', 
-        accentColor: '#059669', 
-        textColor: '#111827', 
-        backgroundColor: '#ffffff' 
-      });
+      // reset form
+      setForm({ name: '', primaryColor: '#B5522E', secondaryColor: '#9A4526', accentColor: '#4F7942', textColor: '#2B2620', backgroundColor: '#F7F3EA' });
       setEditingId(null);
-
-      // Refresh list
       await fetchThemes();
       await fetchActiveTheme();
 
-      // If requested, activate the newly created/updated theme and reload
       if (activate) {
         const payload = res?.data?.data ?? res?.data ?? res;
         const id = payload?._id || payload?.id || editingId;
         if (id) {
           await themesAPI.activate(id);
-          toast.success('Theme activated! Reloading to apply across the app...', {
-            icon: '✨'
-          });
+          toast.success('Theme activated! Reloading…');
           setTimeout(() => window.location.reload(), 1500);
         } else {
-          toast.error('Could not determine theme ID to activate');
+          toast.error('Could not determine theme ID');
         }
       }
     } catch (err) {
-      console.error(err);
       toast.error(err.response?.data?.message || 'Failed to save theme');
     } finally {
       setCreating(false);
@@ -142,26 +112,23 @@ const Settings = () => {
     setEditingId(theme._id);
     setForm({
       name: theme.name || '',
-      primaryColor: theme.primaryColor || '#10B981',
-      secondaryColor: theme.secondaryColor || '#065F46',
-      accentColor: theme.accentColor || '#059669',
-      textColor: theme.textColor || '#111827',
-      backgroundColor: theme.backgroundColor || '#ffffff'
+      primaryColor: theme.primaryColor || '#B5522E',
+      secondaryColor: theme.secondaryColor || '#9A4526',
+      accentColor: theme.accentColor || '#4F7942',
+      textColor: theme.textColor || '#2B2620',
+      backgroundColor: theme.backgroundColor || '#F7F3EA'
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this theme? This action cannot be undone.')) return;
+    if (!window.confirm('Delete this theme? This cannot be undone.')) return;
     try {
       await themesAPI.delete(id);
-      toast.success('Theme deleted successfully', {
-        icon: '🗑️'
-      });
+      toast.success('Theme deleted');
       await fetchThemes();
       await fetchActiveTheme();
     } catch (err) {
-      console.error(err);
       toast.error('Failed to delete theme');
     }
   };
@@ -169,31 +136,20 @@ const Settings = () => {
   const handleActivate = async (id) => {
     try {
       await themesAPI.activate(id);
-      toast.success('Activating theme and reloading...', {
-        icon: '🔄'
-      });
-      
-      // Apply preview before reload
+      toast.success('Theme applied — reloading…');
       try {
         const res = await themesAPI.getActive();
         const payload = res?.data?.data ?? res?.data ?? res;
         applyThemeToRoot(payload);
-      } catch (e) {
-        console.warn('Could not apply theme preview:', e);
-      }
-      
+      } catch (e) {}
       setTimeout(() => window.location.reload(), 1000);
     } catch (err) {
-      console.error(err);
       toast.error('Failed to activate theme');
     }
   };
 
   const formatSettingName = (key) => {
-    return key
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, str => str.toUpperCase())
-      .trim();
+    return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).trim();
   };
 
   const getSettingDescription = (key) => {
@@ -207,423 +163,243 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6 lg:p-8">
+    <div className="p-4 md:p-6 space-y-6 animate-fade-in">
       <Toaster position="top-right" />
-      
+
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              Settings
-            </h1>
-            <p className="text-gray-600 mt-2">Manage your account preferences and theme customization</p>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-border pb-5">
+        <div>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-laterite-500">Settings</span>
+          <h1 className="font-display text-3xl font-medium text-ink-800 mt-1">Settings</h1>
+          <p className="text-ink-500 text-sm mt-1">Manage account preferences and theme customization</p>
+        </div>
+      </div>
+
+      {/* Profile Card */}
+      <div className="bg-white border border-border p-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <UserCircleIcon className="h-7 w-7 text-laterite-500" />
+          <h2 className="font-display text-lg font-medium text-ink-800">Profile Information</h2>
+        </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border border-border bg-parchment-50">
+          <div className="h-14 w-14 rounded-full bg-laterite-100 flex items-center justify-center">
+            <span className="font-mono text-lg text-laterite-600">{(user?.name || 'A')[0].toUpperCase()}</span>
           </div>
-          <div className="hidden md:flex items-center space-x-2 text-sm text-gray-500">
-            <span className="bg-white px-3 py-1 rounded-full shadow-sm">
-              Last updated: Today
-            </span>
+          <div className="space-y-0.5">
+            <h3 className="font-sans font-semibold text-ink-800">{user?.name || 'Admin User'}</h3>
+            <p className="text-ink-500 text-sm">{user?.email || 'admin@example.com'}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-acacia-600 border border-acacia-500/30 px-2 py-0.5">Administrator</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-500 border border-border px-2 py-0.5">Active</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Profile Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 transform transition-all duration-300 hover:shadow-xl">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
-                <UserCircleIcon className="h-8 w-8 text-primary-600" />
+      {/* Notifications */}
+      <div className="bg-white border border-border p-6 space-y-6">
+        <div className="flex items-center gap-3">
+          <BellIcon className="h-7 w-7 text-laterite-500" />
+          <h2 className="font-display text-lg font-medium text-ink-800">Notification Preferences</h2>
+        </div>
+        <div className="space-y-4">
+          {Object.entries(settings).map(([key, value]) => (
+            <div key={key} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+              <div>
+                <h3 className="font-sans font-semibold text-ink-800">{formatSettingName(key)}</h3>
+                <p className="text-ink-500 text-xs mt-0.5">{getSettingDescription(key)}</p>
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Profile Information</h2>
+              <button
+                onClick={() => handleToggle(key)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-none transition-colors ${
+                  value ? 'bg-acacia-500' : 'bg-ink-500/20'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform bg-white transition-transform ${
+                    value ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
             </div>
-            <span className="px-3 py-1 bg-primary-50 text-primary-700 text-sm font-medium rounded-full">
-              Administrator
-            </span>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100">
-              <div className="relative">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
-                  <span className="text-2xl text-white font-bold">
-                    {user?.name?.charAt(0)?.toUpperCase() || 'A'}
-                  </span>
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
-                  <CheckCircleIcon className="h-4 w-4 text-white" />
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">{user?.name || 'Admin User'}</h3>
-                <p className="text-gray-600">{user?.email || 'admin@example.com'}</p>
-                <div className="flex items-center mt-2 space-x-4">
-                  <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
-                    Verified
-                  </span>
-                  <span className="px-2 py-1 bg-green-50 text-green-700 text-xs font-medium rounded">
-                    Active
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100">
-              <h4 className="font-medium text-gray-700 mb-3">Account Details</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Member Since</span>
-                  <span className="font-medium">January 2024</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Last Login</span>
-                  <span className="font-medium">Today, 10:30 AM</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">Timezone</span>
-                  <span className="font-medium">UTC+5:30</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
+        </div>
+        <div className="pt-2 flex justify-end">
+          <button
+            onClick={handleSave}
+            className="inline-flex items-center gap-2 border border-laterite-500 text-laterite-600 px-5 py-2 text-sm hover:bg-laterite-50 transition-colors"
+          >
+            <CheckCircleIcon className="h-4 w-4" />
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+      {/* Theme Management */}
+      <div className="bg-white border border-border p-6 space-y-6">
+        <div className="flex items-center gap-3">
+          <PaintBrushIcon className="h-7 w-7 text-laterite-500" />
+          <h2 className="font-display text-lg font-medium text-ink-800">Theme Management</h2>
         </div>
 
-        {/* Settings Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Notification Settings */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 md:p-8 transform transition-all duration-300 hover:shadow-xl">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl">
-                <BellIcon className="h-8 w-8 text-blue-600" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900">Notification Preferences</h2>
+        {/* Active Theme Preview (dark card) */}
+        {activeTheme ? (
+          <div className="bg-soil-900 p-5 space-y-4">
+            <div>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-maize-400">Active Theme</span>
+              <h3 className="font-display text-lg text-parchment-50 mt-0.5">{activeTheme.name}</h3>
             </div>
-            
-            <div className="space-y-6">
-              {Object.entries(settings).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-1">
-                      <h3 className="font-semibold text-gray-900">
-                        {formatSettingName(key)}
-                      </h3>
-                      {value && (
-                        <span className="px-2 py-0.5 bg-green-50 text-green-700 text-xs font-medium rounded-full">
-                          Active
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      {getSettingDescription(key)}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleToggle(key)}
-                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                      value ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
-                        value ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
+            <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+              {['primaryColor', 'secondaryColor', 'accentColor', 'textColor'].map(key => (
+                <div key={key} className="flex items-center gap-2">
+                  <span className="h-4 w-4 border border-parchment-100/20" style={{ backgroundColor: activeTheme[key] }} />
+                  <span className="text-parchment-100/70">{key.replace('Color', '')}</span>
                 </div>
               ))}
             </div>
+            <button
+              onClick={() => handleActivate(activeTheme._id)}
+              className="w-full py-2.5 border border-laterite-500 text-laterite-400 text-sm hover:bg-laterite-500/10 transition-colors"
+            >
+              Re-apply Theme
+            </button>
+          </div>
+        ) : (
+          <div className="bg-soil-900 p-5 text-center text-parchment-100/60 text-sm font-mono">
+            No active theme
+          </div>
+        )}
 
-            {/* Save Button */}
-            <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end">
+        {/* Create / Edit Form */}
+        <div className="border border-border p-5 bg-parchment-50 space-y-5">
+          <div className="flex items-center justify-between">
+            <h3 className="font-sans font-semibold text-ink-800 text-sm">
+              {editingId ? 'Edit Theme' : 'Create New Theme'}
+            </h3>
+            {editingId && (
               <button
-                onClick={handleSave}
-                className="px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-xl hover:from-primary-700 hover:to-primary-800 transform hover:-translate-y-0.5 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                onClick={() => {
+                  setEditingId(null);
+                  setForm({ name: '', primaryColor: '#B5522E', secondaryColor: '#9A4526', accentColor: '#4F7942', textColor: '#2B2620', backgroundColor: '#F7F3EA' });
+                }}
+                className="p-1 text-ink-500 hover:text-laterite-500"
               >
-                <CheckCircleIcon className="h-5 w-5" />
-                <span>Save All Changes</span>
+                <XMarkIcon className="h-5 w-5" />
               </button>
-            </div>
+            )}
           </div>
 
-          {/* Theme Preview */}
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl shadow-lg p-6 md:p-8 text-white">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-purple-900/50 to-purple-800/30 rounded-xl">
-                <PaintBrushIcon className="h-8 w-8 text-purple-300" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">Active Theme</h2>
-                <p className="text-gray-300 text-sm">Current visual appearance</p>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500 mb-2">Theme Name</label>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleFormChange}
+                placeholder="Enter theme name"
+                className="w-full px-4 py-2.5 border border-border bg-white text-ink-800 text-sm focus:outline-none focus:border-laterite-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500 mb-3">Color Palette</label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  { key: 'primaryColor', label: 'Primary' },
+                  { key: 'secondaryColor', label: 'Secondary' },
+                  { key: 'accentColor', label: 'Accent' },
+                  { key: 'textColor', label: 'Text' },
+                  { key: 'backgroundColor', label: 'Background' }
+                ].map(({ key, label }) => (
+                  <div key={key} className="space-y-1.5">
+                    <span className="text-xs text-ink-500">{label}</span>
+                    <input
+                      name={key}
+                      value={form[key]}
+                      onChange={handleFormChange}
+                      type="color"
+                      className="w-full h-10 border border-border cursor-pointer p-0.5"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
-            
-            <div className="space-y-4">
-              {activeTheme ? (
-                <>
-                  <div className="p-4 bg-gray-800/50 rounded-xl">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold">{activeTheme.name}</h3>
-                      <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs font-medium rounded">
-                        Active
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {['primaryColor', 'secondaryColor', 'accentColor', 'textColor'].map((colorKey) => (
-                        <div key={colorKey} className="flex items-center space-x-2">
-                          <div 
-                            className="w-6 h-6 rounded border border-gray-700"
-                            style={{ backgroundColor: activeTheme[colorKey] }}
-                          />
-                          <span className="text-xs text-gray-300 capitalize">
-                            {colorKey.replace('Color', '')}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => handleActivate(activeTheme._id)}
-                    className="w-full py-3 bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all flex items-center justify-center space-x-2"
-                  >
-                    <ArrowPathIcon className="h-5 w-5" />
-                    <span>Re-apply Theme</span>
-                  </button>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <PaintBrushIcon className="h-12 w-12 text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-400">No theme activated yet</p>
-                </div>
-              )}
+
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button
+                onClick={() => handleCreateOrUpdate(false)}
+                disabled={creating}
+                className="inline-flex items-center gap-2 border border-ink-800 text-ink-800 px-5 py-2 text-sm hover:bg-ink-800 hover:text-parchment-50 transition-colors disabled:opacity-50"
+              >
+                {editingId ? <PencilIcon className="h-4 w-4" /> : <PlusIcon className="h-4 w-4" />}
+                {editingId ? (creating ? 'Updating…' : 'Update Theme') : (creating ? 'Creating…' : 'Create Theme')}
+              </button>
+              <button
+                onClick={() => handleCreateOrUpdate(true)}
+                disabled={creating}
+                className="inline-flex items-center gap-2 border border-laterite-500 text-laterite-600 px-5 py-2 text-sm hover:bg-laterite-50 transition-colors disabled:opacity-50"
+              >
+                <CheckCircleIcon className="h-4 w-4" />
+                {editingId ? (creating ? 'Updating…' : 'Update & Activate') : (creating ? 'Creating…' : 'Create & Activate')}
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Theme Management */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 transform transition-all duration-300 hover:shadow-xl">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-amber-100 to-amber-50 rounded-xl">
-                <PaintBrushIcon className="h-8 w-8 text-amber-600" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Theme Management</h2>
-                <p className="text-gray-600 text-sm">Create and customize your interface themes</p>
-              </div>
-            </div>
-            <div className="hidden md:flex items-center space-x-2">
-              <span className="text-sm text-gray-500">
-                {themes.length} theme{themes.length !== 1 ? 's' : ''} available
-              </span>
-            </div>
+        {/* Themes List */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-sans font-semibold text-ink-800 text-sm">Available Themes</h3>
+            {loadingThemes && <ArrowPathIcon className="h-4 w-4 animate-spin text-ink-500" />}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Theme Creation Form */}
-            <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 border border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900">
-                  {editingId ? 'Edit Theme' : 'Create New Theme'}
-                </h3>
-                {editingId && (
-                  <button
-                    onClick={() => {
-                      setEditingId(null);
-                      setForm({ 
-                        name: '', 
-                        primaryColor: '#10B981', 
-                        secondaryColor: '#065F46', 
-                        accentColor: '#059669', 
-                        textColor: '#111827', 
-                        backgroundColor: '#ffffff' 
-                      });
-                    }}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <XMarkIcon className="h-5 w-5 text-gray-500" />
-                  </button>
-                )}
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Theme Name
-                  </label>
-                  <input
-                    name="name"
-                    value={form.name}
-                    onChange={handleFormChange}
-                    placeholder="Enter theme name"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Color Palette
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {[
-                      { key: 'primaryColor', label: 'Primary' },
-                      { key: 'secondaryColor', label: 'Secondary' },
-                      { key: 'accentColor', label: 'Accent' },
-                      { key: 'textColor', label: 'Text' },
-                      { key: 'backgroundColor', label: 'Background' }
-                    ].map(({ key, label }) => (
-                      <div key={key} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">{label}</span>
-                          <span className="text-xs font-mono text-gray-500">{form[key]}</span>
-                        </div>
-                        <div className="relative">
-                          <input
-                            name={key}
-                            value={form[key]}
-                            onChange={handleFormChange}
-                            type="color"
-                            className="w-full h-10 cursor-pointer rounded-lg border border-gray-300"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={() => handleCreateOrUpdate(false)}
-                      disabled={creating}
-                      className="px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-700 text-white font-medium rounded-xl hover:from-gray-900 hover:to-gray-800 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                    >
-                      {editingId ? (
-                        <>
-                          <PencilIcon className="h-5 w-5" />
-                          <span>{creating ? 'Updating...' : 'Update Theme'}</span>
-                        </>
-                      ) : (
-                        <>
-                          <PlusIcon className="h-5 w-5" />
-                          <span>{creating ? 'Creating...' : 'Create Theme'}</span>
-                        </>
-                      )}
-                    </button>
-                    
-                    <button
-                      onClick={() => handleCreateOrUpdate(true)}
-                      disabled={creating}
-                      className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-xl hover:from-primary-700 hover:to-primary-800 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                    >
-                      <CheckCircleIcon className="h-5 w-5" />
-                      <span>
-                        {editingId 
-                          ? (creating ? 'Updating & Activating...' : 'Update & Activate')
-                          : (creating ? 'Creating & Activating...' : 'Create & Activate')
-                        }
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
+          {loadingThemes ? (
+            <div className="py-12 text-center text-ink-500 text-sm font-mono">loading themes…</div>
+          ) : themes.length === 0 ? (
+            <div className="border border-dashed border-border p-10 text-center text-ink-500 text-sm font-mono">
+              No themes created yet
             </div>
-
-            {/* Themes List */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900">Available Themes</h3>
-                {loadingThemes && (
-                  <ArrowPathIcon className="h-5 w-5 text-gray-400 animate-spin" />
-                )}
-              </div>
-              
-              <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-                {loadingThemes ? (
-                  <div className="text-center py-8">
-                    <ArrowPathIcon className="h-8 w-8 text-gray-400 animate-spin mx-auto" />
-                    <p className="text-gray-500 mt-2">Loading themes...</p>
-                  </div>
-                ) : themes.length === 0 ? (
-                  <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">
-                    <PaintBrushIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">No themes created yet</p>
-                    <p className="text-gray-400 text-sm mt-1">Create your first theme to get started</p>
-                  </div>
-                ) : (
-                  themes.map(theme => (
+          ) : (
+            <div className="space-y-2">
+              {themes.map(theme => (
+                <div
+                  key={theme._id}
+                  className={`flex items-center justify-between p-4 border ${
+                    activeTheme?._id === theme._id ? 'border-laterite-500 bg-laterite-50' : 'border-border'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
                     <div
-                      key={theme._id}
-                      className={`p-4 rounded-xl border transition-all ${
-                        activeTheme && activeTheme._id === theme._id
-                          ? 'ring-2 ring-primary-500 ring-offset-2 border-primary-500'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div 
-                            className="w-12 h-12 rounded-lg shadow-sm"
-                            style={{
-                              background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`
-                            }}
-                          />
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <h4 className="font-semibold text-gray-900">{theme.name}</h4>
-                              {activeTheme && activeTheme._id === theme._id && (
-                                <span className="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded-full">
-                                  Active
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center space-x-4 mt-1">
-                              <div className="flex items-center space-x-1">
-                                <div 
-                                  className="w-3 h-3 rounded-full border"
-                                  style={{ backgroundColor: theme.primaryColor }}
-                                />
-                                <span className="text-xs text-gray-500">Primary</span>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <div 
-                                  className="w-3 h-3 rounded-full border"
-                                  style={{ backgroundColor: theme.secondaryColor }}
-                                />
-                                <span className="text-xs text-gray-500">Secondary</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleActivate(theme._id)}
-                            className="px-3 py-1.5 bg-primary-50 text-primary-700 text-sm font-medium rounded-lg hover:bg-primary-100 transition-colors"
-                          >
-                            Activate
-                          </button>
-                          <button
-                            onClick={() => handleEdit(theme)}
-                            className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                            title="Edit theme"
-                          >
-                            <PencilIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(theme._id)}
-                            className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete theme"
-                          >
-                            <TrashIcon className="h-4 w-4" />
-                          </button>
-                        </div>
+                      className="h-10 w-10 border border-border"
+                      style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
+                    />
+                    <div>
+                      <h4 className="font-sans font-semibold text-ink-800 text-sm">{theme.name}</h4>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="h-2.5 w-2.5 border border-ink-500/20" style={{ backgroundColor: theme.primaryColor }} />
+                        <span className="text-xs text-ink-500">Primary</span>
+                        <span className="h-2.5 w-2.5 border border-ink-500/20" style={{ backgroundColor: theme.secondaryColor }} />
+                        <span className="text-xs text-ink-500">Secondary</span>
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleActivate(theme._id)}
+                      className="px-3 py-1.5 border border-laterite-500 text-laterite-600 text-xs font-mono hover:bg-laterite-50 transition-colors"
+                    >
+                      Activate
+                    </button>
+                    <button onClick={() => handleEdit(theme)} className="p-1.5 text-ink-500 hover:text-laterite-500">
+                      <PencilIcon className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => handleDelete(theme._id)} className="p-1.5 text-ink-500 hover:text-status-danger">
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
