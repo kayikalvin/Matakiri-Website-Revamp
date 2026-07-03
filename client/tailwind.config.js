@@ -6,39 +6,68 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#eafaf6',
-          100: '#d4f3ea',
-          200: '#bfeee0',
-          300: '#a9e8d6',
-          400: '#94e2cc',
-          500: '#009970', // Main green
-          600: '#008760',
-          700: '#007050',
+        // Neutral / base — warm parchment system
+        soil: {
+          900: '#241C15',
+          700: '#4A3826',
         },
-        accent: {
-          50: '#eaf6fa',
-          100: '#d4ecf3',
-          200: '#bfe2ed',
-          300: '#a9d8e7',
-          400: '#94cee1',
-          500: '#5bb5a2', // Soft teal
-          600: '#489e8c',
-          700: '#357876',
+        parchment: {
+          50: '#F7F3EA',
+          100: '#F1EAD9',
         },
-        neutral: {
-          100: '#f5f5f5',
-          200: '#eeeeee',
-          300: '#e0e0e0',
-          400: '#bdbdbd',
-        }
+        ink: {
+          800: '#2B2620',
+          500: '#6E6255',
+        },
+        border: {
+          DEFAULT: '#E4DCC8',
+        },
+        // Signature accent — laterite (burnt orange-red, clay)
+        laterite: {
+          50:  '#FBEEE8',
+          100: '#F5D9CA',
+          400: '#C56A44',
+          500: '#B5522E',
+          600: '#9A4526',
+          700: '#7C3720',
+        },
+        // Working green — desaturated botanical
+        acacia: {
+          50:  '#EEF3EC',
+          100: '#D9E5D4',
+          500: '#4F7942',
+          600: '#436938',
+        },
+        // Data/AI accent — warm gold, harvest reference
+        maize: {
+          50:  '#FBF3DE',
+          100: '#F5E4B0',
+          400: '#E8B93F',
+          500: '#D6A62C',
+        },
+        // Semantic status
+        status: {
+          danger: '#B23A2E',
+          warning: '#D6A62C',
+          success: '#4F7942',
+        },
       },
       fontFamily: {
-        sans: ['Poppins', 'Montserrat', 'Open Sans', 'sans-serif'],
-        display: ['Poppins', 'Montserrat', 'sans-serif'],
+        display: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+      },
+      borderRadius: {
+        DEFAULT: '2px',
+        sm: '1px',
+        md: '2px',
+        lg: '2px',
+        xl: '2px',
+        '2xl': '2px',
+        full: '9999px',
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
+        'fade-in': 'fadeIn 0.5s ease-out',
         'slide-up': 'slideUp 0.5s ease-out',
       },
       keyframes: {
