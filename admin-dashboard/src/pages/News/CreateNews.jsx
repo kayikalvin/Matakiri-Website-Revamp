@@ -1,19 +1,17 @@
-import React, { useState, useRef } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeftIcon, 
-  NewspaperIcon, 
+import { toast, Toaster } from 'react-hot-toast';
+import {
+  NewspaperIcon,
   PhotoIcon,
-  CalendarIcon,
   TagIcon,
-  XMarkIcon,
-  CloudArrowUpIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { newsAPI } from '../../services/api';
+import FormShell, { FormSection } from '../../components/Common/FormShell';
 
 const CreateNews = () => {
   const navigate = useNavigate();
@@ -24,480 +22,234 @@ const CreateNews = () => {
     category: 'projects',
     status: 'draft',
     tags: '',
-    featuredImage: null,
     author: '',
     metaTitle: '',
-    metaDescription: ''
+    metaDescription: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [featuredImageFile, setFeaturedImageFile] = useState(null);
-  const [featuredImagePreview, setFeaturedImagePreview] = useState(null);
-  const [dragActive, setDragActive] = useState(false);
-  const fileInputRef = useRef(null);
 
-  // Quill editor modules configuration
-  const modules = {
+  const quillModules = {
     toolbar: [
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      [{ header: [1, 2, 3, 4, 5, 6, false] }],
       ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'script': 'sub'}, { 'script': 'super' }],
-      [{ 'indent': '-1'}, { 'indent': '+1' }],
-      [{ 'direction': 'rtl' }],
-      [{ 'align': [] }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
       ['link', 'image', 'video'],
       ['blockquote', 'code-block'],
-      ['clean']
+      ['clean'],
     ],
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleContentChange = (value) => {
+    setFormData(prev => ({ ...prev, content: value }));
+  };
+
+  const isFormValid = () => {
+    return formData.title.trim() !== '' && formData.content.trim() !== '';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isFormValid()) return;
     setLoading(true);
     setError(null);
+
     const payload = {
       ...formData,
-      tags: typeof formData.tags === 'string' 
-        ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) 
+      tags: typeof formData.tags === 'string'
+        ? formData.tags.split(',').map(t => t.trim()).filter(Boolean)
         : formData.tags,
-      featuredImage: featuredImageFile
+      featuredImage: featuredImageFile,
     };
-    const doCreate = async () => {
+
+    try {
       if (featuredImageFile) {
-        const formDataObj = new FormData();
+        const fd = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
-          if (key === 'featuredImage' && value) {
-            formDataObj.append('featuredImage', value);
-          } else if (Array.isArray(value)) {
-            formDataObj.append(key, JSON.stringify(value));
-          } else if (value !== null && value !== undefined) {
-            formDataObj.append(key, value);
+          if (value !== null && value !== undefined) {
+            fd.append(key, Array.isArray(value) ? JSON.stringify(value) : value);
           }
         });
-        await newsAPI.create(formDataObj);
+        await newsAPI.create(fd);
       } else {
         await newsAPI.create(payload);
       }
-    };
-    toast.promise(
-      doCreate(),
-      {
-        loading: 'Creating article...',
-        success: () => {
-          setTimeout(() => navigate('/news', { state: { message: 'Article created successfully' } }), 500);
-          return 'Article created successfully!';
-        },
-        error: (err) => {
-          setError(err?.response?.data?.message || err?.message || 'Failed to create article');
-          setLoading(false);
-          return err?.response?.data?.message || err?.message || 'Failed to create article';
-        }
-      }
-    );
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleContentChange = (value) => {
-    setFormData({
-      ...formData,
-      content: value
-    });
-  };
-
-  const handleImageUpload = (file) => {
-    const f = file || null;
-    setFeaturedImageFile(f);
-    if (featuredImagePreview) URL.revokeObjectURL(featuredImagePreview);
-    if (f) {
-      const url = URL.createObjectURL(f);
-      setFeaturedImagePreview(url);
-    } else {
-      setFeaturedImagePreview(null);
-      toast.success('Image removed');
+      toast.success('Article created');
+      navigate('/news');
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to create article');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDrag = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
+  const renderInput = (name, label, type = 'text', placeholder = '', options = null, rows = 0) => (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500">
+        {label} {['title'].includes(name) && <span className="text-laterite-500">*</span>}
+      </label>
+      {type === 'select' ? (
+        <select
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 outline-none focus:border-laterite-500 transition-colors"
+        >
+          {options.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      ) : type === 'textarea' ? (
+        <textarea
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          placeholder={placeholder}
+          rows={rows || 3}
+          className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 resize-none outline-none focus:border-laterite-500 transition-colors"
+        />
+      ) : (
+        <input
+          type={type}
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          placeholder={placeholder}
+          className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 outline-none focus:border-laterite-500 transition-colors"
+        />
+      )}
+    </div>
+  );
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    const f = e.dataTransfer.files?.[0];
-    if (f && f.type.startsWith('image/')) {
-      handleImageUpload(f);
-    }
-  };
+  // Custom footer with dual buttons
+  const footer = (
+    <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-3 pt-4 border-t border-border">
+      <div className="flex items-center gap-2 text-xs font-mono text-ink-500">
+        <InformationCircleIcon className="h-4 w-4" />
+        Drafts are saved automatically.
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => navigate('/news')}
+          disabled={loading}
+          className="px-4 py-2 border border-border text-ink-800 text-sm hover:bg-parchment-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          name="status"
+          value="draft"
+          disabled={loading}
+          className="px-4 py-2 border border-border text-ink-800 text-sm hover:bg-parchment-50 transition-colors"
+        >
+          Save Draft
+        </button>
+        <button
+          type="submit"
+          name="status"
+          value="published"
+          disabled={loading}
+          className="px-5 py-2 bg-soil-900 text-parchment-50 text-sm font-medium hover:bg-ink-800 transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Publishing…' : 'Publish Now'}
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <button
-              onClick={() => navigate('/news')}
-              className="inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-6 group"
-            >
-              <ArrowLeftIcon className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-              Back to Articles
-            </button>
-            
-            <div className="flex items-start space-x-4">
-              <div className="h-12 w-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-                <NewspaperIcon className="h-6 w-6 text-primary-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Create News Article</h1>
-                <p className="text-gray-600 mt-1">Write and publish a new article</p>
-                
-                {/* Information Card */}
-                <div className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-4 max-w-2xl">
-                  <div className="flex items-start">
-                    <InformationCircleIcon className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-blue-700">
-                        Fields marked with <span className="text-red-500 font-semibold">*</span> are required. 
-                        Save as draft to continue editing later.
-                      </p>
-                    </div>
-                  </div>
+      <FormShell
+        title="Create News Article"
+        subtitle="Write and publish a new article"
+        backPath="/news"
+        error={error}
+        loading={loading}
+        isValid={isFormValid()}
+        onSubmit={handleSubmit}
+        submitLabel=""
+        imageFile={featuredImageFile}
+        setImageFile={setFeaturedImageFile}
+        footerChildren={footer}
+      >
+        {/* Info banner */}
+        <div className="border border-border bg-parchment-50 p-4 text-xs text-ink-500 flex items-start gap-2">
+          <InformationCircleIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+          <span>Fields marked with <span className="text-laterite-500">*</span> are required. Save as draft to continue later.</span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main content column */}
+          <div className="lg:col-span-2 space-y-8">
+            <FormSection title="Article Content">
+              {renderInput('title', 'Title', 'text', 'Enter article title')}
+              {renderInput('excerpt', 'Excerpt', 'textarea', 'Brief summary (max 160 chars)', [], 3)}
+              <div className="relative">
+                <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 mb-2">
+                  Content <span className="text-laterite-500">*</span>
+                </label>
+                <div className="border border-border bg-white">
+                  <ReactQuill
+                    theme="snow"
+                    value={formData.content}
+                    onChange={handleContentChange}
+                    modules={quillModules}
+                    placeholder="Write your article..."
+                    className="h-80"
+                  />
                 </div>
               </div>
-            </div>
+            </FormSection>
           </div>
 
-          {/* Main Form Container */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className="p-6 md:p-8">
-              {error && (
-                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
-                  <InformationCircleIcon className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <div className="text-red-700 text-sm">{error}</div>
-                </div>
-              )}
+          {/* Sidebar */}
+          <div className="space-y-8">
+            <div className="bg-parchment-50 border border-border p-5 space-y-4">
+              <FormSection title="Status">
+                {renderInput('status', 'Status', 'select', '', [
+                  { value: 'draft', label: 'Draft' },
+                  { value: 'published', label: 'Published' },
+                ])}
+              </FormSection>
+            </div>
 
-              <form onSubmit={handleSubmit} className="space-y-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Main Content Column (2/3) */}
-                  <div className="lg:col-span-2 space-y-8">
-                    {/* Title */}
-                    <div>
-                      <label htmlFor="title" className="block text-sm font-semibold text-gray-800 mb-2">
-                        Article Title <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        required
-                        value={formData.title}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        placeholder="Enter a compelling article title..."
-                      />
-                    </div>
+            <div className="bg-parchment-50 border border-border p-5 space-y-4">
+              <FormSection title="Category">
+                {renderInput('category', 'Category', 'select', '', [
+                  { value: 'announcements', label: 'Announcements' },
+                  { value: 'projects', label: 'Projects' },
+                  { value: 'partnerships', label: 'Partnerships' },
+                  { value: 'events', label: 'Events' },
+                  { value: 'research', label: 'Research' },
+                  { value: 'community', label: 'Community' },
+                ])}
+              </FormSection>
+            </div>
 
-                    {/* Excerpt */}
-                    <div>
-                      <label htmlFor="excerpt" className="block text-sm font-semibold text-gray-800 mb-2">
-                        Excerpt
-                      </label>
-                      <textarea
-                        id="excerpt"
-                        name="excerpt"
-                        rows="3"
-                        value={formData.excerpt}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                        placeholder="Brief summary of the article (displayed in article lists)"
-                        maxLength={160}
-                      />
-                      <div className="mt-2 text-sm text-gray-500 flex justify-end">
-                        {formData.excerpt.length}/160 characters
-                      </div>
-                    </div>
+            <div className="bg-parchment-50 border border-border p-5 space-y-4">
+              <FormSection title="Tags">
+                {renderInput('tags', 'Tags (comma separated)', 'text', 'education, project')}
+              </FormSection>
+            </div>
 
-                    {/* Content Editor */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-800 mb-2">
-                        Content <span className="text-red-500">*</span>
-                      </label>
-                      <div className="border border-gray-300 rounded-lg overflow-hidden">
-                        <ReactQuill
-                          theme="snow"
-                          value={formData.content}
-                          onChange={handleContentChange}
-                          modules={modules}
-                          className="h-96"
-                          placeholder="Write your article content here..."
-                        />
-                      </div>
-                    </div>
-
-                    {/* Featured Image */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-800 mb-3">
-                        Featured Image
-                      </label>
-                      <div
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                        onClick={() => fileInputRef.current?.click()}
-                        className={`
-                          border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer p-8
-                          transition-all duration-200
-                          ${dragActive 
-                            ? 'border-primary-500 bg-primary-50' 
-                            : featuredImagePreview
-                              ? 'border-gray-200'
-                              : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50'
-                          }
-                        `}
-                      >
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handleImageUpload(e.target.files?.[0])}
-                        />
-                        
-                        {featuredImagePreview ? (
-                          <div className="relative w-full max-w-2xl">
-                            <img 
-                              src={featuredImagePreview} 
-                              alt="Featured preview" 
-                              className="w-full h-64 object-cover rounded-lg"
-                            />
-                            <button
-                              type="button"
-                              onClick={(e) => { 
-                                e.stopPropagation(); 
-                                handleImageUpload(null); 
-                              }}
-                              className="absolute top-4 right-4 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg"
-                              aria-label="Remove image"
-                            >
-                              <XMarkIcon className="h-5 w-5" />
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <CloudArrowUpIcon className={`h-12 w-12 mb-4 ${dragActive ? 'text-primary-500' : 'text-gray-400'}`} />
-                            <p className="text-sm font-medium text-gray-700 mb-2">
-                              Drop featured image here or click to upload
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              Recommended: 1200×630px, JPG or PNG, max 5MB
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sidebar Column (1/3) */}
-                  <div className="space-y-8">
-                    {/* Publish Box */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Publish</h3>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                            Status
-                          </label>
-                          <select
-                            id="status"
-                            name="status"
-                            value={formData.status}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all"
-                          >
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                          </select>
-                        </div>
-
-                        <div className="pt-4 border-t border-gray-200">
-                          <div className="flex space-x-3">
-                            <button
-                              type="button"
-                              onClick={() => navigate('/news')}
-                              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                              disabled={loading}
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={loading}
-                              className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {loading ? (
-                                <span className="flex items-center justify-center">
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                  Saving...
-                                </span>
-                              ) : formData.status === 'draft' ? 'Save Draft' : 'Publish'}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Categories */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
-                      <div>
-                        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                          Select Category
-                        </label>
-                        <select
-                          id="category"
-                          name="category"
-                          value={formData.category}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white transition-all"
-                        >
-                          <option value="announcements">Announcements</option>
-                          <option value="projects">Projects</option>
-                          <option value="partnerships">Partnerships</option>
-                          <option value="events">Events</option>
-                          <option value="research">Research</option>
-                          <option value="community">Community</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Tags */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-                      <div className="flex items-center mb-4">
-                        <TagIcon className="h-5 w-5 text-gray-500 mr-2" />
-                        <h3 className="text-lg font-semibold text-gray-900">Tags</h3>
-                      </div>
-                      <div>
-                        <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
-                          Add Tags (comma separated)
-                        </label>
-                        <input
-                          type="text"
-                          id="tags"
-                          name="tags"
-                          value={formData.tags}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                          placeholder="education, project, 2024"
-                        />
-                        <p className="mt-2 text-xs text-gray-500">
-                          Separate tags with commas. Helps with search and organization.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* SEO Settings */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h3>
-                      <div className="space-y-4">
-                        <div>
-                          <label htmlFor="metaTitle" className="block text-sm font-medium text-gray-700 mb-2">
-                            Meta Title
-                          </label>
-                          <input
-                            type="text"
-                            id="metaTitle"
-                            name="metaTitle"
-                            value={formData.metaTitle}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                            placeholder="SEO title (defaults to article title)"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700 mb-2">
-                            Meta Description
-                          </label>
-                          <textarea
-                            id="metaDescription"
-                            name="metaDescription"
-                            rows="3"
-                            value={formData.metaDescription}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                            placeholder="SEO description (defaults to excerpt)"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom Actions */}
-                <div className="pt-8 border-t border-gray-200">
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <div className="text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <InformationCircleIcon className="h-4 w-4 mr-2" />
-                        <span>All changes are auto-saved locally</span>
-                      </div>
-                    </div>
-                    <div className="flex space-x-3">
-                      <button
-                        type="button"
-                        onClick={() => navigate('/news')}
-                        className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                        disabled={loading}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        name="status"
-                        value="draft"
-                        disabled={loading}
-                        className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setFormData({...formData, status: 'draft'})}
-                      >
-                        Save Draft
-                      </button>
-                      <button
-                        type="submit"
-                        name="status"
-                        value="published"
-                        disabled={loading}
-                        className="px-6 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={() => setFormData({...formData, status: 'published'})}
-                      >
-                        {loading ? 'Publishing...' : 'Publish Now'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </form>
+            <div className="bg-parchment-50 border border-border p-5 space-y-4">
+              <FormSection title="SEO">
+                {renderInput('metaTitle', 'Meta Title')}
+                {renderInput('metaDescription', 'Meta Description', 'textarea', '', [], 3)}
+              </FormSection>
             </div>
           </div>
         </div>
-      </div>
+      </FormShell>
     </>
   );
 };
