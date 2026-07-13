@@ -53,7 +53,7 @@ const HeroSection = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-screen flex items-end pb-20 md:pb-32 overflow-hidden bg-soil-900"
+      className="relative min-h-[70vh] md:min-h-screen flex items-center md:items-end pt-24 pb-12 md:pb-32 overflow-hidden bg-soil-900"
     >
       {/* Background image — fades in on scroll */}
       <motion.div
@@ -83,15 +83,15 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             {loading ? (
-              <div className="h-24 md:h-32 flex items-center">
-                <div className="animate-pulse bg-parchment-50/10 w-48 h-16 md:h-24" />
+              <div className="h-16 md:h-32 flex items-center">
+                <div className="animate-pulse bg-parchment-50/10 w-40 md:w-48 h-12 md:h-24" />
               </div>
             ) : (
-              <p className="font-display text-[5rem] md:text-[7rem] lg:text-[9rem] font-light leading-none text-parchment-50 tracking-tight">
+              <p className="font-display text-[3.25rem] sm:text-[4.5rem] md:text-[7rem] lg:text-[9rem] font-light leading-none text-parchment-50 tracking-tight">
                 {liveStat?.value}
               </p>
             )}
-            <p className="font-display text-xl md:text-2xl text-parchment-100/70 mt-2">
+            <p className="font-display text-lg md:text-2xl text-parchment-100/70 mt-2">
               {liveStat?.label}
             </p>
           </motion.div>
@@ -125,7 +125,7 @@ const HeroSection = () => {
       </div>
 
       {/* Faint scroll indicator */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
+      <div className="hidden md:flex absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
         <div className="w-4 h-6 border border-parchment-100/20 rounded-full flex justify-center">
           <motion.div
             animate={{ y: [0, 6, 0] }}
