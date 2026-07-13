@@ -12,6 +12,17 @@ import {
 } from '@heroicons/react/24/outline';
 import { contactAPI } from '../services/api';
 
+// ---------- Subtle texture for form card ----------
+const SoilCrackOverlay = () => (
+  <div
+    className="absolute inset-0 opacity-[0.03] bg-repeat pointer-events-none"
+    style={{
+      backgroundImage:
+        "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M10,10 L25,15 L40,10 L50,30 L30,50 L10,40 Z\" fill=\"none\" stroke=\"%23B5522E\" stroke-width=\"0.5\"/%3E%3C/svg%3E')",
+    }}
+  />
+);
+
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -46,7 +57,7 @@ const Contact = () => {
     }
   };
 
-  const contactInfo = [
+  const contactDetails = [
     {
       icon: MapPinIcon,
       title: 'Our Location',
@@ -54,44 +65,45 @@ const Contact = () => {
     },
     {
       icon: PhoneIcon,
-      title: 'Phone Numbers',
-      details: ['+254112727453'],
+      title: 'Phone',
+      details: ['+254 112 727 453'],
     },
     {
       icon: EnvelopeIcon,
-      title: 'Email Address',
+      title: 'Email',
       details: ['info@matakiri.org'],
     },
     {
       icon: ClockIcon,
-      title: 'Working Hours',
-      details: ['Mon - Fri: 8:00 AM - 5:00 PM', 'Sat: 9:00 AM - 2:00 PM'],
+      title: 'Hours',
+      details: ['Mon–Fri 8:00–17:00', 'Sat 9:00–14:00'],
     },
   ];
 
   return (
     <>
       <Helmet>
-        <title>Contact Us - Matakiri Tumaini Centre</title>
+        <title>Contact Us – Matakiri Tumaini Centre</title>
         <meta
           name="description"
           content="Get in touch with Matakiri Tumaini Centre. We'd love to hear from you."
         />
       </Helmet>
 
-      {/* Hero */}
-      <section className="bg-soil-900 text-parchment-50 py-20 md:py-24">
-        <div className="container mx-auto px-4 text-center">
+      {/* Hero – full‑bleed dark with signal accent line */}
+      <section className="relative bg-soil-950 text-parchment-50 py-20 md:py-28">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-signal" />
+        <div className="container mx-auto px-4 text-center relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
             className="max-w-4xl mx-auto"
           >
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-maize-400">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-maize-400 font-sans">
               Get In Touch
             </span>
-            <h1 className="font-display text-4xl md:text-6xl font-medium mt-3 mb-6">
+            <h1 className="font-display text-display-xl md:text-display-hero font-medium mt-3 mb-6">
               Contact Us
             </h1>
             <p className="text-parchment-100/70 max-w-xl mx-auto text-sm">
@@ -101,153 +113,157 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Main Content */}
-      <section className="py-16 md:py-20 bg-parchment-50">
+      {/* Main content – asymmetric split */}
+      <section className="py-16 md:py-24 bg-parchment-50">
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+            {/* Form – takes 3 columns on large screens */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              className="lg:col-span-3"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <div className="bg-white border border-border p-8 space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <PaperAirplaneIcon className="h-6 w-6 text-laterite-500" />
-                  <h2 className="font-display text-xl font-medium text-ink-800">Send us a Message</h2>
-                </div>
+              <div className="bg-white border border-border p-8 relative overflow-hidden">
+                <SoilCrackOverlay />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-6">
+                    <PaperAirplaneIcon className="h-6 w-6 text-laterite-500" />
+                    <h2 className="font-display text-display-md font-medium text-ink-800">
+                      Send us a Message
+                    </h2>
+                  </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  {success && (
-                    <div className="flex items-start gap-2.5 border border-acacia-500/30 bg-acacia-50 px-4 py-3 text-sm text-acacia-700">
-                      <CheckCircleIcon className="h-5 w-5 mt-0.5 shrink-0" />
-                      <span>{success}</span>
-                    </div>
-                  )}
-                  {error && (
-                    <div className="flex items-start gap-2.5 border border-status-danger/30 bg-status-danger/5 px-4 py-3 text-sm text-status-danger">
-                      <ExclamationCircleIcon className="h-5 w-5 mt-0.5 shrink-0" />
-                      <span>{error}</span>
-                    </div>
-                  )}
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    {success && (
+                      <div className="flex items-start gap-2.5 border border-acacia-500/30 bg-acacia-50 px-4 py-3 text-sm text-acacia-700">
+                        <CheckCircleIcon className="h-5 w-5 mt-0.5 shrink-0" />
+                        <span>{success}</span>
+                      </div>
+                    )}
+                    {error && (
+                      <div className="flex items-start gap-2.5 border border-status-danger/30 bg-status-danger/5 px-4 py-3 text-sm text-status-danger">
+                        <ExclamationCircleIcon className="h-5 w-5 mt-0.5 shrink-0" />
+                        <span>{error}</span>
+                      </div>
+                    )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 font-sans">
+                          Full Name <span className="text-laterite-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          required
+                          placeholder="Your full name"
+                          className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 outline-none focus:border-laterite-500 transition-colors focus-visible:ring-2 focus-visible:ring-laterite-500/30"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 font-sans">
+                          Email Address <span className="text-laterite-500">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          placeholder="your@email.com"
+                          className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 outline-none focus:border-laterite-500 transition-colors focus-visible:ring-2 focus-visible:ring-laterite-500/30"
+                        />
+                      </div>
+                    </div>
+
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500">
-                        Full Name <span className="text-laterite-500">*</span>
+                      <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 font-sans">
+                        Subject <span className="text-laterite-500">*</span>
                       </label>
                       <input
                         type="text"
-                        name="name"
-                        value={formData.name}
+                        name="subject"
+                        value={formData.subject}
                         onChange={handleChange}
                         required
-                        placeholder="Your full name"
-                        className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 outline-none focus:border-laterite-500 transition-colors"
+                        placeholder="How can we help you?"
+                        className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 outline-none focus:border-laterite-500 transition-colors focus-visible:ring-2 focus-visible:ring-laterite-500/30"
                       />
                     </div>
+
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500">
-                        Email Address <span className="text-laterite-500">*</span>
+                      <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500 font-sans">
+                        Message <span className="text-laterite-500">*</span>
                       </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
+                      <textarea
+                        name="message"
+                        value={formData.message}
                         onChange={handleChange}
                         required
-                        placeholder="your@email.com"
-                        className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 outline-none focus:border-laterite-500 transition-colors"
+                        rows={6}
+                        placeholder="Tell us about your inquiry..."
+                        className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 outline-none focus:border-laterite-500 transition-colors resize-none focus-visible:ring-2 focus-visible:ring-laterite-500/30"
                       />
                     </div>
-                  </div>
 
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500">
-                      Subject <span className="text-laterite-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleChange}
-                      required
-                      placeholder="How can we help you?"
-                      className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 outline-none focus:border-laterite-500 transition-colors"
-                    />
-                  </div>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-soil-900 hover:bg-soil-950 text-parchment-50 py-3 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-laterite-400"
+                    >
+                      <PaperAirplaneIcon className={`h-4 w-4 ${loading ? 'animate-pulse' : ''}`} />
+                      {loading ? 'Sending…' : 'Send Message'}
+                    </button>
 
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-semibold uppercase tracking-[0.06em] text-ink-500">
-                      Message <span className="text-laterite-500">*</span>
-                    </label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      required
-                      rows={6}
-                      placeholder="Tell us about your inquiry..."
-                      className="w-full border border-border bg-white px-4 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 outline-none focus:border-laterite-500 transition-colors resize-none"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-soil-900 hover:bg-ink-800 text-parchment-50 py-3 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    <PaperAirplaneIcon className={`h-4 w-4 ${loading ? 'animate-pulse' : ''}`} />
-                    {loading ? 'Sending…' : 'Send Message'}
-                  </button>
-
-                  <p className="text-center text-xs text-ink-400 font-mono">
-                    We typically respond within 24 hours.
-                  </p>
-                </form>
+                    <p className="text-center text-xs text-ink-400 font-mono">
+                      We typically respond within 24 hours.
+                    </p>
+                  </form>
+                </div>
               </div>
             </motion.div>
 
-            {/* Contact Info */}
+            {/* Contact info + FAQ – takes 2 columns on large screens, stacked */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-8"
+              className="lg:col-span-2 space-y-8"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
             >
               <div>
-                <h2 className="font-display text-xl font-medium text-ink-800 mb-2">
-                  Contact Information
+                <h2 className="font-display text-display-md font-medium text-ink-800 mb-2">
+                  Reach Out
                 </h2>
                 <p className="text-ink-500 text-sm">
-                  Reach out through any of the channels below. We're here to help.
+                  Through any of the channels below. We're here to help.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {contactInfo.map((info, index) => (
-                  <motion.div
+              {/* Asymmetric contact info – 2×2 but first item spans full width */}
+              <div className="space-y-4">
+                {contactDetails.map((info, index) => (
+                  <div
                     key={index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * index }}
-                    className="bg-white border border-border p-5 space-y-3 hover:border-laterite-500/30 transition-colors"
+                    className="bg-white border border-border p-5 hover:border-laterite-500/30 transition-colors group"
                   >
-                    <info.icon className="h-6 w-6 text-laterite-500" />
+                    <info.icon className="h-5 w-5 text-laterite-500 mb-3" />
                     <h3 className="font-sans font-semibold text-ink-800 text-sm">{info.title}</h3>
                     {info.details.map((detail, i) => (
-                      <p key={i} className="text-xs text-ink-500 font-mono">
+                      <p key={i} className="text-xs text-ink-500 font-mono mt-0.5">
                         {detail}
                       </p>
                     ))}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 
-              {/* FAQ Preview */}
-              <div className="mt-12">
+              {/* FAQ – clean text items */}
+              <div className="pt-4">
                 <h3 className="font-display text-lg font-medium text-ink-800 mb-4">
-                  Common Questions
+                  Quick Answers
                 </h3>
                 <div className="space-y-3">
                   {[
