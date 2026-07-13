@@ -11,6 +11,7 @@ import {
   PhotoIcon,
 } from "@heroicons/react/24/outline";
 import { projectsAPI, partnersAPI, newsAPI } from "../services/api";
+import HeroSection from "../components/Home/HeroSection";
 
 // ---------- Contour Line SVG ----------
 const ContourLine = () => {
